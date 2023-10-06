@@ -22,6 +22,7 @@
 #include "ca_bundle.h"
 #include "pace.h"
 #include "version.h"
+#include "wasm3.h"
 #include "whereami.h"
 #include "mars.h"
 
