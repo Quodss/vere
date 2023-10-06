@@ -133,6 +133,7 @@ vere_library(
         "@lmdb",
         "@openssl",
         "@uv",
+        "@wasm3"
     ],
 )
 
@@ -164,6 +165,7 @@ vere_binary(
         "@openssl",
         # TODO: remove dependency (only used to report version).
         "@sigsegv",
+        "@wasm3",
         "@whereami",
     ],
 )

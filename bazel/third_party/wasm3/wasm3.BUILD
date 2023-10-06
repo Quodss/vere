@@ -3,8 +3,8 @@
  
 cc_library(
     name = "wasm3",
-    srcs = glob(["source/*.c"]),
-    hdrs = glob(["source/wasm3.h", "source/*.h"]),
+    srcs = glob(["**/*.c"]),
+    hdrs = glob(["**/*.h"]),
     copts = [
         "-std=c99",
         "-Wall",
@@ -21,8 +21,8 @@ cc_library(
 
 cc_library(
     name = "m3_lib",
-    srcs = glob(["source/*.c"]),
-    hdrs = glob(["source/wasm3.h", "source/*.h"]),
+    srcs = glob(["**/*.c"]),
+    hdrs = glob(["**/*.h"]),
     copts = ["-std=c99", "-O3", "-Wfatal-errors", "-fomit-frame-pointer", "-fno-stack-check", "-fno-stack-protector"],
     linkopts = ["-O3"],
     visibility = ["//visibility:public"],
