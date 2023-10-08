@@ -5,8 +5,8 @@ cc_library(
     name = "wasm3",
     srcs = glob(["**/*.c"], exclude=["test/**/*.c", "platforms/android/**/*.c"]),
     hdrs = glob(["**/*.h"], exclude=["test/**/*.h", "platforms/android/**/*.h"]),
+    includes = ["source/", "source/extra/"],
     copts = [
-        "-Isource",
         "-std=c99",
         "-Wall",
         "-Wextra",
