@@ -3,8 +3,8 @@
  
 cc_library(
     name = "wasm3",
-    srcs = glob(["**/*.c"], exclude=["test/**/*.c", "platforms/android/**/*.c"]),
-    hdrs = glob(["**/*.h"], exclude=["test/**/*.h", "platforms/android/**/*.h"]),
+    srcs = glob(["**/*.c"], exclude=["test/**/*.c", "platforms/android/**/*.c", "platforms/emscripten/**/*.c", "platforms/emscripten_lib/**/*.c"]),
+    hdrs = glob(["**/*.h"], exclude=["test/**/*.h", "platforms/android/**/*.h", "platforms/emscripten/**/*.h", "platforms/emscripten_lib/**/*.h"]),
     includes = ["source/", "source/extra/"],
     copts = [
         "-std=c99",
