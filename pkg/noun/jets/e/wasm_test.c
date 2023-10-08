@@ -6,6 +6,8 @@
 
 #include "noun.h"
 
+#include "wasm3.h"
+
   static u3_atom
   _cqe_interpret(u3_atom bin,
                  u3_atom i_arg,
@@ -18,7 +20,7 @@
     c3_w i_arg_w = i_arg;
     c3_w i_ret_w = i_ret;
     c3_w  len_bin, len_args;
-    c3_y* bin_bytes = u3r_bytes_all(&len_w, bin);
+    c3_y* bin_bytes = u3r_bytes_all(&len_bin, bin);
     c3_y* args_bytes = u3r_bytes_all(&len_args, args);
     c3_y* out_y = u3a_malloc(i_ret_w * 8);
     u3_atom out;
@@ -34,7 +36,7 @@
     }
 
     IM3Module module;
-    result = m3_ParseModule (env, &module, bin_bytes, (len_bin));
+    M3Result result = m3_ParseModule (env, &module, bin_bytes, (len_bin));
     if (result) {
       return u3m_bail(c3__fail);
     }
