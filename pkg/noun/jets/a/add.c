@@ -6,6 +6,8 @@
 
 #include "noun.h"
 
+#include <stdio.h>
+
 u3_noun
 u3qa_add(u3_atom a,
          u3_atom b)
@@ -34,6 +36,8 @@ u3qa_add(u3_atom a,
 u3_noun
 u3wa_add(u3_noun cor)
 {
+  // fprintf(stderr, "add_jet\n\r");  // DELETE THIS LINE LATER
+
   u3_noun a, b;
 
   if ( (c3n == u3r_mean(cor, u3x_sam_2, &a, u3x_sam_3, &b, 0)) ||

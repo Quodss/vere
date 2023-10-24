@@ -489,6 +489,12 @@ static c3_c* _140_hex_ripe_ha[] = {
   0
 };
 
+static u3j_harm _140_hex__wasm_wasmmain_a[] = {{".2", u3we_interpret, c3n}, {}};
+static u3j_core _140_hex__wasm_d[] =
+  { { "wasmmain", 7, _140_hex__wasm_wasmmain_a, 0, no_hashes },
+  {}
+  };
+
 static u3j_core _140_hex_d[] =
 { { "lore",  63, _140_hex_lore_a, 0, _140_hex_lore_ha },
   { "leer",  63, _140_hex_leer_a, 0, _140_hex_leer_ha },
@@ -506,6 +512,8 @@ static u3j_core _140_hex_d[] =
   { "scr",    31, 0, _140_hex_scr_d,   _140_hex_scr_ha   },
   { "secp",    6, 0, _140_hex_secp_d,  _140_hex_secp_ha  },
   { "mimes",  31, 0, _140_hex_mimes_d, _140_hex_mimes_ha },
+
+  { "wasm", 3, 0, _140_hex__wasm_d, no_hashes },
   {}
 };
 static c3_c* _140_hex_ha[] = {
@@ -2024,6 +2032,7 @@ static c3_c* _140_one_add_ha[] = {
   "46407e27fe5d7c20b3ba25c02657c227b37217ddab8501b2d3b70b818aca7a44",
   0
 };
+static u3j_harm _140_one_was_a[] = {{".2", u3wa_was, c3y}, {}};
 static u3j_harm _140_one_dec_a[] = {{".2", u3wa_dec, c3y}, {}};
 static c3_c* _140_one_dec_ha[] = {
   "6345d28d34c62c4b4f9da98828574bc9060ff0869789968d9045d90faeb3580c",
@@ -2105,6 +2114,7 @@ static u3j_core _140_one_d[] =
 { { "two", 3, 0, _140_two_d, _140_two_ha },
 
   { "add", 7, _140_one_add_a, 0, _140_one_add_ha },
+  { "was", 7, _140_one_was_a, 0, no_hashes },
   { "dec", 7, _140_one_dec_a, 0, _140_one_dec_ha },
   { "div", 7, _140_one_div_a, 0, _140_one_div_ha },
   { "dvr", 7, _140_one_dvr_a, 0, _140_one_dvr_ha },
@@ -2335,6 +2345,7 @@ static u3j_core _139_one_d[] =
 { { "two", 3, 0, _139_two_d, no_hashes },
 
   { "add", 7, _140_one_add_a, 0, no_hashes },
+  { "was", 7, _140_one_was_a, 0, no_hashes },
   { "dec", 7, _140_one_dec_a, 0, no_hashes },
   { "div", 7, _140_one_div_a, 0, no_hashes },
   { "dvr", 7, _140_one_dvr_a, 0, no_hashes },
@@ -2380,6 +2391,7 @@ static u3j_core _a50_two__in_d[] =
 
 u3j_core _a50_d[] =
 { { "add", 7, _140_one_add_a, 0, _140_one_add_ha },
+  { "was", 7, _140_one_was_a, 0, no_hashes },
   { "dec", 7, _140_one_dec_a, 0, _140_one_dec_ha },
   { "div", 7, _140_one_div_a, 0, _140_one_div_ha },
   { "dvr", 7, _140_one_dvr_a, 0, _140_one_dvr_ha },
