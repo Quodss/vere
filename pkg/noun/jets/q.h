@@ -8,7 +8,8 @@
   /** Tier 1.
   **/
     u3_noun u3qa_add(u3_atom, u3_atom);
-    u3_noun u3qa_was(u3_atom, u3_atom, u3_atom, u3_atom, u3_atom);
+    u3_noun u3qa_was(u3_atom, u3_atom, u3_atom, u3_atom, u3_atom, u3_atom);
+    u3_noun u3qa_wass(u3_atom, u3_atom, u3_atom, u3_atom, u3_atom);
     u3_noun u3qa_dec(u3_atom);
     u3_noun u3qa_div(u3_atom, u3_atom);
     u3_noun u3qa_gte(u3_atom, u3_atom);

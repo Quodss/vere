@@ -2033,6 +2033,7 @@ static c3_c* _140_one_add_ha[] = {
   0
 };
 static u3j_harm _140_one_was_a[] = {{".2", u3wa_was, c3y}, {}};
+// static u3j_harm _140_one_wass_a[] = {{".2", u3wa_wass, c3y}, {}};
 static u3j_harm _140_one_dec_a[] = {{".2", u3wa_dec, c3y}, {}};
 static c3_c* _140_one_dec_ha[] = {
   "6345d28d34c62c4b4f9da98828574bc9060ff0869789968d9045d90faeb3580c",
@@ -2115,6 +2116,7 @@ static u3j_core _140_one_d[] =
 
   { "add", 7, _140_one_add_a, 0, _140_one_add_ha },
   { "was", 7, _140_one_was_a, 0, no_hashes },
+  // { "wass", 7, _140_one_wass_a, 0, no_hashes },
   { "dec", 7, _140_one_dec_a, 0, _140_one_dec_ha },
   { "div", 7, _140_one_div_a, 0, _140_one_div_ha },
   { "dvr", 7, _140_one_dvr_a, 0, _140_one_dvr_ha },
@@ -2346,6 +2348,7 @@ static u3j_core _139_one_d[] =
 
   { "add", 7, _140_one_add_a, 0, no_hashes },
   { "was", 7, _140_one_was_a, 0, no_hashes },
+  // { "wass", 7, _140_one_wass_a, 0, no_hashes },
   { "dec", 7, _140_one_dec_a, 0, no_hashes },
   { "div", 7, _140_one_div_a, 0, no_hashes },
   { "dvr", 7, _140_one_dvr_a, 0, no_hashes },
@@ -2392,6 +2395,7 @@ static u3j_core _a50_two__in_d[] =
 u3j_core _a50_d[] =
 { { "add", 7, _140_one_add_a, 0, _140_one_add_ha },
   { "was", 7, _140_one_was_a, 0, no_hashes },
+  // { "wass", 7, _140_one_wass_a, 0, no_hashes },
   { "dec", 7, _140_one_dec_a, 0, _140_one_dec_ha },
   { "div", 7, _140_one_div_a, 0, _140_one_div_ha },
   { "dvr", 7, _140_one_dvr_a, 0, _140_one_dvr_ha },

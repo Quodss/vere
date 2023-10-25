@@ -9,6 +9,7 @@
   **/
     u3_noun u3wa_add(u3_noun);
     u3_noun u3wa_was(u3_noun);
+    u3_noun u3wa_wass(u3_noun);
     u3_noun u3wa_dec(u3_noun);
     u3_noun u3wa_div(u3_noun);
     u3_noun u3wa_gte(u3_noun);
