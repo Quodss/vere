@@ -489,12 +489,6 @@ static c3_c* _140_hex_ripe_ha[] = {
   0
 };
 
-static u3j_harm _140_hex__wasm_wasmmain_a[] = {{".2", u3we_interpret, c3n}, {}};
-static u3j_core _140_hex__wasm_d[] =
-  { { "wasmmain", 7, _140_hex__wasm_wasmmain_a, 0, no_hashes },
-  {}
-  };
-
 static u3j_core _140_hex_d[] =
 { { "lore",  63, _140_hex_lore_a, 0, _140_hex_lore_ha },
   { "leer",  63, _140_hex_leer_a, 0, _140_hex_leer_ha },
@@ -513,7 +507,6 @@ static u3j_core _140_hex_d[] =
   { "secp",    6, 0, _140_hex_secp_d,  _140_hex_secp_ha  },
   { "mimes",  31, 0, _140_hex_mimes_d, _140_hex_mimes_ha },
 
-  { "wasm", 3, 0, _140_hex__wasm_d, no_hashes },
   {}
 };
 static c3_c* _140_hex_ha[] = {
