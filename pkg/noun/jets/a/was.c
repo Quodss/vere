@@ -66,7 +66,7 @@
       return u3m_bail(c3__fail);
     }
     
-    IM3Runtime runtime = m3_NewRuntime (env, 8192, NULL);
+    IM3Runtime runtime = m3_NewRuntime (env, 2097152, NULL);
     if (!runtime) {
       fprintf(stderr, "runtime is null\r\n");
       return u3m_bail(c3__fail);
