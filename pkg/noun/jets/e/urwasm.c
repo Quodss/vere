@@ -51,7 +51,7 @@ _get_results_wasm(IM3Function i_function, c3_w i_retc)
     case c_m3Type_i32: {
       c3_w out = *(c3_w*)(s);
       s += 8;
-      list_out = u3nc(u3nc(TAS_I32, u3i_word(out)), list_out);
+      list_out = u3nc(u3nc(u3i_word(TAS_I32), u3i_word(out)), list_out);
       break;
     }
     case c_m3Type_i64: {
@@ -338,7 +338,7 @@ u3wa_lia_main(u3_noun cor)
         i32_n_funcs = tagged_n_funcs.value.i32;
       }
     }
-    u3_atom len_vals = u3kb_lent(u3k(vals));
+    u3_atom len_vals = u3qb_lent(vals);
     if (c3n == u3a_is_cat(len_vals)) {
       return u3m_bail(c3__fail);
     }
@@ -349,7 +349,7 @@ u3wa_lia_main(u3_noun cor)
     for (c3_w i_w = i32_act_0; i_w < func_idx_last; i_w++) {
       u3_noun i_vals;
       u3x_cell(vals, &i_vals, &vals);
-      u3_atom len_i_vals = u3kb_lent(u3k(i_vals));
+      u3_atom len_i_vals = u3qb_lent(i_vals);
       if (c3n == u3a_is_cat(len_i_vals)) {
         return u3m_bail(c3__fail);
       }
@@ -416,11 +416,11 @@ u3wa_lia_main(u3_noun cor)
     // u3_noun lia_types = u3t(u3h(last_action));
     c3_w n_out = u3r_word(0, u3qb_lent(lia_types));
     u3_noun out_wasm = _get_results_wasm(f, n_out);
-    u3_noun out_lia = u3_nul;
+    u3_noun t = out_wasm, out_lia = u3_nul;
     for (c3_w i = 0; i < n_out; i++) {
       u3_noun lia_type, wasm_noun;
       u3x_cell(lia_types, &lia_type, &lia_types);
-      u3x_cell(out_wasm, &wasm_noun, &out_wasm);  // potential leak?
+      u3x_cell(t, &wasm_noun, &t);  // potential leak?
       if (lia_type != TAS_OCTS) {
         if (lia_type != u3h(wasm_noun)) {
           return u3m_bail(c3__exit);
@@ -468,15 +468,16 @@ u3wa_lia_main(u3_noun cor)
         }
       }
     }
-    if (out_wasm != u3_nul) {
+    if (t != u3_nul) {
       return u3m_bail(c3__fail);
     }
+    u3_noun out = u3nc(0, u3kb_flop(out_lia));
     u3z(len_vals);
     u3z(input_line_vals);
     u3z(line_shop);
     u3z(king_octs);
     // u3z(out_wasm);
     u3z(line_code_flopped);
-    return u3nc(0, u3kb_flop(out_lia));
+    return out;
   }
 }
