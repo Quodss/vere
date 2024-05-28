@@ -224,12 +224,12 @@ u3wa_lia_main(u3_noun cor)
                         62, &line_import,
                         63, &line_diff,
                         0);
+    u3k(line_code);
+    u3k(line_shop);
     if (c3n == u3ud(line_diff))
     {
       u3_noun flag, p_diff;
       u3x_cell(line_diff, &flag, &p_diff);
-      u3k(line_code);
-      u3k(line_shop);
       if (c3y == flag) {
         line_code = u3kb_weld(line_code, u3nc(u3k(p_diff), u3_nul));
       }
@@ -239,7 +239,7 @@ u3wa_lia_main(u3_noun cor)
     }
     king_ast = u3n_slam_on(gate_comp,
       u3i_qual(u3k(line_module),
-              u3k(line_code),
+              u3k(line_code), // double use
               u3k(line_ext),
               u3k(line_import)
               )
@@ -476,7 +476,7 @@ u3wa_lia_main(u3_noun cor)
     u3z(input_line_vals);
     u3z(line_shop);
     u3z(king_octs);
-    // u3z(out_wasm);
+    u3z(out_wasm);
     u3z(line_code_flopped);
     return out;
   }
