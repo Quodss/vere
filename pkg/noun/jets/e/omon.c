@@ -136,7 +136,7 @@
       u3_weak res_hed = _bast_bind_fun(a, b, len_w, buf_y, dash, cor);
       u3_weak res = (u3_none == res_hed)
                   ? u3_none
-                  : u3nt(u3k(res_hed), len_w, u3i_bytes(len_w, buf_y));
+                  : u3nt(res_hed, len_w, u3i_bytes(len_w, buf_y));
       if (u3_none != res) {
         fprintf(stderr, "\r\nfinal alloc\r\n");
       }
