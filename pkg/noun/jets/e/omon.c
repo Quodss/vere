@@ -23,6 +23,8 @@
     //
     for (;;) {
       u3_noun a_res_hed;
+      //  TODO "register" pure, bind in LHS
+      //
       if ( (c3y == u3r_sing(u3x_at(u3x_bat, a), u3x_at(u3x_bat, dash.write_fun))) &&
            (c3y == u3r_sing(u3x_at(63, a), u3x_at(63, dash.write_fun)))  //  ..write-bytes
           ) {
@@ -56,7 +58,7 @@
         return u3n_slam_on(cont, u3k(a_res_tel));
       }
       //  route on (b c)
-      //
+      //  TODO check that +6 exists
       u3_noun cont = u3n_slam_on(u3k(b), a_res_hed);
       if ( (c3y == u3r_sing(u3x_at(u3x_bat, cont), u3x_at(u3x_bat, cor))) &&
            (c3y == u3r_mean(cont, u3x_con_sam_2, &a, u3x_con_sam_3, &b, 0))
@@ -65,6 +67,7 @@
       }
       else {
         // fprintf(stderr, "\r\nshimmer (b c)\r\n");
+        //  TODO what causes shimmering in RHS?
         return u3n_slam_on(cont, u3nc(len_w, u3i_bytes(len_w, buf_y)));
       }
     }
