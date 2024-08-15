@@ -193,6 +193,7 @@
     u3_noun u3wee_shar(u3_noun);
     u3_noun u3wee_point_add(u3_noun);
     u3_noun u3wee_scalarmult(u3_noun);
+    u3_noun u3we_omon_bind_fun(u3_noun);
     u3_noun u3wee_scalarmult_base(u3_noun);
     u3_noun u3wee_add_scalarmult_scalarmult_base(u3_noun);
     u3_noun u3wee_add_double_scalarmult(u3_noun);
