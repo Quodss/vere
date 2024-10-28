@@ -1146,7 +1146,8 @@ fn build_single(
     const artifacts_append = [_]*std.Build.Step.Compile{
         vere,
         urbit
-    }
+    };
+    
     for (artifacts_append) |artifact| {
         targets_cdb.append(artifact) catch @panic("OOM");
     }
