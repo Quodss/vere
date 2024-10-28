@@ -373,7 +373,7 @@ fn build_single(
         avahi.artifact("dns-sd"),
         backtrace.artifact("backtrace"),
         curl.artifact("curl"),
-        gmp.artifact("gmp"),
+        // gmp.artifact("gmp"),
         h2o.artifact("h2o"),
         libuv.artifact("libuv"),
         lmdb.artifact("lmdb"),
