@@ -1121,30 +1121,31 @@ fn build_single(
         );
     }
 
-    const deps_artifacts = [_]*std.Build.Step.Compile{
-        // avahi.artifact("dns-sd"),
-        backtrace.artifact("backtrace"),
-        // curl.artifact("curl"),
-        gmp.artifact("gmp"),
-        // h2o.artifact("h2o"),
-        // libuv.artifact("libuv"),
-        // lmdb.artifact("lmdb"),
-        murmur3.artifact("murmur3"),
-        // natpmp.artifact("natpmp"),
-        openssl.artifact("ssl"),
-        pdjson.artifact("pdjson"),
-        sigsegv.artifact("sigsegv"),
-        softblas.artifact("softblas"),
-        softfloat.artifact("softfloat"),
-        unwind.artifact("unwind"),
-        urcrypt.artifact("urcrypt"),
-        whereami.artifact("whereami"),
-        zlib.artifact("z"),
-    };
-
-    for (artifacts ++ deps_artifacts) |artifact| {
-        targets_cdb.append(artifact) catch @panic("OOM");
-    }
+    // const deps_artifacts = [_]*std.Build.Step.Compile{
+    //     // avahi.artifact("dns-sd"),
+    //     backtrace.artifact("backtrace"),
+    //     // curl.artifact("curl"),
+    //     gmp.artifact("gmp"),
+    //     // h2o.artifact("h2o"),
+    //     // libuv.artifact("libuv"),
+    //     // lmdb.artifact("lmdb"),
+    //     murmur3.artifact("murmur3"),
+    //     // natpmp.artifact("natpmp"),
+    //     openssl.artifact("ssl"),
+    //     pdjson.artifact("pdjson"),
+    //     sigsegv.artifact("sigsegv"),
+    //     softblas.artifact("softblas"),
+    //     softfloat.artifact("softfloat"),
+    //     unwind.artifact("unwind"),
+    //     urcrypt.artifact("urcrypt"),
+    //     whereami.artifact("whereami"),
+    //     zlib.artifact("z"),
+    // };
+    // 
+    // for (artifacts ++ deps_artifacts) |artifact| {
+    //     targets_cdb.append(artifact) catch @panic("OOM");
+    // }
+    targets_cdb.append(vere) catch @panic("OOM");
 }
 
 fn add_test(
@@ -1165,7 +1166,7 @@ fn add_test(
         .optimize = optimize,
     });
 
-    targets_cdb.append(test_exe) catch @panic("OOM");
+    // targets_cdb.append(test_exe) catch @panic("OOM");
 
     // const target_output = b.addInstallArtifact(test_exe, .{
     //     .dest_dir = .{
