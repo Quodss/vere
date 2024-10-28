@@ -319,24 +319,6 @@ fn build_single(
         .optimize = optimize,
     });
 
-    // targets_cdb.append(avahi) catch @panic("OOM");
-    // targets_cdb.append(backtrace) catch @panic("OOM");
-    // targets_cdb.append(curl) catch @panic("OOM");
-    // targets_cdb.append(gmp) catch @panic("OOM");
-    // targets_cdb.append(h2o) catch @panic("OOM");
-    // targets_cdb.append(libuv) catch @panic("OOM");
-    // targets_cdb.append(lmdb) catch @panic("OOM");
-    // targets_cdb.append(murmur3) catch @panic("OOM");
-    // targets_cdb.append(natpmp) catch @panic("OOM");
-    // targets_cdb.append(openssl) catch @panic("OOM");
-    // targets_cdb.append(pdjson) catch @panic("OOM");
-    // targets_cdb.append(sigsegv) catch @panic("OOM");
-    // targets_cdb.append(softblas) catch @panic("OOM");
-    // targets_cdb.append(softfloat) catch @panic("OOM");
-    // targets_cdb.append(unwind) catch @panic("OOM");
-    // targets_cdb.append(urcrypt) catch @panic("OOM");
-    // targets_cdb.append(whereami) catch @panic("OOM");
-    // targets_cdb.append(zlib) catch @panic("OOM");
 
     //
     // Install artifacts
@@ -378,13 +360,6 @@ fn build_single(
         .optimize = optimize,
     });
 
-    targets_cdb.append(pkg_c3)   catch @panic("OOM");
-    targets_cdb.append(pkg_ent)  catch @panic("OOM");
-    targets_cdb.append(pkg_ur)   catch @panic("OOM");
-    targets_cdb.append(pkg_noun) catch @panic("OOM");
-    targets_cdb.append(vere)     catch @panic("OOM");
-    targets_cdb.append(urbit)    catch @panic("OOM");
-
     const artifacts = [_]*std.Build.Step.Compile{
         pkg_c3,
         pkg_ent,
@@ -392,6 +367,27 @@ fn build_single(
         pkg_noun,
         vere,
         urbit,
+    };
+
+    const deps_artifacts = [_]*std.Build.Step.Compile{
+        avahi.artifact("avahi"),
+        backtrace.artifact("backtrace"),
+        curl.artifact("curl"),
+        gmp.artifact("gmp"),
+        h2o.artifact("h2o"),
+        libuv.artifact("libuv"),
+        lmdb.artifact("lmdb"),
+        murmur3.artifact("murmur3"),
+        natpmp.artifact("natpmp"),
+        openssl.artifact("openssl"),
+        pdjson.artifact("pdjson"),
+        sigsegv.artifact("sigsegv"),
+        softblas.artifact("softblas"),
+        softfloat.artifact("softfloat"),
+        unwind.artifact("unwind"),
+        urcrypt.artifact("urcrypt"),
+        whereami.artifact("whereami"),
+        zlib.artifact("zlib"),
     };
 
     for (artifacts) |artifact| {
@@ -410,6 +406,12 @@ fn build_single(
             },
         });
         b.getInstallStep().dependOn(&target_output.step);
+
+        targets_cdb.append(artifact) catch @panic("OOM");
+    }
+
+    for deps_artifacts |artifact| {
+        targets_cdb.append(artifact) catch @panic("OOM");
     }
 
     if (target.result.isDarwin() and !target.query.isNative()) {
