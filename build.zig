@@ -141,7 +141,14 @@ pub fn build(b: *std.Build) !void {
         );
     }
     
-    zcc.createStep(b, "cdb", targets_cdb.toOwnedSlice() catch @panic("OOM"));
+    const cdb_step = b.step("cdb", "Generate compile commands");
+    const compile_cmds = zcc.createStep(b, "cdb", targets_cdb.toOwnedSlice() catch @panic("OOM"));
+    
+    for (targets_cdb.items) |compile_step| {
+        compile_cmds.step.dependOn(&compile_step.step);
+    }
+    
+    cdb_step.dependOn(&compile_cmds.step);
 }
 
 fn build_single(
