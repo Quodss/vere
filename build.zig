@@ -370,7 +370,7 @@ fn build_single(
     };
 
     const deps_artifacts = [_]*std.Build.Step.Compile{
-        avahi.artifact("avahi"),
+        avahi.artifact("dns-sd"),
         backtrace.artifact("backtrace"),
         curl.artifact("curl"),
         gmp.artifact("gmp"),
@@ -406,11 +406,9 @@ fn build_single(
             },
         });
         b.getInstallStep().dependOn(&target_output.step);
-
-        targets_cdb.append(artifact) catch @panic("OOM");
     }
 
-    for (deps_artifacts) |artifact| {
+    for (artifacts ++ deps_artifacts) |artifact| {
         targets_cdb.append(artifact) catch @panic("OOM");
     }
 
