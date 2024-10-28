@@ -148,7 +148,7 @@ pub fn build(b: *std.Build) !void {
     // Create a pre-step that ensures all compile steps are done
     const pre_cdb = b.step("dummy", "dummy");
     for (owned_targets) |compile_step| {
-        pre_cdb.step.dependOn(&compile_step.step);
+        pre_cdb.dependOn(&compile_step.step);
     }
     
     // Now create the compile commands step after all other steps are guaranteed to be complete
