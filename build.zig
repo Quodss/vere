@@ -153,7 +153,7 @@ pub fn build(b: *std.Build) !void {
     
     // Now create the compile commands step after all other steps are guaranteed to be complete
     zcc.createStep(b, "cdb", owned_targets);
-    cdb_step.dependOn(&pre_cdb.step);
+    cdb_step.dependOn(&pre_cdb);
 }
 
 fn build_single(
