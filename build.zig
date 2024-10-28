@@ -1158,6 +1158,7 @@ fn add_test(
     cflags: []const []const u8,
     targets_cdb: *std.ArrayList(*std.Build.Step.Compile)
 ) void {
+    _ = targets_cdb;
     const test_step = b.step(name, b.fmt("Build & run: {s}", .{file}));
 
     const test_exe = b.addExecutable(.{
