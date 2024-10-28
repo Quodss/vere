@@ -1122,15 +1122,15 @@ fn build_single(
     }
 
     const deps_artifacts = [_]*std.Build.Step.Compile{
-        avahi.artifact("dns-sd"),
+        // avahi.artifact("dns-sd"),
         backtrace.artifact("backtrace"),
-        curl.artifact("curl"),
+        // curl.artifact("curl"),
         gmp.artifact("gmp"),
-        h2o.artifact("h2o"),
-        libuv.artifact("libuv"),
-        lmdb.artifact("lmdb"),
+        // h2o.artifact("h2o"),
+        // libuv.artifact("libuv"),
+        // lmdb.artifact("lmdb"),
         murmur3.artifact("murmur3"),
-        natpmp.artifact("natpmp"),
+        // natpmp.artifact("natpmp"),
         openssl.artifact("ssl"),
         pdjson.artifact("pdjson"),
         sigsegv.artifact("sigsegv"),
