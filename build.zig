@@ -122,7 +122,9 @@ pub fn build(b: *std.Build) !void {
         .include_test_steps = !all,
     };
 
+    const cdb_step = b.step("cdb", "Generate compile_commands.json");
     var targets_cdb = std.ArrayList(*std.Build.Step.Compile).init(b.allocator);
+    
     if (all) {
         for (targets) |t| {
             try build_single(b, b.resolveTargetQuery(t), optimize, build_cfg, &targets_cdb);
@@ -141,14 +143,17 @@ pub fn build(b: *std.Build) !void {
         );
     }
     
-    const cdb_step = b.step("cdb", "Generate compile commands");
-    const compile_cmds = zcc.createStep(b, "cdb", targets_cdb.toOwnedSlice() catch @panic("OOM"));
+    const owned_targets = try targets_cdb.toOwnedSlice();
     
-    for (targets_cdb.items) |compile_step| {
-        compile_cmds.step.dependOn(&compile_step.step);
+    // Create a pre-step that ensures all compile steps are done
+    const pre_cdb = b.addSystemCommand(&.{});
+    for (owned_targets) |compile_step| {
+        pre_cdb.step.dependOn(&compile_step.step);
     }
     
-    cdb_step.dependOn(&compile_cmds.step);
+    // Now create the compile commands step after all other steps are guaranteed to be complete
+    zcc.createStep(b, "cdb", owned_targets);
+    cdb_step.dependOn(&pre_cdb.step);
 }
 
 fn build_single(
