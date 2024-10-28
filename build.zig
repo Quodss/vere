@@ -1,4 +1,5 @@
 const std = @import("std");
+const zcc = @import("compile_commands");
 
 const VERSION = "3.2";
 
@@ -121,9 +122,10 @@ pub fn build(b: *std.Build) !void {
         .include_test_steps = !all,
     };
 
+    var targets_cdb = std.ArrayList(*std.Build.Step.Compile).init(b.allocator);
     if (all) {
         for (targets) |t| {
-            try build_single(b, b.resolveTargetQuery(t), optimize, build_cfg);
+            try build_single(b, b.resolveTargetQuery(t), optimize, build_cfg, &targets_cdb);
         }
     } else {
         const t = target.result;
@@ -135,8 +137,11 @@ pub fn build(b: *std.Build) !void {
                 target,
             optimize,
             build_cfg,
+            &targets_cdb,
         );
     }
+
+    zcc.createStep(b, "cdb", targets_cdb.toOwnedSlice() catch @panic("OOM"));
 }
 
 fn build_single(
@@ -144,6 +149,7 @@ fn build_single(
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     cfg: BuildCfg,
+    targets_cdb: *std.ArrayList(*std.Build.Step.Compile),
 ) !void {
     const t = target.result;
 
@@ -352,6 +358,8 @@ fn build_single(
         .target = target,
         .optimize = optimize,
     });
+
+    targets_cdb.append(urbit) catch @panic("OOM");
 
     const artifacts = [_]*std.Build.Step.Compile{
         pkg_c3,
@@ -923,6 +931,7 @@ fn build_single(
             "pkg/ur/tests.c",
             &.{pkg_ur},
             urbit_flags.items,
+            targets_cdb,
         );
 
         // pkg_ent
@@ -934,6 +943,7 @@ fn build_single(
             "pkg/ent/tests.c",
             &.{pkg_ent},
             urbit_flags.items,
+            targets_cdb,
         );
 
         // pkg_noun
@@ -945,6 +955,7 @@ fn build_single(
             "pkg/noun/hashtable_tests.c",
             &.{ pkg_noun, pkg_c3, gmp.artifact("gmp") },
             noun_flags.items,
+            targets_cdb,
         );
         add_test(
             b,
@@ -954,6 +965,7 @@ fn build_single(
             "pkg/noun/jets_tests.c",
             &.{ pkg_noun, pkg_c3, gmp.artifact("gmp") },
             noun_flags.items,
+            targets_cdb,
         );
         add_test(
             b,
@@ -963,6 +975,7 @@ fn build_single(
             "pkg/noun/nock_tests.c",
             &.{ pkg_noun, pkg_c3, gmp.artifact("gmp") },
             noun_flags.items,
+            targets_cdb,
         );
         add_test(
             b,
@@ -972,6 +985,7 @@ fn build_single(
             "pkg/noun/retrieve_tests.c",
             &.{ pkg_noun, pkg_c3, gmp.artifact("gmp") },
             noun_flags.items,
+            targets_cdb,
         );
         add_test(
             b,
@@ -981,6 +995,7 @@ fn build_single(
             "pkg/noun/serial_tests.c",
             &.{ pkg_noun, pkg_c3, gmp.artifact("gmp") },
             noun_flags.items,
+            targets_cdb,
         );
 
         // vere
@@ -1003,6 +1018,7 @@ fn build_single(
                 zlib.artifact("z"),
             },
             vere_flags.items,
+            targets_cdb,
         );
         add_test(
             b,
@@ -1022,6 +1038,7 @@ fn build_single(
                 natpmp.artifact("natpmp"),
             },
             vere_flags.items,
+            targets_cdb,
         );
         add_test(
             b,
@@ -1041,6 +1058,7 @@ fn build_single(
                 natpmp.artifact("natpmp"),
             },
             vere_flags.items,
+            targets_cdb,
         );
         add_test(
             b,
@@ -1060,6 +1078,7 @@ fn build_single(
                 natpmp.artifact("natpmp"),
             },
             vere_flags.items,
+            targets_cdb,
         );
         add_test(
             b,
@@ -1079,6 +1098,7 @@ fn build_single(
                 natpmp.artifact("natpmp"),
             },
             vere_flags.items,
+            targets_cdb,
         );
         add_test(
             b,
@@ -1098,19 +1118,12 @@ fn build_single(
                 natpmp.artifact("natpmp"),
             },
             vere_flags.items,
+            targets_cdb,
         );
     }
 }
 
-fn add_test(
-    b: *std.Build,
-    target: std.Build.ResolvedTarget,
-    optimize: std.builtin.OptimizeMode,
-    name: []const u8,
-    file: []const u8,
-    deps: []const *std.Build.Step.Compile,
-    cflags: []const []const u8,
-) void {
+fn add_test(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, name: []const u8, file: []const u8, deps: []const *std.Build.Step.Compile, cflags: []const []const u8, targets_cdb: *std.ArrayList(*std.Build.Step.Compile)) void {
     const test_step = b.step(name, b.fmt("Build & run: {s}", .{file}));
 
     const test_exe = b.addExecutable(.{
@@ -1118,6 +1131,8 @@ fn add_test(
         .target = target,
         .optimize = optimize,
     });
+
+    targets_cdb.append(test_exe) catch @panic("OOM");
 
     // const target_output = b.addInstallArtifact(test_exe, .{
     //     .dest_dir = .{
