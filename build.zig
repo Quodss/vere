@@ -140,7 +140,7 @@ pub fn build(b: *std.Build) !void {
             &targets_cdb,
         );
     }
-
+    
     zcc.createStep(b, "cdb", targets_cdb.toOwnedSlice() catch @panic("OOM"));
 }
 
@@ -369,27 +369,6 @@ fn build_single(
         urbit,
     };
 
-    const deps_artifacts = [_]*std.Build.Step.Compile{
-        avahi.artifact("dns-sd"),
-        backtrace.artifact("backtrace"),
-        curl.artifact("curl"),
-        // gmp.artifact("gmp"),
-        h2o.artifact("h2o"),
-        libuv.artifact("libuv"),
-        lmdb.artifact("lmdb"),
-        murmur3.artifact("murmur3"),
-        natpmp.artifact("natpmp"),
-        openssl.artifact("ssl"),
-        pdjson.artifact("pdjson"),
-        sigsegv.artifact("sigsegv"),
-        softblas.artifact("softblas"),
-        softfloat.artifact("softfloat"),
-        unwind.artifact("unwind"),
-        urcrypt.artifact("urcrypt"),
-        whereami.artifact("whereami"),
-        zlib.artifact("z"),
-    };
-
     for (artifacts) |artifact| {
         const target_query: std.Target.Query = .{
             .cpu_arch = t.cpu.arch,
@@ -406,10 +385,6 @@ fn build_single(
             },
         });
         b.getInstallStep().dependOn(&target_output.step);
-    }
-
-    for (artifacts ++ deps_artifacts) |artifact| {
-        targets_cdb.append(artifact) catch @panic("OOM");
     }
 
     if (target.result.isDarwin() and !target.query.isNative()) {
@@ -1144,6 +1119,31 @@ fn build_single(
             vere_flags.items,
             targets_cdb,
         );
+    }
+
+    const deps_artifacts = [_]*std.Build.Step.Compile{
+        avahi.artifact("dns-sd"),
+        backtrace.artifact("backtrace"),
+        curl.artifact("curl"),
+        gmp.artifact("gmp"),
+        h2o.artifact("h2o"),
+        libuv.artifact("libuv"),
+        lmdb.artifact("lmdb"),
+        murmur3.artifact("murmur3"),
+        natpmp.artifact("natpmp"),
+        openssl.artifact("ssl"),
+        pdjson.artifact("pdjson"),
+        sigsegv.artifact("sigsegv"),
+        softblas.artifact("softblas"),
+        softfloat.artifact("softfloat"),
+        unwind.artifact("unwind"),
+        urcrypt.artifact("urcrypt"),
+        whereami.artifact("whereami"),
+        zlib.artifact("z"),
+    };
+
+    for (artifacts ++ deps_artifacts) |artifact| {
+        targets_cdb.append(artifact) catch @panic("OOM");
     }
 }
 
