@@ -425,7 +425,7 @@ fn build_single(
         .flags = urbit_flags.items,
     });
 
-    pkg_c3.installHeadersDirectory(b.path("pkg/c3"), "c3", .{
+    pkg_c3.installHeadersDirectory(b.path("pkg/c3"), "", .{
         .include_extensions = &.{".h"},
     });
 
@@ -454,7 +454,7 @@ fn build_single(
         .flags = ent_flags.items,
     });
 
-    pkg_ent.installHeadersDirectory(b.path("pkg/ent"), "ent", .{
+    pkg_ent.installHeadersDirectory(b.path("pkg/ent"), "", .{
         .include_extensions = &.{".h"},
     });
 
@@ -1159,7 +1159,6 @@ fn add_test(
     cflags: []const []const u8,
     targets_cdb: *std.ArrayList(*std.Build.Step.Compile)
 ) void {
-    _ = targets_cdb;
     const test_step = b.step(name, b.fmt("Build & run: {s}", .{file}));
 
     const test_exe = b.addExecutable(.{
@@ -1167,7 +1166,8 @@ fn add_test(
         .target = target,
         .optimize = optimize,
     });
-
+    
+    _ = targets_cdb;
     // targets_cdb.append(test_exe) catch @panic("OOM");
 
     // const target_output = b.addInstallArtifact(test_exe, .{
