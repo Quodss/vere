@@ -379,7 +379,7 @@ fn build_single(
         lmdb.artifact("lmdb"),
         murmur3.artifact("murmur3"),
         natpmp.artifact("natpmp"),
-        openssl.artifact("openssl"),
+        openssl.artifact("ssl"),
         pdjson.artifact("pdjson"),
         sigsegv.artifact("sigsegv"),
         softblas.artifact("softblas"),
