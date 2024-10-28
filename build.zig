@@ -410,7 +410,7 @@ fn build_single(
         targets_cdb.append(artifact) catch @panic("OOM");
     }
 
-    for deps_artifacts |artifact| {
+    for (deps_artifacts) |artifact| {
         targets_cdb.append(artifact) catch @panic("OOM");
     }
 
