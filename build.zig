@@ -1123,7 +1123,16 @@ fn build_single(
     }
 }
 
-fn add_test(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, name: []const u8, file: []const u8, deps: []const *std.Build.Step.Compile, cflags: []const []const u8, targets_cdb: *std.ArrayList(*std.Build.Step.Compile)) void {
+fn add_test(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    name: []const u8,
+    file: []const u8,
+    deps: []const *std.Build.Step.Compile,
+    cflags: []const []const u8,
+    targets_cdb: *std.ArrayList(*std.Build.Step.Compile)
+) void {
     const test_step = b.step(name, b.fmt("Build & run: {s}", .{file}));
 
     const test_exe = b.addExecutable(.{
