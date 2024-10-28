@@ -1144,10 +1144,14 @@ fn build_single(
     // 
     
     const artifacts_append = [_]*std.Build.Step.Compile{
+        pkg_c3,
+        pkg_ent,
+        pkg_ur,
+        pkg_noun,
         vere,
-        urbit
+        urbit,
     };
-    
+
     for (artifacts_append) |artifact| {
         targets_cdb.append(artifact) catch @panic("OOM");
     }
