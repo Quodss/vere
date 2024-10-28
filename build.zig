@@ -122,7 +122,6 @@ pub fn build(b: *std.Build) !void {
         .include_test_steps = !all,
     };
 
-    const cdb_step = b.step("cdb", "Generate compile_commands.json");
     var targets_cdb = std.ArrayList(*std.Build.Step.Compile).init(b.allocator);
 
     if (all) {
@@ -143,17 +142,7 @@ pub fn build(b: *std.Build) !void {
         );
     }
     
-    const owned_targets = try targets_cdb.toOwnedSlice();
-    
-    // Create a pre-step that ensures all compile steps are done
-    var pre_cdb = b.step("dummy", "dummy");
-    for (owned_targets) |compile_step| {
-        pre_cdb.dependOn(&compile_step.step);
-    }
-    
-    // Now create the compile commands step after all other steps are guaranteed to be complete
-    zcc.createStep(b, "cdb2", owned_targets);
-    cdb_step.dependOn(pre_cdb);
+    zcc.createStep(b, "cdb", targets_cdb.toOwnedSlice() catch @panic("OOM"));
 
 }
 
@@ -1133,39 +1122,29 @@ fn build_single(
             targets_cdb,
         );
     }
-
-    // const deps_artifacts = [_]*std.Build.Step.Compile{
-    //     // avahi.artifact("dns-sd"),
-    //     backtrace.artifact("backtrace"),
-    //     // curl.artifact("curl"),
-    //     gmp.artifact("gmp"),
-    //     // h2o.artifact("h2o"),
-    //     // libuv.artifact("libuv"),
-    //     // lmdb.artifact("lmdb"),
-    //     murmur3.artifact("murmur3"),
-    //     // natpmp.artifact("natpmp"),
-    //     openssl.artifact("ssl"),
-    //     pdjson.artifact("pdjson"),
-    //     sigsegv.artifact("sigsegv"),
-    //     softblas.artifact("softblas"),
-    //     softfloat.artifact("softfloat"),
-    //     unwind.artifact("unwind"),
-    //     urcrypt.artifact("urcrypt"),
-    //     whereami.artifact("whereami"),
-    //     zlib.artifact("z"),
-    // };
-    // 
     
-    const artifacts_append = [_]*std.Build.Step.Compile{
+    const artifacts_cdb = [_]*std.Build.Step.Compile{
         pkg_c3,
         pkg_ent,
         pkg_ur,
         pkg_noun,
         vere,
         urbit,
+        backtrace.artifact("backtrace"),
+        gmp.artifact("gmp"),
+        murmur3.artifact("murmur3"),
+        openssl.artifact("ssl"),
+        pdjson.artifact("pdjson"),
+        sigsegv.artifact("sigsegv"),
+        softfloat.artifact("softfloat"),
+        softblas.artifact("softblas"),
+        unwind.artifact("unwind"),
+        urcrypt.artifact("urcrypt"),
+        whereami.artifact("whereami"),
+        zlib.artifact("z"),
     };
 
-    for (artifacts_append) |artifact| {
+    for (artifacts_cdb) |artifact| {
         targets_cdb.append(artifact) catch @panic("OOM");
     }
 }

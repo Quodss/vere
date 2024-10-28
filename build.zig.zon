@@ -66,8 +66,9 @@
             .hash = "122034ab2a12adf8016ffa76e48b4be3245ffd305193edba4d83058adbcfa749c107",
         },
         .compile_commands = .{
-            .url = "https://github.com/the-argus/zig-compile-commands/archive/b73e8bdeb1266ea01b249387cabb39aad49f35d1.tar.gz",
-            .hash = "1220b92b277b33762a10b4f239edddfbe9aadd53af88c678f94443b0d2312d9526fa",
+            // .url = "https://github.com/the-argus/zig-compile-commands/archive/b73e8bdeb1266ea01b249387cabb39aad49f35d1.tar.gz",
+            // .hash = "1220b92b277b33762a10b4f239edddfbe9aadd53af88c678f94443b0d2312d9526fa",
+            .path = "./ext/zcc",
         },
     },
     .paths = .{
