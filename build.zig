@@ -387,7 +387,7 @@ fn build_single(
         unwind.artifact("unwind"),
         urcrypt.artifact("urcrypt"),
         whereami.artifact("whereami"),
-        zlib.artifact("zlib"),
+        zlib.artifact("z"),
     };
 
     for (artifacts) |artifact| {
