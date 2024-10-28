@@ -146,7 +146,7 @@ pub fn build(b: *std.Build) !void {
     const owned_targets = try targets_cdb.toOwnedSlice();
     
     // Create a pre-step that ensures all compile steps are done
-    const pre_cdb = b.step("dummy", "dummy");
+    pre_cdb = b.step("dummy", "dummy");
     for (owned_targets) |compile_step| {
         pre_cdb.dependOn(&compile_step.step);
     }
