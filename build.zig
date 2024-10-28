@@ -124,7 +124,7 @@ pub fn build(b: *std.Build) !void {
 
     const cdb_step = b.step("cdb", "Generate compile_commands.json");
     var targets_cdb = std.ArrayList(*std.Build.Step.Compile).init(b.allocator);
-    
+
     if (all) {
         for (targets) |t| {
             try build_single(b, b.resolveTargetQuery(t), optimize, build_cfg, &targets_cdb);
@@ -146,7 +146,7 @@ pub fn build(b: *std.Build) !void {
     const owned_targets = try targets_cdb.toOwnedSlice();
     
     // Create a pre-step that ensures all compile steps are done
-    const pre_cdb = b.addSystemCommand(&.{});
+    const pre_cdb = b.step("dummy", "dummy");
     for (owned_targets) |compile_step| {
         pre_cdb.step.dependOn(&compile_step.step);
     }
