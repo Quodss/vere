@@ -1142,10 +1142,14 @@ fn build_single(
     //     zlib.artifact("z"),
     // };
     // 
-    // for (artifacts ++ deps_artifacts) |artifact| {
-    //     targets_cdb.append(artifact) catch @panic("OOM");
-    // }
-    targets_cdb.append(vere) catch @panic("OOM");
+    
+    const artifacts_append = [_]*std.Build.Step.Compile{
+        vere,
+        urbit
+    }
+    for (artifacts_append) |artifact| {
+        targets_cdb.append(artifact) catch @panic("OOM");
+    }
 }
 
 fn add_test(
