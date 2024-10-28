@@ -1150,6 +1150,7 @@ fn build_single(
         pkg_noun,
         vere,
         urbit,
+        gmp.artifact("gmp"),
     };
 
     for (artifacts_append) |artifact| {
