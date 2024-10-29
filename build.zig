@@ -425,10 +425,12 @@ fn build_single(
         .flags = urbit_flags.items,
     });
 
-    pkg_c3.installHeadersDirectory(b.path("pkg/c3"), "", .{
+    pkg_c3.installHeadersDirectory(b.path("pkg/c3"), "c3", .{
         .include_extensions = &.{".h"},
     });
-
+    // pkg_c3.installHeadersDirectory(b.path("pkg"), "c3", .{
+    //     .include_extensions = &.{".h"},
+    // });
     // b.installArtifact(pkg_c3);
 
     //
@@ -454,7 +456,7 @@ fn build_single(
         .flags = ent_flags.items,
     });
 
-    pkg_ent.installHeadersDirectory(b.path("pkg/ent"), "", .{
+    pkg_ent.installHeadersDirectory(b.path("pkg/ent"), "ent", .{
         .include_extensions = &.{".h"},
     });
 

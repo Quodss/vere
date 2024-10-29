@@ -50,7 +50,44 @@ fn extractIncludeDirsFromCompileStepInner(b: *std.Build, step: *std.Build.Step.C
                     // if the directory has exclude patterns set, we will ignore those.
                     // TODO: switch this to include the output directory instead of the source directory, so
                     // that include / exclude patterns are respected
-                    lazy_path_output.append(header_step.getSource()) catch @panic("OOM");
+                    
+                    // lazy_path_output.append(header_step.getSource()) catch @panic("OOM");
+                    switch (header_step) {
+                        .file => |_| {
+                            lazy_path_output.append(header_step.getSource()) catch @panic("OOM");
+                        },
+                        .directory => |directory| {
+                            const path = path_blk: {
+                                const path_prefix = header_step.getSource();
+                                const path_out = switch (path_prefix) {
+                                    .src_path => |src_path| blk: {
+                                        const dest_rel_path_len = directory.dest_rel_path.len;
+                                        const sub_path_len = src_path.sub_path.len;
+                                        if ( (sub_path_len > dest_rel_path_len)
+                                              and std.mem.eql(u8,
+                                                  src_path.sub_path[sub_path_len - dest_rel_path_len..sub_path_len],
+                                                  directory.dest_rel_path
+                                                  )
+                                              and (src_path.sub_path[sub_path_len - dest_rel_path_len - 1] == std.fs.path.sep)
+                                        ) {
+                                            const path_out = std.Build.LazyPath{
+                                                .src_path = .{
+                                                    .owner = b,
+                                                    .sub_path = src_path.sub_path[0..sub_path_len - dest_rel_path_len - 1],
+                                                }
+                                            };
+                                            break :blk path_out;
+                                        } else {
+                                            break :blk path_prefix;
+                                        }
+                                    },
+                                    else => path_prefix,
+                                };
+                                break :path_blk path_out;
+                            };
+                            lazy_path_output.append(path) catch @panic("OOM");
+                        },
+                    }
                 }
                 // recurse- this step may have included child dependencies
                 var local_lazy_path_output = std.ArrayList(std.Build.LazyPath).init(b.allocator);

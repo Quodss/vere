@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ent.h"
+#include <ent/ent.h>
 
 int main(void) {
     char buf[256] = {0};
