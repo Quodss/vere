@@ -428,9 +428,6 @@ fn build_single(
     pkg_c3.installHeadersDirectory(b.path("pkg/c3"), "c3", .{
         .include_extensions = &.{".h"},
     });
-    // pkg_c3.installHeadersDirectory(b.path("pkg"), "c3", .{
-    //     .include_extensions = &.{".h"},
-    // });
     // b.installArtifact(pkg_c3);
 
     //
@@ -1131,19 +1128,6 @@ fn build_single(
         pkg_ur,
         pkg_noun,
         vere,
-        urbit,
-        backtrace.artifact("backtrace"),
-        gmp.artifact("gmp"),
-        murmur3.artifact("murmur3"),
-        openssl.artifact("ssl"),
-        pdjson.artifact("pdjson"),
-        sigsegv.artifact("sigsegv"),
-        softfloat.artifact("softfloat"),
-        softblas.artifact("softblas"),
-        unwind.artifact("unwind"),
-        urcrypt.artifact("urcrypt"),
-        whereami.artifact("whereami"),
-        zlib.artifact("z"),
     };
 
     for (artifacts_cdb) |artifact| {
