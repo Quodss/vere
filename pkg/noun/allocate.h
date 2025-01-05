@@ -62,6 +62,18 @@
     */
 #     define u3a_nwise (c3_wiseof(c3_n))
 
+    /* u3a_use_sent: sentinel value for reference count
+    */
+#define u3a_use_sent  0xffffffff
+
+    /* u3a_siz_sent: sentinel value for box size
+    */
+#ifdef VERE_64
+  #define u3a_siz_sent  (c3_n)0xffffffffffffffffULL
+#else
+  #define u3a_siz_sent  (c3_n)0xffffffff
+#endif
+
   /**  Structures.
   **/
     /* u3a_atom, u3a_cell: logical atom and cell structures.

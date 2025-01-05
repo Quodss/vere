@@ -124,7 +124,7 @@ _box_make(void* box_v, c3_n siz_n, c3_w_tmp use_w)
 static void
 _box_attach(u3a_box* box_u)
 {
-  u3_assert(box_u->siz_n >= (1 + c3_wiseof(u3a_fbox)));
+  u3_assert(box_u->siz_n >= (1 + c3_wiseof(u3a_fbox)));  // note dozreg: what 1 means?
   u3_assert(0 != u3of(u3a_fbox, box_u));
 
 #if 0
@@ -264,7 +264,7 @@ _box_free(u3a_box* box_u)
       u3R->hat_p = u3a_outa(box_w + box_u->siz_n);
     }
     else {
-      c3_n laz_n = *(c3_n*)(box_w - 1);
+      c3_n laz_n = *(c3_n*)(box_w - u3a_nwise);
       u3a_box* pox_u = (u3a_box*)(void *)(box_w - laz_n);
 
       if ( 0 == pox_u->use_w ) {
@@ -701,7 +701,7 @@ u3a_wtrim(void* tox_v, c3_n old_n, c3_n len_n)
     u3a_box* box_u = u3a_botox(nov_w);
     c3_w_tmp*    box_w = (void*)u3a_botox(nov_w);
 
-    c3_w_tmp* end_w = c3_align(nov_w + len_n + 1, /* +1 for trailing allocation size */
+    c3_w_tmp* end_w = c3_align(nov_w + len_n + u3a_nwise, /* +nwise for trailing allocation size */
                            u3a_balign,
                            C3_ALGHI);
 
@@ -1686,8 +1686,8 @@ u3a_mark_ptr(void* ptr_v)
     if ( 0 == box_u->eus_w ) {
       siz_n = box_u->siz_n;
     }
-    else if ( 0xffffffff == box_u->eus_w ) {      // see u3a_prof()
-      siz_n = 0xffffffff;  // note dozreg: change magic value?
+    else if ( u3a_use_sent == box_u->eus_w ) {      // see u3a_prof()
+      siz_n = u3a_siz_sent;
       box_u->eus_w = 0;
     }
     else {
@@ -1706,7 +1706,7 @@ u3a_mark_ptr(void* ptr_v)
 
       if ( 0x80000000 == (c3_w_tmp)use_ws ) {    // see u3a_prof()
         use_ws = -1;
-        siz_n = 0xffffffff;  // note dozreg: change magic value?
+        siz_n = u3a_siz_sent;
       }
       else if ( use_ws < 0 ) {
         use_ws -= 1;
@@ -1774,7 +1774,7 @@ u3a_mark_noun(u3_noun som)
       c3_w_tmp* dog_w = u3a_to_ptr(som);
       c3_n  new_n = u3a_mark_ptr(dog_w);
 
-      if ( 0 == new_n || 0xffffffff == new_n ) {      //  see u3a_mark_ptr()
+      if ( 0 == new_n || u3a_siz_sent == new_n ) {      //  see u3a_mark_ptr()
         return siz_n;
       }
       else {
@@ -2092,7 +2092,7 @@ u3a_prof(FILE* fil_u, u3_noun mas)
         u3a_box* box_u = u3a_botox(u3a_to_ptr(tt_mas));
 #ifdef U3_MEMORY_DEBUG
         if ( 1 == box_u->eus_w ) {
-          box_u->eus_w = 0xffffffff;
+          box_u->eus_w = u3a_use_sent;
         }
         else {
           box_u->eus_w -= 1;
