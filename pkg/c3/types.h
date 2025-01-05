@@ -13,8 +13,8 @@
       typedef ssize_t c3_zs;
       typedef uint64_t c3_d;
       typedef int64_t c3_ds;
-      typedef uint32_t c3_w;
-      typedef int32_t c3_ws;
+      typedef uint32_t c3_w_tmp;
+      typedef int32_t c3_ws_tmp;
       typedef uint16_t c3_s;
       typedef int16_t c3_ss;
       typedef uint8_t c3_y;   // byte
@@ -23,9 +23,16 @@
 
       typedef uint8_t c3_t;   // boolean
       typedef uint8_t c3_o;   // loobean
+      #ifdef VERE_64
+        typedef uint64_t c3_n;  // note: noun-sized integer
+        typedef int64_t c3_ns;
+      #else
+        typedef uint32_t c3_n;  // note: noun-sized integer
+        typedef int32_t c3_ns;
+      #endif
       typedef uint8_t c3_g;   // 32-bit log - 0-31 bits
-      typedef uint32_t c3_l;  // little; 31-bit unsigned integer
-      typedef uint32_t c3_m;  // mote; also c3_l; LSB first a-z 4-char string.
+      typedef c3_n    c3_l;  // little; 31/63-bit unsigned integer
+      typedef c3_n    c3_m;  // mote; also c3_l; LSB first a-z 4/8-char string.
 
     /* Deprecated integers.
     */

@@ -855,7 +855,7 @@ _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
   }
   else {
 #ifdef U3_MEMORY_DEBUG
-    c3_w cod_w;
+    c3_n cod_n;
 
     {
       char soc_c[5];
@@ -863,8 +863,8 @@ _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
       memset(soc_c, 0, 5);
       strncpy(soc_c, cop_u->cos_c, 4);
       soc_c[4] = 0;
-      cod_w = u3i_string(soc_c);
-      cod_w = u3a_lush(cod_w);
+      cod_n = u3i_string(soc_c);
+      cod_n = u3a_lush(cod_n);
     }
 #endif
 
@@ -872,7 +872,7 @@ _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
       u3_weak pro = ham_u->fun_f(cor);
 
 #ifdef U3_MEMORY_DEBUG
-      u3a_lop(cod_w);
+      u3a_lop(cod_n);
 #endif
       if ( u3_none != pro ) {
         u3z(cor);
@@ -887,7 +887,7 @@ _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
       ham_u->ice = c3n;
 
 #ifdef U3_MEMORY_DEBUG
-      u3a_lop(cod_w);
+      u3a_lop(cod_n);
 #endif
       if ( u3_none == pro ) {
         u3z(cor);

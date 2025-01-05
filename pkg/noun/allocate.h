@@ -20,11 +20,11 @@
 
     /* u3a_balign: u3a_walign in bytes
     */
-#     define u3a_balign  (sizeof(c3_w)*u3a_walign)
+#     define u3a_balign  (sizeof(c3_w_tmp)*u3a_walign)
 
      /* u3a_bits_max: max loom bex
      */
-#    define u3a_bits_max (8 * sizeof(c3_w) + u3a_vits)
+#    define u3a_bits_max (8 * sizeof(c3_n) + u3a_vits)
 
     /* u3a_page: number of bits in word-addressed page.  12 == 16K page
     */
@@ -40,7 +40,7 @@
 
     /* u3a_bytes: maximum number of bytes in memory.
     */
-#     define u3a_bytes   ((sizeof(c3_w) * u3a_words))
+#     define u3a_bytes   ((sizeof(c3_w_tmp) * u3a_words))
 
     /* u3a_cells: number of representable cells.
     */
@@ -52,28 +52,32 @@
 
     /* u3a_minimum: minimum loom object size (actual size of a cell).
     */
-#     define u3a_minimum ((c3_w)( 1 + c3_wiseof(u3a_box) + c3_wiseof(u3a_cell) ))
+#     define u3a_minimum ((c3_n)( 1 + c3_wiseof(u3a_box) + c3_wiseof(u3a_cell) ))
 
     /* u3a_fbox_no: number of free lists per size.
     */
 #     define u3a_fbox_no 27
+
+    /* u3a_nwise: word size of boxes' redundant size
+    */
+#     define u3a_nwise (c3_wiseof(c3_n))
 
   /**  Structures.
   **/
     /* u3a_atom, u3a_cell: logical atom and cell structures.
     */
       typedef struct {
-        c3_w mug_w;
+        c3_n mug_n;   // mug hash is 31 bits but mug_n sometimes stores notes
       } u3a_noun;
 
       typedef struct {
-        c3_w mug_w;
-        c3_w len_w;
-        c3_w buf_w[0];
+        c3_n mug_n;
+        c3_n len_n;
+        c3_w_tmp buf_w[0];
       } u3a_atom;
 
       typedef struct {
-        c3_w    mug_w;
+        c3_n    mug_n;
         u3_noun hed;
         u3_noun tel;
       } u3a_cell;
@@ -84,20 +88,20 @@
     ** bad ass malloc style.  Hence a box is:
     **
     **    ---
-    **    siz_w
-    **    use_w
+    **    siz_n
+    **    use_n
     **      user data
-    **    siz_w
+    **    siz_n
     **    ---
     **
     ** Do not attempt to adjust this structure!
     */
       typedef struct _u3a_box {
-        c3_w   siz_w;                       // size of this box
-        c3_w   use_w;                       // reference count; free if 0
+        c3_n   siz_n;                       // size of this box
+        c3_w_tmp   use_w;                       // reference count; free if 0
 #       ifdef U3_MEMORY_DEBUG
-          c3_w   eus_w;                     // recomputed refcount
-          c3_w   cod_w;                     // tracing code
+          c3_w_tmp   eus_w;                     // recomputed refcount
+          c3_n   cod_n;                     // tracing code
 #       endif
       } u3a_box;
 
@@ -126,30 +130,30 @@
         u3p(struct _u3a_road) kid_p;          //  child road list
         u3p(struct _u3a_road) nex_p;          //  sibling road
 
-        u3p(c3_w) cap_p;                      //  top of transient region
-        u3p(c3_w) hat_p;                      //  top of durable region
-        u3p(c3_w) mat_p;                      //  bottom of transient region
-        u3p(c3_w) rut_p;                      //  bottom of durable region
-        u3p(c3_w) ear_p;                      //  original cap if kid is live
+        u3p(c3_w_tmp) cap_p;                      //  top of transient region
+        u3p(c3_w_tmp) hat_p;                      //  top of durable region
+        u3p(c3_w_tmp) mat_p;                      //  bottom of transient region
+        u3p(c3_w_tmp) rut_p;                      //  bottom of durable region
+        u3p(c3_w_tmp) ear_p;                      //  original cap if kid is live
 
-        c3_w fut_w[32];                       //  futureproof buffer
+        c3_w_tmp fut_w[32];                       //  futureproof buffer
 
         struct {                              //  escape buffer
           union {
             jmp_buf buf;
-            c3_w buf_w[256];                  //  futureproofing
+            c3_w_tmp buf_w[256];                  //  futureproofing
           };
         } esc;
 
         struct {                              //  miscellaneous config
-          c3_w fag_w;                         //  flag bits
+          c3_w_tmp fag_w;                         //  flag bits
         } how;                                //
 
         struct {                              //  allocation pools
           u3p(u3a_fbox) fre_p[u3a_fbox_no];   //  heap by node size log
           u3p(u3a_fbox) cel_p;                //  custom cell allocator
-          c3_w fre_w;                         //  number of free words
-          c3_w max_w;                         //  maximum allocated
+          c3_n fre_n;                         //  number of free words
+          c3_n max_n;                         //  maximum allocated
         } all;
 
         u3a_jets jed;                         //  jet dashboard
@@ -191,8 +195,8 @@
     /* u3a_pile: stack control, abstracted over road direction.
     */
       typedef struct _u3a_pile {
-        c3_ws    mov_ws;
-        c3_ws    off_ws;
+        c3_ns    mov_ns;
+        c3_ns    off_ns;
         u3_post   top_p;
 #ifdef U3_MEMORY_DEBUG
         u3a_road* rod_u;
@@ -202,17 +206,43 @@
   /**  Macros.  Should be better commented.
   **/
     /* In and out of the box.
-       u3a_boxed -> sizeof u3a_box + allocation size (len_w) + 1 (for storing the redundant size)
+       u3a_boxed -> sizeof u3a_box + allocation size (len_n) + u3a_nwise (for storing the redundant size)
        u3a_boxto -> the region of memory adjacent to the box.
        u3a_botox -> the box adjacent to the region of memory
+       u3a_box_rear -> store size at the end of a c3_w* box_w
     */
-#     define u3a_boxed(len_w)  (len_w + c3_wiseof(u3a_box) + 1)
-#     define u3a_boxto(box_v)  ( (void *) \
-                                   ( (u3a_box *)(void *)(box_v) + 1 ) )
-#     define u3a_botox(tox_v)  ( (u3a_box *)(void *)(tox_v) - 1 )
+#     define u3a_boxed(len_n)     (len_n + c3_wiseof(u3a_box) + u3a_nwise)
+#     define u3a_boxto(box_v)     ( (void *) \
+                                    ( (u3a_box *)(void *)(box_v) + 1 ) )
+
+#     define u3a_botox(tox_v)     ( (u3a_box *)(void *)(tox_v) - 1 )
+
+#     define u3a_box_rear(box_w, siz_n)                       \
+        do {                                                  \
+          *(c3_n*)((box_w) + (siz_n) - u3a_nwise) = (siz_n);  \
+        } while (0)
 
     /* Inside a noun.
     */
+#ifdef VERE_64
+
+    /* u3a_is_cat(): yes if noun [som] is direct atom.
+    */
+#     define u3a_is_cat(som)    (((som) >> 63) ? c3n : c3y)
+
+    /* u3a_is_dog(): yes if noun [som] is indirect noun.
+    */
+#     define u3a_is_dog(som)    (((som) >> 63) ? c3y : c3n)
+
+    /* u3a_is_pug(): yes if noun [som] is indirect atom.
+    */
+#     define u3a_is_pug(som)    ((0b10 == ((som) >> 62)) ? c3y : c3n)
+
+    /* u3a_is_pom(): yes if noun [som] is indirect cell.
+    */
+#     define u3a_is_pom(som)    ((0b11 == ((som) >> 62)) ? c3y : c3n)
+
+#else
 
     /* u3a_is_cat(): yes if noun [som] is direct atom.
     */
@@ -229,6 +259,8 @@
     /* u3a_is_pom(): yes if noun [som] is indirect cell.
     */
 #     define u3a_is_pom(som)    ((0b11 == ((som) >> 30)) ? c3y : c3n)
+
+#endif
 
     /* u3a_is_atom(): yes if noun [som] is direct atom or indirect atom.
     */
@@ -270,30 +302,30 @@
     */
 #     define  u3a_is_south(r)  !u3a_is_north((r))
 
-    /* u3a_open(): words of contiguous free space in road [r]
+    /* u3a_open(): notes of contiguous free space in road [r]
     */
 #     define  u3a_open(r)  ( (c3y == u3a_is_north(r)) \
-                             ? (c3_w)((r)->cap_p - (r)->hat_p) \
-                             : (c3_w)((r)->hat_p - (r)->cap_p) )
+                             ? (c3_n)((r)->cap_p - (r)->hat_p) \
+                             : (c3_n)((r)->hat_p - (r)->cap_p) )
 
-    /* u3a_full(): total words in road [r];
+    /* u3a_full(): total notes in road [r];
     ** u3a_full(r) == u3a_heap(r) + u3a_temp(r) + u3a_open(r)
     */
 #     define  u3a_full(r)  ( (c3y == u3a_is_north(r)) \
-                             ? (c3_w)((r)->mat_p - (r)->rut_p) \
-                             : (c3_w)((r)->rut_p - (r)->mat_p) )
+                             ? (c3_n)((r)->mat_p - (r)->rut_p) \
+                             : (c3_n)((r)->rut_p - (r)->mat_p) )
 
-    /* u3a_heap(): words of heap in road [r]
+    /* u3a_heap(): notes of heap in road [r]
     */
 #     define  u3a_heap(r)  ( (c3y == u3a_is_north(r)) \
-                             ? (c3_w)((r)->hat_p - (r)->rut_p) \
-                             : (c3_w)((r)->rut_p - (r)->hat_p) )
+                             ? (c3_n)((r)->hat_p - (r)->rut_p) \
+                             : (c3_n)((r)->rut_p - (r)->hat_p) )
 
-    /* u3a_temp(): words of stack in road [r]
+    /* u3a_temp(): notes of stack in road [r]
     */
 #     define  u3a_temp(r)  ( (c3y == u3a_is_north(r)) \
-                             ? (c3_w)((r)->mat_p - (r)->cap_p) \
-                             : (c3_w)((r)->cap_p - (r)->mat_p) )
+                             ? (c3_n)((r)->mat_p - (r)->cap_p) \
+                             : (c3_n)((r)->cap_p - (r)->mat_p) )
 
 #     define  u3a_north_is_senior(r, dog) \
                 __((u3a_to_off(dog) < (r)->rut_p) ||  \
@@ -376,10 +408,10 @@
     /* u3_Code: memory code.
     */
 #ifdef U3_MEMORY_DEBUG
-      extern c3_w u3_Code;
+      extern c3_n u3_Code;
 #endif
 
-#   define u3_Loom      ((c3_w *)(void *)U3_OS_LoomBase)
+#   define u3_Loom      ((c3_w_tmp *)(void *)U3_OS_LoomBase)
 
   /* u3a_into(): convert loom offset [x] into generic pointer.
    */
@@ -387,7 +419,7 @@
 
   /* u3a_outa(): convert pointer [p] into word offset into loom.
    */
-#   define u3a_outa(p)  ((c3_w *)(void *)(p) - u3_Loom)
+#   define u3a_outa(p)  ((c3_w_tmp *)(void *)(p) - u3_Loom)
 
   /* u3a_to_off(): mask off bits 30 and 31 from noun [som].
    */
@@ -399,22 +431,30 @@
 
   /* u3a_to_wtr(): convert noun [som] into word pointer into loom.
    */
-#   define u3a_to_wtr(som)  ((c3_w *)u3a_to_ptr(som))
+#   define u3a_to_wtr(som)  ((c3_w_tmp *)u3a_to_ptr(som))
 
   /**  Inline functions.
   **/
-  /* u3a_to_pug(): set bit 31 of [off].
+  /* u3a_to_pug(): turn [off] to noun and set the highest bit.
    */
-  inline c3_w u3a_to_pug(c3_w off) {
+  inline c3_n u3a_to_pug(c3_n off) {
     c3_dessert((off & u3a_walign-1) == 0);
-    return (off >> u3a_vits) | 0x80000000;
+    #ifdef VERE_64
+      return (off >> u3a_vits) | (c3_n)0x8000000000000000ULL
+    #else
+      return (off >> u3a_vits) | (c3_n)0x80000000;
+    #endif
   }
 
-  /* u3a_to_pom(): set bits 30 and 31 of [off].
+  /* u3a_to_pom(): turn [off] to noun and set two highest bits.
    */
-  inline c3_w u3a_to_pom(c3_w off) {
+  inline c3_n u3a_to_pom(c3_n off) {
     c3_dessert((off & u3a_walign-1) == 0);
-    return (off >> u3a_vits) | 0xc0000000;
+    #ifdef VERE_64
+      return (off >> u3a_vits) | (c3_n)0xc000000000000000ULL;
+    #else
+      return (off >> u3a_vits) | (c3_n)0xc0000000;
+    #endif
   }
 
     /**  road stack.
@@ -424,7 +464,7 @@
           inline void
           u3a_drop(const u3a_pile* pil_u)
           {
-            u3R->cap_p -= pil_u->mov_ws;
+            u3R->cap_p -= pil_u->mov_ns;
           }
 
         /* u3a_peek(): examine the top of the road stack.
@@ -432,7 +472,7 @@
           inline void*
           u3a_peek(const u3a_pile* pil_u)
           {
-            return u3to(void, (u3R->cap_p + pil_u->off_ws));
+            return u3to(void, (u3R->cap_p + pil_u->off_ns));
           }
 
         /* u3a_pop(): drop a road stack frame, peek at the new top.
@@ -449,12 +489,12 @@
           inline void*
           u3a_push(const u3a_pile* pil_u)
           {
-            u3R->cap_p += pil_u->mov_ws;
+            u3R->cap_p += pil_u->mov_ns;
 
 #ifndef U3_GUARD_PAGE
             //  !off means we're on a north road
             //
-            if ( !pil_u->off_ws ) {
+            if ( !pil_u->off_ns ) {
               if( !(u3R->cap_p > u3R->hat_p) ) {
                 u3m_bail(c3__meme);
               }
@@ -496,11 +536,11 @@
         /* u3a_walloc(): allocate storage measured in words.
         */
           void*
-          u3a_walloc(c3_w len_w);
+          u3a_walloc(c3_n len_n);
 
         /* u3a_celloc(): allocate a cell.  Faster, sometimes.
         */
-          c3_w*
+          c3_w_tmp*
           u3a_celloc(void);
 
         /* u3a_wfree(): free storage.
@@ -511,17 +551,17 @@
         /* u3a_wtrim(): trim storage.
         */
           void
-          u3a_wtrim(void* tox_v, c3_w old_w, c3_w len_w);
+          u3a_wtrim(void* tox_v, c3_n old_n, c3_n len_n);
 
         /* u3a_wealloc(): word realloc.
         */
           void*
-          u3a_wealloc(void* lag_v, c3_w len_w);
+          u3a_wealloc(void* lag_v, c3_n len_n);
 
         /* u3a_pile_prep(): initialize stack control.
         */
           void
-          u3a_pile_prep(u3a_pile* pil_u, c3_w len_w);
+          u3a_pile_prep(u3a_pile* pil_u, c3_n len_n);
 
       /* C-style aligned allocation - *not* compatible with above.
       */
@@ -576,7 +616,7 @@
 
         /* u3a_use(): reference count.
         */
-          c3_w
+          c3_w_tmp
           u3a_use(u3_noun som);
 
         /* u3a_wed(): unify noun references.
@@ -591,17 +631,17 @@
 
         /* u3a_mark_ptr(): mark a pointer for gc.  Produce size.
         */
-          c3_w
+          c3_n
           u3a_mark_ptr(void* ptr_v);
 
         /* u3a_mark_mptr(): mark a u3_malloc-allocated ptr for gc.
         */
-          c3_w
+          c3_n
           u3a_mark_mptr(void* ptr_v);
 
         /* u3a_mark_noun(): mark a noun for gc.  Produce size.
         */
-          c3_w
+          c3_n
           u3a_mark_noun(u3_noun som);
 
         /* u3a_mark_road(): mark ad-hoc persistent road structures.
@@ -634,32 +674,32 @@
           u3_post
           u3a_rewritten(u3_post som_p);
 
-        /* u3a_rewritten(): rewritten noun pointer for compaction.
+        /* u3a_rewritten_noun(): rewritten noun pointer for compaction.
         */
           u3_noun
           u3a_rewritten_noun(u3_noun som);
 
         /* u3a_count_noun(): count size of noun.
         */
-          c3_w
+          c3_n
           u3a_count_noun(u3_noun som);
 
         /* u3a_discount_noun(): clean up after counting a noun.
         */
-          c3_w
+          c3_n
           u3a_discount_noun(u3_noun som);
 
         /* u3a_count_ptr(): count a pointer for gc.  Produce size.  */
-          c3_w
+          c3_n
           u3a_count_ptr(void* ptr_v);
 
         /* u3a_discount_ptr(): discount a pointer for gc.  Produce size.  */
-          c3_w
+          c3_n
           u3a_discount_ptr(void* ptr_v);
 
         /* u3a_idle(): measure free-lists in [rod_u]
         */
-          c3_w
+          c3_n
           u3a_idle(u3a_road* rod_u);
 
         /* u3a_ream(): ream free-lists.
@@ -669,7 +709,7 @@
 
         /* u3a_sweep(): sweep a fully marked road.
         */
-          c3_w
+          c3_n
           u3a_sweep(void);
 
         /* u3a_pack_seek(): sweep the heap, modifying boxes to record new addresses.
@@ -689,13 +729,13 @@
 
         /* u3a_lush(): leak push.
         */
-          c3_w
-          u3a_lush(c3_w lab_w);
+          c3_n
+          u3a_lush(c3_n lab_n);
 
         /* u3a_lop(): leak pop.
         */
           void
-          u3a_lop(c3_w lab_w);
+          u3a_lop(c3_n lab_n);
 
         /* u3a_print_time: print microsecond time.
         */
@@ -705,12 +745,12 @@
         /* u3a_print_quac: print a quac memory report.
         */
           void
-          u3a_print_quac(FILE* fil_u, c3_w den_w, u3m_quac* mas_u);
+          u3a_print_quac(FILE* fil_u, c3_w_tmp den_w, u3m_quac* mas_u);
 
         /* u3a_print_memory(): print memory amount.
         */
           void
-          u3a_print_memory(FILE* fil_u, c3_c* cap_c, c3_w wor_w);
+          u3a_print_memory(FILE* fil_u, c3_c* cap_c, c3_n wor_n);
         /* u3a_prof(): mark/measure/print memory profile. RETAIN.
         */
           u3m_quac*
@@ -718,8 +758,8 @@
 
         /* u3a_maid(): maybe print memory.
         */
-          c3_w
-          u3a_maid(FILE* fil_u, c3_c* cap_c, c3_w wor_w);
+          c3_n
+          u3a_maid(FILE* fil_u, c3_c* cap_c, c3_n wor_w);
 
         /* u3a_quac_free(): free quac memory.
         */
@@ -729,7 +769,7 @@
         /* u3a_uncap_print_memory(): un-captioned print memory amount.
         */
           void
-          u3a_uncap_print_memory(FILE* fil_u, c3_w byt_w);
+          u3a_uncap_print_memory(FILE* fil_u, c3_n byt_n);  // note dozreg: gone?
 
         /* u3a_deadbeef(): write 0xdeadbeef from hat to cap.
         */

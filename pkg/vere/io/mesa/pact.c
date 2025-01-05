@@ -52,7 +52,7 @@ static void
 _mesa_check_heads_equal(u3_mesa_head* hed_u, u3_mesa_head* hod_u)
 {
   _assert_eq_udF(hed_u->hop_y, hed_u->hop_y);
-  _assert_eq_uxF(hed_u->mug_w, hed_u->mug_w);
+  _assert_eq_uxF(hed_u->mug_n, hed_u->mug_n);
   _assert_eq_udF(hed_u->nex_y, hed_u->nex_y);
   _assert_eq_udF(hed_u->pro_y, hed_u->pro_y);
   _assert_eq_udF(hed_u->typ_y, hed_u->typ_y);
@@ -131,7 +131,7 @@ _log_head(u3_mesa_head* hed_u)
   u3l_log("next hop: %u", hed_u->nex_y);
   u3l_log("protocol: %u", hed_u->pro_y);
   u3l_log("packet type: %u", hed_u->typ_y);
-  u3l_log("mug: 0x%05x", (hed_u->mug_w & 0xFFFFF));
+  u3l_log("mug: 0x%05x", (hed_u->mug_n & 0xFFFFF));
   u3l_log("hopcount: %u", hed_u->hop_y);
   u3l_log("");
 }
@@ -603,7 +603,7 @@ _mesa_etch_head(u3_etcher* ech_u, u3_mesa_head* hed_u)
   _etch_bits(ech_u, 3, hed_u->pro_y);
   _etch_bits(ech_u, 2, hed_u->typ_y);
   _etch_bits(ech_u, 3, hed_u->hop_y);
-  _etch_bits(ech_u, 20, hed_u->mug_w);
+  _etch_bits(ech_u, 20, hed_u->mug_n);
   _etch_word(ech_u, MESA_COOKIE);
 }
 
@@ -621,7 +621,7 @@ mesa_sift_head(u3_sifter* sif_u, u3_mesa_head* hed_u)
   hed_u->pro_y = _sift_bits(sif_u, 3);
   hed_u->typ_y = _sift_bits(sif_u, 2);
   hed_u->hop_y = _sift_bits(sif_u, 3);
-  hed_u->mug_w = _sift_bits(sif_u, 20);
+  hed_u->mug_n = _sift_bits(sif_u, 20);
   if ( 1 != hed_u->pro_y ) {
     _sift_fail(sif_u, "bad protocol");
   }
@@ -1428,7 +1428,7 @@ _test_make_head(void* ptr_v, u3_mesa_head* hed_u)
   hed_u->pro_y = 1;
   hed_u->typ_y = _test_rand_gulf_y(ptr_v, 3) + 1;
   hed_u->hop_y = _test_rand_gulf_y(ptr_v, 8);
-  hed_u->mug_w = 0;
+  hed_u->mug_n = 0;
   // XX set mug_w in etch?
 }
 

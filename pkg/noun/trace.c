@@ -791,7 +791,7 @@ _ct_boost_small(float num_f)
  *                          values should be 100. This function reports how far from
  *                          the ideal bar_u is.
 */
-static c3_ws
+static c3_ws_tmp
 _ct_global_difference(struct bar_info bar_u)
 {
   c3_w low_w = 0;
@@ -853,7 +853,7 @@ _ct_sort_by_index(struct bar_info bar_u)
  *                     and undersized things a bit bigger
 */
 static struct bar_info
-_ct_reduce_error(struct bar_info bar_u, c3_ws dif_s)
+_ct_reduce_error(struct bar_info bar_u, c3_ws_tmp dif_s)
 {
   for (c3_w i=0; i < 6; i++) {
     if (bar_u.s[i].low_w == 0) continue;
@@ -894,7 +894,7 @@ _ct_report_bargraph(
 
   // repeatedly adjust for roundoff error
   // until it is elemenated or we go 100 cycles
-  c3_ws dif_s = 0;
+  c3_ws_tmp dif_s = 0;
   for (c3_w x=0; x<100; x++) {
     bar_u = _ct_compute_roundoff_error(bar_u);
     dif_s = _ct_global_difference(bar_u);
@@ -1050,7 +1050,7 @@ u3t_etch_meme(c3_l mod_l)
   **  cel_d: max cells allocated in current road (inc closed kids, but not parents)
   **  nox_d: nock steps performed in current road
   */
-  c3_w max_w = (u3R->all.max_w*4)+imu_w;
+  c3_w max_w = (U3R->all.max_n*4)+imu_w;
   float max_f = _ct_meme_percent(max_w, top_w);
   c3_d cel_d = u3R->pro.cel_d;
   c3_d nox_d = u3R->pro.nox_d;

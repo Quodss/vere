@@ -295,13 +295,13 @@ u3v_poke_raw(u3_noun sam)
 
   {
 # ifdef  U3_MEMORY_DEBUG
-    c3_w cod_w = u3a_lush(u3h(u3t(u3t(sam))));
+    c3_n cod_n = u3a_lush(u3h(u3t(u3t(sam))));
 # endif
 
     pro = u3n_slam_on(fun, sam);
 
 # ifdef  U3_MEMORY_DEBUG
-    u3a_lop(cod_w);
+    u3a_lop(cod_n);
 # endif
   }
 

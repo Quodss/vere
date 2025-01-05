@@ -1035,11 +1035,11 @@ u3m_leap(c3_w pad_w)
   */
   {
 #if 0
-    if ( pad_w < u3R->all.fre_w ) {
+    if ( pad_w < u3R->all.fre_n ) {
       pad_w = 0;
     }
     else {
-      pad_w -= u3R->all.fre_w;
+      pad_w -= u3R->all.fre_n;
     }
 #endif
     if ( (pad_w + c3_wiseof(u3a_road)) >= u3a_open(u3R) ) {
@@ -1314,8 +1314,8 @@ u3m_soft_top(c3_w    mil_w,                     //  timer ms
     */
     if ( u3C.wag_w & u3o_debug_ram ) {
 #ifdef U3_CPU_DEBUG
-      if ( u3R->all.max_w > 1000000 ) {
-        u3a_print_memory(stderr, "execute: top", u3R->all.max_w);
+      if ( U3R->all.max_n > 1000000 ) {
+        u3a_print_memory(stderr, "execute: top", U3R->all.max_n);
       }
 #endif
       u3m_grab(pro, u3_none);
@@ -1411,8 +1411,8 @@ u3m_soft_run(u3_noun gul,
     pro = fun_f(aga, agb);
 
 #ifdef U3_CPU_DEBUG
-    if ( u3R->all.max_w > 1000000 ) {
-      u3a_print_memory(stderr, "execute: run", u3R->all.max_w);
+    if ( U3R->all.max_n > 1000000 ) {
+      u3a_print_memory(stderr, "execute: run", U3R->all.max_n);
     }
 #endif
 

@@ -56,15 +56,28 @@
 #     define c3_lz_w __builtin_clz
 #     define c3_tz_w __builtin_ctz
 #     define c3_pc_w __builtin_popcount
+#     define c3_lz_d __builtin_clzl
+#     define c3_tz_d __builtin_ctzl
+#     define c3_pc_d __builtin_popcountl
 #elif (32 == (CHAR_BIT * __SIZEOF_LONG__))
 #     define c3_lz_w __builtin_clzl
 #     define c3_tz_w __builtin_ctzl
 #     define c3_pc_w __builtin_popcountl
+#     define c3_lz_d __builtin_clzll
+#     define c3_tz_d __builtin_ctzll
+#     define c3_pc_d __builtin_popcountll
 #else
 #     error  "port me"
 #endif
 
 #     define c3_bits_word(w) ((w) ? (32 - c3_lz_w(w)) : 0)
+#     define c3_bits_dabl(d) ((d) ? (64 - c3_lz_d(d)) : 0)
+
+#ifndef VERE_64
+  #define c3_bits_note(n) c3_bits_word(n)
+#else
+  #define c3_bits_note(n)  c3_bits_dabl(n)
+#endif
 
     /* Min and max.
     */
@@ -239,13 +252,13 @@
 */
 #define c3_align(x, al, hilo)                   \
   _Generic((x),                                 \
-           c3_w     : c3_align_w,               \
+           c3_w_tmp     : c3_align_w,               \
            c3_d     : c3_align_d,               \
            default  : c3_align_p)               \
        (x, al, hilo)
 typedef enum { C3_ALGHI=1, C3_ALGLO=0 } align_dir;
-inline c3_w
-c3_align_w(c3_w x, c3_w al, align_dir hilo) {
+inline c3_w_tmp
+c3_align_w(c3_w_tmp x, c3_w_tmp al, align_dir hilo) {
   c3_dessert(hilo <= C3_ALGHI && hilo >= C3_ALGLO);
   x += hilo * (al - 1);
   x &= ~(al - 1);
