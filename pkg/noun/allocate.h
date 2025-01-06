@@ -48,11 +48,11 @@
 
     /* u3a_maximum: maximum loom object size (largest possible atom).
     */
-#     define u3a_maximum ( u3a_words - (c3_wiseof(u3a_box) + c3_wiseof(u3a_atom) + 1))
+#     define u3a_maximum ( u3a_words - (c3_wiseof(u3a_box) + c3_wiseof(u3a_atom) + u3a_nwise))
 
     /* u3a_minimum: minimum loom object size (actual size of a cell).
     */
-#     define u3a_minimum ((c3_n)( 1 + c3_wiseof(u3a_box) + c3_wiseof(u3a_cell) ))
+#     define u3a_minimum ((c3_n)( u3a_nwise + c3_wiseof(u3a_box) + c3_wiseof(u3a_cell) ))
 
     /* u3a_fbox_no: number of free lists per size.
     */
@@ -64,15 +64,23 @@
 
     /* u3a_use_sent: sentinel value for reference count
     */
-#define u3a_use_sent  0xffffffff
+# ifdef VERE_64
+#     define u3a_use_sent  (c3_n)0xffffffffffffffffULL
+# else
+#     define u3a_use_sent  (c3_n)0xffffffff
+# endif
+
+    /* u3a_use_mark: marking value for reference count
+    */
+# ifdef VERE_64
+#     define u3a_use_mark  (c3_n)0x8000000000000000ULL
+# else
+#     define u3a_use_mark  (c3_n)0x80000000
+# endif
 
     /* u3a_siz_sent: sentinel value for box size
     */
-#ifdef VERE_64
-  #define u3a_siz_sent  (c3_n)0xffffffffffffffffULL
-#else
-  #define u3a_siz_sent  (c3_n)0xffffffff
-#endif
+#     define u3a_siz_sent  u3a_use_sent
 
   /**  Structures.
   **/
@@ -110,9 +118,9 @@
     */
       typedef struct _u3a_box {
         c3_n   siz_n;                       // size of this box
-        c3_w_tmp   use_w;                       // reference count; free if 0
+        c3_n   use_n;                       // reference count; free if 0
 #       ifdef U3_MEMORY_DEBUG
-          c3_w_tmp   eus_w;                     // recomputed refcount
+          c3_n   eus_n;                     // recomputed refcount
           c3_n   cod_n;                     // tracing code
 #       endif
       } u3a_box;
@@ -384,7 +392,7 @@
                   ? c3n \
                   : _(u3a_is_junior(r, som)) \
                   ? c3n \
-                  : (u3a_botox(u3a_to_ptr(som))->use_w == 1) \
+                  : (u3a_botox(u3a_to_ptr(som))->use_n == 1) \
                   ? c3y : c3n )
 
 /* like _box_vaal but for rods. Again, probably want to prefix validation
