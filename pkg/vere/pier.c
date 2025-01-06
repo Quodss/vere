@@ -2531,7 +2531,7 @@ u3_pier_bail(u3_pier* pir_u)
 /* c3_rand(): fill a 512-bit (16-word) buffer.
 */
 void
-c3_rand(c3_w* rad_w)
+c3_rand(c3_w_tmp* rad_w)
 {
   if ( 0 != ent_getentropy(rad_w, 64) ) {
     fprintf(stderr, "c3_rand getentropy: %s\n", strerror(errno));

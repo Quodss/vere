@@ -30,7 +30,7 @@
         typedef uint32_t c3_n;  // note: noun-sized integer
         typedef int32_t c3_ns;
       #endif
-      typedef uint8_t c3_g;   // 32-bit log - 0-31 bits
+      typedef uint8_t c3_g;   // 32/64-bit log - 0-31/63 bits
       typedef c3_n    c3_l;  // little; 31/63-bit unsigned integer
       typedef c3_n    c3_m;  // mote; also c3_l; LSB first a-z 4/8-char string.
 
