@@ -32,7 +32,7 @@
       #endif
       typedef uint8_t c3_g;   // 32/64-bit log - 0-31/63 bits
       typedef c3_n    c3_l;  // little; 31/63-bit unsigned integer
-      typedef c3_n    c3_m;  // mote; also c3_l; LSB first a-z 4/8-char string.
+      typedef c3_n    c3_m;  // mote; 31 bits; LSB first a-z 4-char string.
 
     /* Deprecated integers.
     */

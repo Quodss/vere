@@ -15,10 +15,10 @@
 #endif
 
 /// 0, or `~` in Hoon.
-#define u3_nul 0
+#define u3_nul (u3_noun)0
 
 /// 0, or `%$` in Hoon.
-#define u3_blip 0
+#define u3_blip (u3_noun)0
 
 /// Pointer offset into the loom.
 ///
