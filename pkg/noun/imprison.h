@@ -82,6 +82,11 @@
         */
           u3_atom
           u3i_chub(c3_d dat_d);
+# ifdef VERE_64
+#   define u3i_note u3i_chub
+# else
+#   define u3i_note u3i_word
+#endif
 
         /* u3i_bytes(): Copy [a] bytes from [b] to an LSB first atom.
         */
