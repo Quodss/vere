@@ -441,9 +441,13 @@
    */
 #   define u3a_outa(p)  ((c3_w_tmp *)(void *)(p) - u3_Loom)
 
-  /* u3a_to_off(): mask off bits 30 and 31 from noun [som].
+  /* u3a_to_off(): mask off top two bits from noun [som].
    */
+# ifdef VERE_64
+#   define u3a_to_off(som)  (((som) & 0x3fffffffffffffffULL) << u3a_vits)
+# else
 #   define u3a_to_off(som)  (((som) & 0x3fffffff) << u3a_vits)
+# endif
 
   /* u3a_to_ptr(): convert noun [som] into generic pointer into loom.
    */

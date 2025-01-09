@@ -1821,7 +1821,7 @@ _cr_mug_next(u3a_pile* pil_u, u3_noun veb)
     //  veb is a direct atom, mug is not memoized
     //
     if ( c3y == u3a_is_cat(veb) ) {
-      return u3r_mug_words(&veb, 1);
+      return u3r_mug_words(&veb, u3a_nwise);
     }
     //  veb is indirect, a pointer into the loom
     //

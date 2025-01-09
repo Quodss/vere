@@ -15,14 +15,29 @@
 */
 typedef uint64_t ur_nref;
 
+#ifdef VERE_64
+# define ur_bits_direct 63
+#else
+# define ur_bits_direct 62
+#endif
+
 typedef enum {
   ur_direct = 0,
   ur_iatom = 1,
   ur_icell = 2,
 } ur_tag;
 
+#ifndef VERE_64
 #define ur_nref_tag(ref)       ( ref >> 62 )
 #define ur_nref_idx(ref)       ur_mask_62(ref)
+#define ur_idx_to_iatom(idx)   ( (idx) | ((ur_nref)ur_iatom << 62) )
+#define ur_idx_to_icell(idx)   ( (idx) | ((ur_nref)ur_icell << 62) )
+#else
+#define ur_nref_tag(ref)       ( (ref >> 63) ? (ref >> 62) - 1 : 0 )
+#define ur_nref_idx(ref)       ur_mask_62(ref)
+#define ur_idx_to_iatom(idx)   ( (idx) | ((ur_nref)(ur_iatom + 1) << 62) )
+#define ur_idx_to_icell(idx)   ( (idx) | ((ur_nref)(ur_icell + 1) << 62) )
+#endif
 
 /*
 **  31-bit, non-zero, murmur3-based noun hash.

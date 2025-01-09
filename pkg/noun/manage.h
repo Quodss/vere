@@ -106,7 +106,7 @@
       /* u3m_hate(): new, integrated leap mechanism (enter).
       */
         void
-        u3m_hate(c3_w pad_w);
+        u3m_hate(c3_n pad_n);
 
       /* u3m_love(): return product from leap.
       */
@@ -118,7 +118,7 @@
       **  Produces [%$ result] or [%error (list tank)].
       */
         u3_noun
-        u3m_soft(c3_w mil_w, u3_funk fun_f, u3_noun arg);
+        u3m_soft(c3_w_tmp mil_w, u3_funk fun_f, u3_noun arg);
 
       /* u3m_soft_slam: top-level call.
       */
@@ -204,7 +204,7 @@
 
       /* u3m_pack: compact (defragment) memory, returns u3a_open delta.
       */
-        c3_w
+        c3_n
         u3m_pack(void);
 
 #endif /* ifndef U3_MANAGE_H */

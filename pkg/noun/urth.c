@@ -33,8 +33,12 @@ _cu_atom_to_ref(ur_root_t* rot_u, u3a_atom* vat_u)
     } break;
 
     case 1: {
+#   ifndef VERE_64
       val_d = (c3_d)vat_u->buf_w[0];
       ref = ur_coin64(rot_u, val_d);
+#   else
+    c3_dessert(!"impossible atom")
+#   endif
     } break;
 
     default: {

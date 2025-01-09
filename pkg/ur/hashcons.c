@@ -580,8 +580,7 @@ static ur_nref
 _coin_unsafe(ur_atoms_t *atoms, ur_mug mug, uint64_t len, uint8_t *byt)
 {
   uint64_t fill = atoms->fill;
-  ur_tag    tag = ur_iatom;
-  ur_nref   tom = ( fill | ((uint64_t)tag << 62) );
+  ur_nref   tom = ur_idx_to_iatom(fill);
 
   //  XX necessary?
   //
@@ -599,8 +598,7 @@ static ur_nref
 _cons_unsafe(ur_cells_t *cells, ur_mug mug, ur_nref hed, ur_nref tal)
 {
   uint64_t fill = cells->fill;
-  ur_tag    tag = ur_icell;
-  ur_nref   cel = ( fill | ((uint64_t)tag << 62) );
+  ur_nref   cel = ur_idx_to_icell(fill);
 
   //  XX necessary?
   //
@@ -670,7 +668,7 @@ ur_coin_bytes(ur_root_t *r, uint64_t len, uint8_t *byt)
 
   //  produce a direct atom if possible
   //
-  if ( 62 >= ur_met0_bytes_unsafe(len, byt) ) {
+  if ( ur_bits_direct >= ur_met0_bytes_unsafe(len, byt) ) {
     uint64_t i, direct = 0;
 
     for ( i = 0; i < len; i++ ) {
