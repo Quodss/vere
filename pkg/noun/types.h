@@ -9,16 +9,16 @@
 
 /// Sentinel value for u3_noun types that aren't actually nouns.
 #ifdef VERE_64
-    #define u3_none (u3_noun)0xffffffffffffffff
+    #define u3_none ( (u3_noun)0xffffffffffffffff )
 #else
-    #define u3_none (u3_noun)0xffffffff
+    #define u3_none ( (u3_noun)0xffffffff )
 #endif
 
 /// 0, or `~` in Hoon.
-#define u3_nul (u3_noun)0
+#define u3_nul ( (u3_noun)0 )
 
 /// 0, or `%$` in Hoon.
-#define u3_blip (u3_noun)0
+#define u3_blip ( (u3_noun)0 )
 
 /// Pointer offset into the loom.
 ///

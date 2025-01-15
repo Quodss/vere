@@ -42,16 +42,40 @@
         c3_n  pgs_n;                        //  length in pages
       } u3e_image;
 
+    /* u3e_dirt: block index and a bitmap of dirtied or clean pages
+    */
+      typedef struct _u3e_dirt {
+        c3_n blk_n;                         //  pag_n >> 5
+        c3_w_tmp map_w;                         //  bitmap
+      } u3e_dirt;
+
+    /* u3e_tag: u3e_touched meta state
+    */
+      typedef enum {
+        u3e_dirty = 0,                  //  track dirty pages
+        u3e_clean = 1,                  //  track clean pages
+      } u3e_tag;
+
+    /* u3e_touched: fibonacci-allocated array of u3e_block, sorted by blk_n
+    */
+      typedef struct _u3e_touched {
+        u3e_tag     tag_y;                  // tag
+        u3e_dirt*   blk_u;                  // dirtied blocks
+        c3_n        len_n;                  // length of array
+        c3_n        cap_n;                  // capacity
+        c3_n        pre_n;                  // previous capacity
+      } u3e_touched;
+      
     /* u3e_pool: entire memory system.
     */
       typedef struct _u3e_pool {
-        c3_c*     dir_c;                     //  path to
-        c3_i      eph_i;                     //  ephemeral file descriptor
-        c3_w_tmp      dit_w[u3a_pages >> 5];     //  touched since last save // note dozreg: way too big for VERE_64, TODO sane dirty page marks
-        c3_n      pag_n;                     //  number of pages (<= u3a_pages)
-        c3_n      gar_n;                     //  guard page
-        u3e_image nor_u;                     //  north segment
-        u3e_image sou_u;                     //  south segment
+        c3_c*        dir_c;                 //  path to
+        c3_i         eph_i;                 //  ephemeral file descriptor
+        u3e_touched  dit_u;                 //  touched since last save
+        c3_n         pag_n;                 //  number of pages (<= u3a_pages)
+        c3_n         gar_n;                 //  guard page
+        u3e_image    nor_u;                 //  north segment
+        u3e_image    sou_u;                 //  south segment
       } u3e_pool;
 
     /* u3e_flaw: loom fault result.
@@ -76,6 +100,14 @@
 # else
 #   define u3e_note_max   UINT32_MAX
 #endif
+
+#define u3e_fib11          89
+#define u3e_fib12         144
+
+  /*  Page limit during snapshot validation, adjust if necessary
+  */
+#define u3e_pages_max_sane  ((c3_n)1 << 26) //  1 TB / 16 KB
+
   /** Functions.
   **/
     /* u3e_backup(): copy the snapshot from [pux_c] to [pax_c],

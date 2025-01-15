@@ -56,18 +56,24 @@
 #     define c3_lz_w __builtin_clz
 #     define c3_tz_w __builtin_ctz
 #     define c3_pc_w __builtin_popcount
-#     define c3_lz_d __builtin_clzl
-#     define c3_tz_d __builtin_ctzl
-#     define c3_pc_d __builtin_popcountl
 #elif (32 == (CHAR_BIT * __SIZEOF_LONG__))
 #     define c3_lz_w __builtin_clzl
 #     define c3_tz_w __builtin_ctzl
 #     define c3_pc_w __builtin_popcountl
+#else
+#     error  "port me"
+#endif
+
+#if    (64 == (CHAR_BIT * __SIZEOF_LONG__))
+#     define c3_lz_d __builtin_clzl
+#     define c3_tz_d __builtin_ctzl
+#     define c3_pc_d __builtin_popcountl
+#elif  (64 == (CHAR_BIT * __SIZEOF_LONG_LONG__))
 #     define c3_lz_d __builtin_clzll
 #     define c3_tz_d __builtin_ctzll
 #     define c3_pc_d __builtin_popcountll
 #else
-#     error  "port me"
+#  error   "port me"
 #endif
 
 #     define c3_bits_word(w) ((w) ? (32 - c3_lz_w(w)) : 0)

@@ -116,6 +116,193 @@
 /// Snapshotting system.
 u3e_pool u3e_Pool;
 
+//  TODO: is this dirty page tracking mechanism sufficient?
+//  Concern: u3e_foul followed by page copying, will we iterate
+//  over all u3a_pages (big number in vere64)?
+
+/* _dirt_bs(): binary search in array of u3e_dirt, produces pointer to the
+    found dirt or to the last dirt below blk_n in case of failure, or to
+    the first dirt if all dirts are above blk_n. len_n must be > 0
+*/
+static u3e_dirt*
+_dirt_bs(u3e_dirt* blk_u, c3_n len_n, c3_n blk_n)
+{
+  c3_n lef_n = 0, rit_n = len_n - 1;
+  u3e_dirt* out_u;
+  u3e_dirt* las_u = blk_u;
+
+  while (lef_n <= rit_n) {
+    c3_n mid_n = lef_n + (rit_n - lef_n) / 2;
+    out_u = blk_u + mid_n;
+    if (out_u->blk_n == blk_n) {
+      return out_u;
+    }
+    if (out_u->blk_n < blk_n) {
+      las_u = out_u;
+      lef_n = mid_n + 1;
+    } else {
+      if (mid_n == 0) {
+        break;
+      }
+      rit_n = mid_n - 1;
+    }
+  }
+  return las_u;
+}
+
+/* _is_dirty(): test if the page pag_n is dirty
+*/
+static c3_t
+_is_dirty(u3e_touched* dit_u, c3_n pag_n)
+{
+  if (dit_u->len_n == 0) {
+    return dit_u->tag_y == u3e_clean;
+  }
+  c3_n blk_n = pag_n >> 5;
+  u3e_dirt* fnd_u = _dirt_bs(dit_u->blk_u, dit_u->len_n, blk_n);
+  if (fnd_u->blk_n != blk_n) {
+    return dit_u->tag_y == u3e_clean;
+  }
+  c3_w_tmp bit_w = pag_n & 31;
+  return ((fnd_u->map_w >> bit_w) & 1) ^ (dit_u->tag_y == u3e_clean);
+}
+
+/* _init_dit(): initialize u3e_touched
+*/
+static u3e_touched
+_init_dit()
+{
+  u3e_touched dit_u;
+  dit_u.len_n = 0;
+  dit_u.cap_n = u3e_fib12;
+  dit_u.pre_n = u3e_fib11;
+  dit_u.blk_u = u3a_malloc(dit_u.cap_n * sizeof(u3e_dirt));
+  dit_u.tag_y = u3e_dirty;
+  return dit_u;
+}
+
+/* _grow_touched(): grow fibonacci-allocated array of u3e_block
+*/
+static void
+_grow_touched(u3e_touched* dit_u)
+{
+  c3_n nxt_n = dit_u->pre_n + dit_u->cap_n;
+  dit_u->pre_n = dit_u->cap_n;
+  dit_u->cap_n = nxt_n;
+  dit_u->blk_u = u3a_realloc(dit_u->blk_u, dit_u->cap_n * sizeof(u3e_dirt));
+}
+
+/* _dirt_add(): add u3e_dirt to u3e_touched at index blk_n in sorted manner,
+    reallocating if needed. Returns pointer to added u3e_dirt. fnd_n is an index
+    of a dirt just below blk_n or 0 if all dirts are above blk_n. Caller must
+    make sure that blk_n is not present in the array
+*/
+static u3e_dirt*
+_dirt_add(u3e_touched* dit_u, c3_n blk_n, c3_n fnd_n)
+{
+  if (dit_u->len_n == dit_u->cap_n) {
+    _grow_touched(dit_u);
+  }
+  dit_u->len_n++;
+
+  if (fnd_n == 0 && dit_u->blk_u[fnd_n].blk_n > blk_n) { // move all
+    c3_n i_n = dit_u->len_n - 1;
+    //  XX memcpy?
+    while (i_n--) {
+      dit_u->blk_u[i_n + 1] = dit_u->blk_u[i_n];
+    }
+    dit_u->blk_u[0].blk_n = blk_n;
+    dit_u->blk_u[0].map_w = 0;
+    return dit_u->blk_u;
+  }
+  // move all above fnd_n
+  c3_n i_n = dit_u->len_n - 1;
+  while (i_n-- > fnd_n + 1) {
+    dit_u->blk_u[i_n + 1] = dit_u->blk_u[i_n];
+  }
+  dit_u->blk_u[fnd_n + 1].blk_n = blk_n;
+  dit_u->blk_u[fnd_n + 1].map_w = 0;
+  return dit_u->blk_u + fnd_n + 1;
+}
+
+/* _make_dirty(): mark pag_n as dirty
+*/
+static void
+_make_dirty(u3e_touched* dit_u, c3_n pag_n)
+{
+  if (u3e_dirty == dit_u->tag_y) {
+    c3_n blk_n = pag_n >> 5;
+    c3_w_tmp bit_w = pag_n & 31;
+    if (dit_u->len_n == 0) {
+      dit_u->len_n++;
+      dit_u->blk_u[0].map_w = (c3_w_tmp)1 << bit_w;
+      dit_u->blk_u[0].blk_n = blk_n;
+    }
+    else {
+      u3e_dirt* fnd_u = _dirt_bs(dit_u->blk_u, dit_u->len_n, blk_n);
+      if (fnd_u->blk_n == blk_n) {
+        fnd_u->map_w |= (c3_w_tmp)1 << bit_w;
+      }
+      else {
+        u3e_dirt* new_u = _dirt_add(dit_u, blk_n, fnd_u->blk_n);
+        new_u->map_w |= (c3_w_tmp)1 << bit_w;
+      }
+    }
+  }
+  else {  // u3e_clean
+    c3_n blk_n = pag_n >> 5;
+    c3_w_tmp bit_w = pag_n & 31;
+    if (dit_u->len_n == 0) {
+      return;
+    }
+    else {
+      u3e_dirt* fnd_u = _dirt_bs(dit_u->blk_u, dit_u->len_n, blk_n);
+      if (fnd_u->blk_n == blk_n) {
+        fnd_u->map_w &= ~((c3_w_tmp)1 << bit_w);
+      }
+    }
+  }
+}
+
+/* _make_clean(): mark pag_n as clean
+*/
+static void
+_make_clean(u3e_touched* dit_u, c3_n pag_n)
+{
+  if (u3e_clean == dit_u->tag_y) {
+    c3_n blk_n = pag_n >> 5;
+    c3_w_tmp bit_w = pag_n & 31;
+    if (dit_u->len_n == 0) {
+      dit_u->len_n++;
+      dit_u->blk_u[0].map_w = (c3_w_tmp)1 << bit_w;
+      dit_u->blk_u[0].blk_n = blk_n;
+    }
+    else {
+      u3e_dirt* fnd_u = _dirt_bs(dit_u->blk_u, dit_u->len_n, blk_n);
+      if (fnd_u->blk_n == blk_n) {
+        fnd_u->map_w |= (c3_w_tmp)1 << bit_w;
+      }
+      else {
+        u3e_dirt* new_u = _dirt_add(dit_u, blk_n, fnd_u->blk_n);
+        new_u->map_w |= (c3_w_tmp)1 << bit_w;
+      }
+    }
+  }
+  else {  // u3e_dirty
+    c3_n blk_n = pag_n >> 5;
+    c3_w_tmp bit_w = pag_n & 31;
+    if (dit_u->len_n == 0) {
+      return;
+    }
+    else {
+      u3e_dirt* fnd_u = _dirt_bs(dit_u->blk_u, dit_u->len_n, blk_n);
+      if (fnd_u->blk_n == blk_n) {
+        fnd_u->map_w &= ~((c3_w_tmp)1 << bit_w);
+      }
+    }
+  }
+}
+
 static c3_l
 _ce_mug_page(void* ptr_v)
 {
@@ -130,7 +317,7 @@ _ce_mug_page(void* ptr_v)
 struct {
   c3_n nor_n;
   c3_n sou_n;
-  c3_m mug_m[u3a_pages]; // note dozreg: way too big for VERE_64
+  c3_m mug_m[u3e_pages_max_sane];
 } u3K;
 
 /* u3e_check(): compute a checksum on all memory within the watermarks.
@@ -280,8 +467,6 @@ u3e_flaw
 u3e_fault(u3_post low_p, u3_post hig_p, u3_post off_p)
 {
   c3_n pag_n = off_p >> u3a_page;
-  c3_n blk_n = pag_n >> 5;
-  c3_w_tmp bit_w = pag_n & 31;
 
 #ifdef U3_GUARD_PAGE
   c3_n gar_n = u3P.gar_n;
@@ -292,8 +477,7 @@ u3e_fault(u3_post low_p, u3_post hig_p, u3_post off_p)
     if ( u3e_flaw_good != fal_e ) {
       return fal_e;
     }
-
-    if ( !(u3P.dit_w[blk_n] & ((c3_w_tmp)1 << bit_w)) ) {
+    if ( !(_is_dirty(&u3P.dit_u, pag_n)) ) {
       fprintf(stderr, "loom: strange guard (%d)\r\n", pag_n);
       return u3e_flaw_sham;
     }
@@ -306,12 +490,12 @@ u3e_fault(u3_post low_p, u3_post hig_p, u3_post off_p)
   }
 #endif
 
-  if ( u3P.dit_w[blk_n] & ((c3_w_tmp)1 << bit_w) ) {
+  if ( _is_dirty(&u3P.dit_u, pag_n) ) {
     fprintf(stderr, "loom: strange page (%d): %x\r\n", pag_n, off_p);
     return u3e_flaw_sham;
   }
 
-  u3P.dit_w[blk_n] |= ((c3_n)1 << bit_w);
+  _make_dirty(&u3P.dit_u, pag_n);
 
   if ( u3P.eph_i ) {
     if ( _ce_flaw_mmap(pag_n) ) {
@@ -676,10 +860,7 @@ static c3_n
 _ce_patch_count_page(c3_n pag_n,
                      c3_n pgc_n)
 {
-  c3_n blk_n = (pag_n >> 5);
-  c3_w_tmp bit_w = (pag_n & 31);
-
-  if ( u3P.dit_w[blk_n] & ((c3_w_tmp)1 << bit_w) ) {
+  if ( _is_dirty(&u3P.dit_u, pag_n) ) {
     pgc_n += 1;
   }
   return pgc_n;
@@ -692,10 +873,7 @@ _ce_patch_save_page(u3_ce_patch* pat_u,
                     c3_n         pag_n,
                     c3_n         pgc_n)
 {
-  c3_n  blk_n = (pag_n >> 5);
-  c3_w_tmp  bit_w = (pag_n & 31);
-
-  if ( u3P.dit_w[blk_n] & ((c3_w_tmp)1 << bit_w) ) {
+  if ( _is_dirty(&u3P.dit_u, pag_n) ) {
     c3_w_tmp* mem_w = _ce_ptr(pag_n);
 
     pat_u->con_u->mem_u[pgc_n].pag_n = pag_n;
@@ -908,10 +1086,7 @@ _ce_loom_track_sane(void)
   max_n = u3P.nor_u.pgs_n;
 
   for ( ; i_n < max_n; i_n++ ) {
-    blk_n = i_n >> 5;
-    bit_w = i_n & 31;
-
-    if ( u3P.dit_w[blk_n] & ((c3_w_tmp)1 << bit_w) ) {
+    if ( _is_dirty(&u3P.dit_u, i_n) ) {
       fprintf(stderr, "loom: insane north %u\r\n", i_n);
       san_o = c3n;
     }
@@ -920,10 +1095,7 @@ _ce_loom_track_sane(void)
   max_n = u3P.pag_n - u3P.sou_u.pgs_n;
 
   for ( ; i_n < max_n; i_n++ ) {
-    blk_n = i_n >> 5;
-    bit_w = i_n & 31;
-
-    if ( !(u3P.dit_w[blk_n] & ((c3_w_tmp)1 << bit_w)) ) {
+    if ( !(_is_dirty(&u3P.dit_u, i_n)) ) {
       fprintf(stderr, "loom: insane open %u\r\n", i_n);
       san_o = c3n;
     }
@@ -932,10 +1104,7 @@ _ce_loom_track_sane(void)
   max_n = u3P.pag_n;
 
   for ( ; i_n < max_n; i_n++ ) {
-    blk_n = i_n >> 5;
-    bit_w = i_n & 31;
-
-    if ( u3P.dit_w[blk_n] & ((c3_w_tmp)1 << bit_w) ) {
+    if ( _is_dirty(&u3P.dit_u, i_n) ) {
       fprintf(stderr, "loom: insane south %u\r\n", i_n);
       san_o = c3n;
     }
@@ -949,25 +1118,20 @@ _ce_loom_track_sane(void)
 void
 _ce_loom_track_north(c3_n pgs_n, c3_n dif_n)
 {
-  c3_n blk_n, i_n = 0, max_n = pgs_n;
-  c3_w_tmp bit_w;
+  c3_n i_n = 0, max_n = pgs_n;
 
   for ( ; i_n < max_n; i_n++ ) {
-    blk_n = i_n >> 5;
-    bit_w = i_n & 31;
-    u3P.dit_w[blk_n] &= ~((c3_w_tmp)1 << bit_w);
+    _make_clean(&u3P.dit_u, i_n);
   }
 
   max_n += dif_n;
 
   for ( ; i_n < max_n; i_n++ ) {
-    blk_n = i_n >> 5;
-    bit_w = i_n & 31;
-    u3P.dit_w[blk_n] |= ((c3_w_tmp)1 << bit_w);
+    _make_dirty(&u3P.dit_u, i_n);
   }
 }
 
-/* _ce_loom_track_south(): [pgs_w] clean, preceded by [dif_w] dirty.
+/* _ce_loom_track_south(): [pgs_n] clean, preceded by [dif_n] dirty.
 */
 void
 _ce_loom_track_south(c3_n pgs_n, c3_n dif_n)
@@ -976,17 +1140,13 @@ _ce_loom_track_south(c3_n pgs_n, c3_n dif_n)
   c3_w_tmp bit_w;
 
   for ( ; i_n >= max_n; i_n-- ) {
-    blk_n = i_n >> 5;
-    bit_w = i_n & 31;
-    u3P.dit_w[blk_n] &= ~((c3_w_tmp)1 << bit_w);
+    _make_clean(&u3P.dit_u, i_n);
   }
 
   max_n -= dif_n;
 
   for ( ; i_n >= max_n; i_n-- ) {
-    blk_n = i_n >> 5;
-    bit_w = i_n & 31;
-    u3P.dit_w[blk_n] |= ((c3_w_tmp)1 << bit_w);
+    _make_dirty(&u3P.dit_u, i_n);
   }
 }
 
@@ -1267,20 +1427,16 @@ _ce_loom_fine(void)
 
   for ( i_n = 0; i_n < u3P.nor_u.pgs_n; i_n++ ) {
     pag_n = i_n;
-    blk_n = pag_n >> 5;
-    bit_w = pag_n & 31;
 
-    if ( !(u3P.dit_w[blk_n] & ((c3_w_tmp)1 << bit_w)) ) {
+    if ( !(_is_dirty(&u3P.dit_u, pag_n)) ) {
       fin_o = c3a(fin_o, _ce_page_fine(&u3P.nor_u, pag_n, _ce_len(pag_n)));
     }
   }
 
   for ( i_n = 0; i_n < u3P.sou_u.pgs_n; i_n++ ) {
     pag_n = u3P.pag_n - (i_n + 1);
-    blk_n = pag_n >> 5;
-    bit_w = pag_n & 31;
 
-    if ( !(u3P.dit_w[blk_n] & ((c3_w_tmp)1 << bit_w)) ) {
+    if ( !(_is_dirty(&u3P.dit_u, pag_n)) ) {
       fin_o = c3a(fin_o, _ce_page_fine(&u3P.sou_u, pag_n, _ce_len(i_n)));
     }
   }
@@ -1588,6 +1744,7 @@ u3e_live(c3_o nuu_o, c3_c* dir_c)
   u3P.nor_u.nam_c = "north";
   u3P.sou_u.nam_c = "south";
   u3P.pag_n = u3C.wor_i >> u3a_page;
+  u3P.dit_u = _init_dit();
 
   //  XX review dryrun requirements, enable or remove
   //
@@ -1734,7 +1891,9 @@ u3e_yolo(void)
 void
 u3e_foul(void)
 {
-  memset((void*)u3P.dit_w, 0xff, sizeof(u3P.dit_w));
+  // memset((void*)u3P.dit_w, 0xff, sizeof(u3P.dit_w));
+  u3P.dit_u.tag_y = u3e_clean;
+  u3P.dit_u.len_n = 0;
 }
 
 /* u3e_init(): initialize guard page tracking, dirty loom
@@ -1766,7 +1925,7 @@ u3e_ward(u3_post low_p, u3_post hig_p)
   if ( !((pag_n > nop_n) && (pag_n < sop_n)) ) {
     u3_assert( !_ce_ward_post(nop_n, sop_n) );
     u3_assert( !_ce_flaw_mprotect(pag_n) );
-    u3_assert( u3P.dit_w[pag_n >> 5] & ((c3_w_tmp)1 << (pag_n & 31)) );
+    u3_assert( _is_dirty(&u3P.dit_u, pag_n) );
   }
 #endif
 }
