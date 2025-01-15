@@ -118,7 +118,8 @@ u3e_pool u3e_Pool;
 
 //  TODO: is this dirty page tracking mechanism sufficient?
 //  Concern: u3e_foul followed by page copying, will we iterate
-//  over all u3a_pages (big number in vere64)?
+//  over all u3a_pages (very big number in vere64)?
+//  Note: empty map_w are not removed. Should they be?
 
 /* _dirt_bs(): binary search in array of u3e_dirt, produces pointer to the
     found dirt or to the last dirt below blk_n in case of failure, or to
@@ -127,6 +128,7 @@ u3e_pool u3e_Pool;
 static u3e_dirt*
 _dirt_bs(u3e_dirt* blk_u, c3_n len_n, c3_n blk_n)
 {
+  c3_dessert(len_n > 0);
   c3_n lef_n = 0, rit_n = len_n - 1;
   u3e_dirt* out_u;
   u3e_dirt* las_u = blk_u;
@@ -150,7 +152,13 @@ _dirt_bs(u3e_dirt* blk_u, c3_n len_n, c3_n blk_n)
   return las_u;
 }
 
-/* _is_dirty(): test if the page pag_n is dirty
+/* _is_dirty(): test if the page pag_n is dirty.
+   
+   Note: if dirty pages are tracked, len_n == 0 or
+   missing blk_n means that the page is not dirty,
+   and vice versa for clean page tracking. If blk_n
+   is present, the bit from map_w is flipped if 
+   clean pages are tracked
 */
 static c3_t
 _is_dirty(u3e_touched* dit_u, c3_n pag_n)
@@ -164,7 +172,7 @@ _is_dirty(u3e_touched* dit_u, c3_n pag_n)
     return dit_u->tag_y == u3e_clean;
   }
   c3_w_tmp bit_w = pag_n & 31;
-  return ((fnd_u->map_w >> bit_w) & 1) ^ (dit_u->tag_y == u3e_clean);
+  return ((fnd_u->map_w >> bit_w) & 1) != (dit_u->tag_y == u3e_clean);
 }
 
 /* _init_dit(): initialize u3e_touched
@@ -174,8 +182,8 @@ _init_dit()
 {
   u3e_touched dit_u;
   dit_u.len_n = 0;
-  dit_u.cap_n = u3e_fib12;
-  dit_u.pre_n = u3e_fib11;
+  dit_u.cap_n = u3e_fib19;
+  dit_u.pre_n = u3e_fib18;
   dit_u.blk_u = u3a_malloc(dit_u.cap_n * sizeof(u3e_dirt));
   dit_u.tag_y = u3e_dirty;
   return dit_u;

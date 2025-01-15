@@ -101,8 +101,8 @@
 #   define u3e_note_max   UINT32_MAX
 #endif
 
-#define u3e_fib11          89
-#define u3e_fib12         144
+#define u3e_fib18         2584
+#define u3e_fib19         4181  // approx. (2 GB / 16 KB) / 32 bits per map_w
 
   /*  Page limit during snapshot validation, adjust if necessary
   */
