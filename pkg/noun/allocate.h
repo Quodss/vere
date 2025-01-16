@@ -65,22 +65,30 @@
     /* u3a_use_sent: sentinel value for reference count
     */
 # ifdef VERE_64
-#     define u3a_use_sent  (c3_n)0xffffffffffffffffULL
+#     define u3a_use_sent  ( (c3_n)0xffffffffffffffffULL )
 # else
-#     define u3a_use_sent  (c3_n)0xffffffff
+#     define u3a_use_sent  ( (c3_n)0xffffffff )
 # endif
 
     /* u3a_use_mark: marking value for reference count
     */
 # ifdef VERE_64
-#     define u3a_use_mark  (c3_n)0x8000000000000000ULL
+#     define u3a_use_mark  ( (c3_n)0x8000000000000000ULL )
 # else
-#     define u3a_use_mark  (c3_n)0x80000000
+#     define u3a_use_mark  ( (c3_n)0x80000000 )
 # endif
 
     /* u3a_siz_sent: sentinel value for box size
     */
 #     define u3a_siz_sent  u3a_use_sent
+
+    /* u3a_direct_bits: max number of bits in a direct atom
+    */
+# ifdef VERE_64
+#     define u3a_direct_bits  63
+# else
+#     define u3a_direct_bits  31
+# endif
 
   /**  Structures.
   **/
@@ -236,11 +244,18 @@
                                     ( (u3a_box *)(void *)(box_v) + 1 ) )
 
 #     define u3a_botox(tox_v)     ( (u3a_box *)(void *)(tox_v) - 1 )
-
-#     define u3a_box_rear(box_w, siz_n)                       \
-        do {                                                  \
-          *(c3_n*)((box_w) + (siz_n) - u3a_nwise) = (siz_n);  \
+# ifdef VERE_64
+#     define u3a_box_rear(box_w, siz_n)                                 \
+        do {                                                            \
+          box_w[(siz_n) - 2] = (c3_w_tmp)((siz_n) & 0xffffffffULL);  \
+          box_w[(siz_n) - 1] = (c3_w_tmp)((siz_n) >> 32);         \
         } while (0)
+# else
+#     define u3a_box_rear(box_w, siz_n) \
+        do {                            \
+          box_w[(siz_n) - 1] = (siz_n); \
+        } while (0)
+# endif
 
     /* Inside a noun.
     */
@@ -417,7 +432,25 @@
                            & u3a_walign-1) == 0);                     \
              } while(0)
 
+    /* u3a_read_note(): read a word-aligned note from c3_w[]
+    */
+# ifdef VERE_64
+#     define u3a_read_note(ptr_w)   ( (c3_n)(ptr_w)[0] + ((c3_n)(ptr_w)[1] << 32) )
+# else
+#     define u3a_read_note(ptr_w)   ( *(ptr_w) )
+#endif
 
+    /* u3a_write_note(): write to a word-aligned note in c3_w[]
+    */
+# ifdef VERE_64
+#     define u3a_write_note(ptr_w, val_n)                     \
+        do {                                                  \
+          (ptr_w)[0] = (c3_w_tmp)((val_n) && 0xffffffffULL);  \
+          (ptr_w)[1] = (c3_w_tmp)((val_n) >> 32);             \
+        } while (0)
+# else
+#     define u3a_write_note(ptr_w, val_n)   do {*(ptr_w) = (val_n);} while (0)
+#endif
 
   /**  Globals.
   **/

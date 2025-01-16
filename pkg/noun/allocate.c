@@ -219,7 +219,7 @@ _box_free(u3a_box* box_u)
     /* Try to coalesce with the block below.
     */
     if ( box_w != u3a_into(u3R->rut_p) ) {
-      c3_n       laz_n = *(c3_n*)(box_w - u3a_nwise); /* the size of a box stored at the end of its allocation */
+      c3_n       laz_n = u3a_read_note(box_w - u3a_nwise); /* the size of a box stored at the end of its allocation */
       u3a_box* pox_u = (u3a_box*)(void *)(box_w - laz_n); /* the head of the adjacent box below */
 
       if ( 0 == pox_u->use_n ) {
@@ -264,7 +264,7 @@ _box_free(u3a_box* box_u)
       u3R->hat_p = u3a_outa(box_w + box_u->siz_n);
     }
     else {
-      c3_n laz_n = *(c3_n*)(box_w - u3a_nwise);
+      c3_n laz_n = u3a_read_note(box_w - u3a_nwise);
       u3a_box* pox_u = (u3a_box*)(void *)(box_w - laz_n);
 
       if ( 0 == pox_u->use_n ) {
@@ -613,7 +613,7 @@ u3a_walloc(c3_n len_n)
 {
   void* ptr_v;
 
-  ptr_v = _ca_walloc(len_n, 1, 0);
+  ptr_v = _ca_walloc(len_n, u3a_nwise, 0);  // note dozreg: word allocation needs to be note-aligned to make sure that box_u.siz_n/use_n are aligned. siz_n in the end of the box is still not aligned
 
 #if 0
   if ( (703 == u3_Code) &&
@@ -1729,7 +1729,7 @@ u3a_rewritten(u3_post ptr_v)
   u3a_box* box_u = u3a_botox(u3a_into(ptr_v));
   c3_w_tmp* box_w = (c3_w_tmp*) box_u;
   c3_n siz_n = box_u->siz_n;
-  return *(c3_n*)(box_w + siz_n - u3a_nwise);  // note dozreg: going off vibes here, I have no idea what it supposed to point to
+  return u3a_read_note(box_w + siz_n - u3a_nwise);  // note dozreg: going off vibes here, I have no idea what it supposed to point to
 }
 
 u3_noun
@@ -2620,7 +2620,7 @@ u3a_pack_seek(u3a_road* rod_u)
       siz_n = box_u->siz_n;
 
       if ( box_u->use_n ) {
-        *(c3_n*)(box_w + siz_n - u3a_nwise) = new_p;  // note dozreg: going off vibes
+        u3a_write_note(box_w + siz_n - u3a_nwise, new_p);  // note dozreg: going off vibes
         new_p += siz_n;
       }
 
@@ -2637,13 +2637,13 @@ u3a_pack_seek(u3a_road* rod_u)
     //    since we traverse backward, [siz_w] holds the size of the next box,
     //    and we must initially offset to point to the head of the first box
     //
-    siz_n = *(c3_n*)(box_w - u3a_nwise);  // note dozreg: going off vibes
+    siz_n = u3a_read_note(box_w - u3a_nwise);  // note dozreg: going off vibes
     box_w -= siz_n;
     new_p -= siz_n;
 
     while ( end_w < box_w ) {
       box_u = (void *)box_w;
-      siz_n = *(c3_n*)(box_w - u3a_nwise);  // note dozreg: going off vibes
+      siz_n = u3a_read_note(box_w - u3a_nwise);  // note dozreg: going off vibes
 
       if ( box_u->use_n ) {
         box_u->siz_n = new_p;
@@ -2674,7 +2674,7 @@ _ca_pack_move_north(c3_w_tmp* box_w, c3_w_tmp* end_w, u3_post new_p)
     if ( old_u->use_n ) {
       c3_w_tmp* new_w = (void*)u3a_botox(u3a_into(new_p));
 
-      u3_assert( *(c3_n*)(box_w + siz_n - u3a_nwise) == new_p );  // note dozreg: vibes
+      u3_assert( u3a_read_note(box_w + siz_n - u3a_nwise) == new_p );  // note dozreg: vibes
 
       //  note: includes leading size
       //
@@ -2691,7 +2691,7 @@ _ca_pack_move_north(c3_w_tmp* box_w, c3_w_tmp* end_w, u3_post new_p)
 
       //  restore trailing size
       //
-      *(c3_n*)(new_w + siz_n - u3a_nwise) = siz_n;  // note dozreg: vibes
+      u3a_write_note(new_w + siz_n - u3a_nwise, siz_n);  // note dozreg: vibes
 
       new_p += siz_n;
     }
@@ -2713,7 +2713,7 @@ _ca_pack_move_south(c3_w_tmp* box_w, c3_w_tmp* end_w, u3_post new_p)
 
   //  offset initial addresses (point to the head of the first box)
   //
-  siz_n  = *(c3_n*)(box_w - u3a_nwise);
+  siz_n  = u3a_read_note(box_w - u3a_nwise);
   box_w -= siz_n;
   new_p -= siz_n;
 
@@ -2747,7 +2747,7 @@ _ca_pack_move_south(c3_w_tmp* box_w, c3_w_tmp* end_w, u3_post new_p)
 
       //  restore leading size
       //
-      *(c3_n*)(&new_w[0]) = siz_n;
+      u3a_write_note(&new_w[0], siz_n);
 
       yuz_o = c3y;
     }
@@ -2758,7 +2758,7 @@ _ca_pack_move_south(c3_w_tmp* box_w, c3_w_tmp* end_w, u3_post new_p)
     //  move backwards only if there is more work to be done
     //
     if ( box_w > end_w ) {
-      siz_n  = *(c3_n*)(box_w - u3a_nwise);
+      siz_n  = u3a_read_note(box_w - u3a_nwise);
       box_w -= siz_n;
 
       if ( c3y == yuz_o ) {
