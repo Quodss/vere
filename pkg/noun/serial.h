@@ -12,6 +12,29 @@
       */
         extern const c3_y u3s_dit_y[64];
 
+      /* u3s_note_max: max value of c3_n
+      */
+# ifdef VERE_64
+#       define u3s_note_max   UINT64_MAX
+# else
+#       define u3s_note_max   UINT32_MAX
+#endif
+
+    /*  macros
+    */
+      /* ur_dict_note_get: get from an appropriate ur dictionary
+      */
+#ifdef VERE_64
+#     define ur_dict_note_get ur_dict64_get
+#     define ur_dict_note_put ur_dict64_put
+#     define ur_dict_note_grow ur_dict64_grow
+#     define ur_dict_note_wipe ur_dict64_wipe
+#else
+#     define ur_dict_note_get ur_dict32_get
+#     define ur_dict_note_put ur_dict32_put
+#     define ur_dict_note_grow ur_dict32_grow
+#     define ur_dict_note_wipe ur_dict32_wipe
+#endif
     /*  opaque handles
     */
       /* u3_cue_xeno: handle for cue-ing with an off-loom dictionary.
@@ -26,7 +49,7 @@
       **   returns atom-suitable words, and *bit_w will have
       **   the length (in bits). return should be freed with u3a_wfree().
       */
-        c3_w
+        c3_n
         u3s_jam_fib(u3i_slab* sab_u, u3_noun a);
 
       /* u3s_jam_xeno(): jam with off-loom buffer (re-)allocation.
@@ -127,7 +150,7 @@
       /* u3s_sift_ud_bytes: parse @ud.
       */
         u3_weak
-        u3s_sift_ud_bytes(c3_w len_w, c3_y* byt_y);
+        u3s_sift_ud_bytes(c3_n len_n, c3_y* byt_y);
 
       /* u3s_sift_ud: parse @ud.
       */

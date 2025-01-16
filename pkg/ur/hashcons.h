@@ -32,11 +32,13 @@ typedef enum {
 #define ur_nref_idx(ref)       ur_mask_62(ref)
 #define ur_idx_to_iatom(idx)   ( (idx) | ((ur_nref)ur_iatom << 62) )
 #define ur_idx_to_icell(idx)   ( (idx) | ((ur_nref)ur_icell << 62) )
+#define ur_ref_fit_direct(d)    ( d <= 0x7ffffffffffffffULL )  // note dozreg: I think it should be 0x3fffffffffffffff :: `@ux`(dec (bex 62))
 #else
 #define ur_nref_tag(ref)       ( (ref >> 63) ? (ref >> 62) - 1 : 0 )
 #define ur_nref_idx(ref)       ur_mask_62(ref)
 #define ur_idx_to_iatom(idx)   ( (idx) | ((ur_nref)(ur_iatom + 1) << 62) )
 #define ur_idx_to_icell(idx)   ( (idx) | ((ur_nref)(ur_icell + 1) << 62) )
+#define ur_ref_fit_direct(d)    ( d <= 0x7fffffffffffffffULL )
 #endif
 
 /*
