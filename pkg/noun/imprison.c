@@ -519,7 +519,7 @@ u3i_vint(u3_noun a)
 {
   u3_assert(u3_none != a);
   if ( _(u3a_is_cat(a)) ) {
-    return ( a == (c3_d)0x7fffffffffffffff ) ? u3i_chub(a + 1) : (a + 1);
+    return ( a == (c3_d)0x7fffffffffffffffULL ) ? u3i_chub(a + 1) : (a + 1);
   }
   else if ( _(u3a_is_cell(a)) ) {
     return u3m_bail(c3__exit);
