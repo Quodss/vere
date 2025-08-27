@@ -16,8 +16,9 @@
       u3_noun  i, t = a;
       u3j_gate_prep(&sit_u, u3k(b));
       do {
-        u3x_cell(t, &i, &t);
+        i = u3h(t);
         pro = u3j_gate_slam(&sit_u, u3nc(u3k(i), pro));
+        t = u3t(t);
       } while ( u3_nul != t );
       u3j_gate_lose(&sit_u);
     }
