@@ -522,7 +522,14 @@ _n_nock_on(u3_noun bus, u3_noun fol)
   X(KUTS, "kuts", &&do_kuts),  /* 92: c3_s */                                  \
   X(KITB, "kitb", &&do_kitb),  /* 93: c3_b */                                  \
   X(KITS, "kits", &&do_kits),  /* 94: c3_s */                                  \
-  X(LAST,   NULL,      NULL),  /* 95 */
+  /* SKA-specific output */                                                    \
+  /* Direct call to a program */                                               \
+  X(DIRB, "dirb", &&do_dirb),  /* 95: c3_y */                                  \
+  X(DIRS, "dirs", &&do_dirs),  /* 96: c3_s */                                  \
+  /* Direct call, tail position */                                             \
+  X(TIRB, "tirb", &&do_tirb),  /* 97: c3_y */                                  \
+  X(TIRS, "tirs", &&do_tirs),  /* 98: c3_s */                                  \
+  X(LAST,   NULL,      NULL),  /* 99 */
 
 // Opcodes. Define X to select the enum name from OPCODES.
 #define X(opcode, name, indirect_jump) opcode
@@ -714,6 +721,9 @@ _n_prog_new(c3_w byc_w, c3_w cal_w,
                (pod_w * sizeof(u3_noun)) + (ped_w * sizeof(u3n_memo));
 
   u3n_prog* pog_u     = u3a_malloc(sizeof(u3n_prog) + dat_w);
+  pog_u->dir_o = c3n;
+  pog_u->less  = u3_none;
+  
   pog_u->byc_u.own_o = c3y;
   pog_u->byc_u.len_w = byc_w;
   pog_u->byc_u.ops_y = (c3_y*) _n_prog_dat(pog_u);
@@ -749,6 +759,9 @@ _n_prog_old(u3n_prog* sep_u)
                (pod_w * sizeof(u3_noun)) + (ped_w * sizeof(u3n_memo));
 
   u3n_prog* pog_u     = u3a_malloc(sizeof(u3n_prog) + dat_w);
+  pog_u->dir_o = c3n;
+  pog_u->less  = u3_none;
+
   pog_u->byc_u.own_o = c3n;
   pog_u->byc_u.len_w = sep_u->byc_u.len_w;
   pog_u->byc_u.ops_y = sep_u->byc_u.ops_y;
@@ -1582,7 +1595,7 @@ _n_resh(c3_y* buf, c3_w* ip_w)
 static inline c3_w
 _n_rewo(c3_y* buf, c3_w* ip_w)
 {
-  c3_y one = buf[(*ip_w)++],
+  c3_w one = buf[(*ip_w)++],
        two = buf[(*ip_w)++],
        tre = buf[(*ip_w)++],
        qua = buf[(*ip_w)++];
@@ -2123,6 +2136,7 @@ _n_burn(u3n_prog* pog_u, u3_noun bus, c3_ys mov, c3_ys off)
   u3j_site* sit_u;
   u3j_rite* rit_u;
   u3n_memo* mem_u;
+  u3n_dire* dir_u;
   c3_y *pog = pog_u->byc_u.ops_y;
   c3_w sip_w, ip_w = 0;
   u3_noun* top;
@@ -2852,6 +2866,52 @@ _n_burn(u3n_prog* pog_u, u3_noun bus, c3_ys mov, c3_ys off)
       top = _n_peek(off);
     edit_in:
       *top = u3i_edit(*top, x, o);
+      BURN();
+    
+    do_dirs:
+      x = _n_resh(pog, &ip_w);
+      goto dir_in;
+    
+    do_dirb:
+      x = pog[ip_w++];
+    dir_in:
+      top = _n_peek(off);
+      o   = *top;
+      dir_u = &(pog_u->dir_u.dat_u[x]);
+      if ( _(dir_u->jet_o) ) {
+        *top = u3j_call_direct(o, dir_u->cop_u, dir_u->ham_u);
+        if ( u3_none != *top ) BURN();
+        _n_pop(mov);
+      }
+      fam         = u3to(burnframe, u3R->cap_p) + off + mov;
+      u3R->cap_p  = u3of(burnframe, fam - off);
+      fam->ip_w   = ip_w;
+      fam->pog_u  = pog_u;
+
+      pog_u = u3to(u3n_prog, dir_u->pog_p);
+      pog   = pog_u->byc_u.ops_y;
+      ip_w  = 0;
+      _n_push(mov, off, o);
+      BURN();
+
+    do_tirs:
+      x = _n_resh(pog, &ip_w);
+      goto tir_in;
+    
+    do_tirb:
+      x = pog[ip_w++];
+    tir_in:
+      top = _n_peek(off);
+      o = *top;
+      dir_u = &(pog_u->dir_u.dat_u[x]);
+      if ( _(dir_u->jet_o) ) {
+        *top = u3j_call_direct(o, dir_u->cop_u, dir_u->ham_u);
+        if ( u3_none != *top ) BURN();
+        *top = o;
+      }
+      pog_u = u3to(u3n_prog, dir_u->pog_p);
+      pog   = pog_u->byc_u.ops_y;
+      ip_w  = 0;
       BURN();
   }
 }

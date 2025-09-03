@@ -10,6 +10,13 @@
 #include "types.h"
 #include "zave.h"
 
+#if 0
+  |%
+  +$  cape  $~(| $@(? (pair cape cape)))
+  +$  sock  $~(|+~ (pair cape *))
+  --
+#endif
+
   /** Data structures.
   ***
   **/
@@ -22,9 +29,21 @@
     u3z_cid cid;
   } u3n_memo;
 
+  /* u3n_dire: direct call information
+   */
+  struct _u3n_prog;
+  typedef struct {
+    u3p(_u3n_prog)  pog_p;   //  called program
+    c3_o            jet_o;   //  jet matched & driver available?
+    u3j_core*       cop_u;   //  jet core
+    u3j_harm*       ham_u;   //  jet arm
+  } u3n_dire;
+
   /* u3n_prog: program compiled from nock
    */
   typedef struct _u3n_prog {
+    c3_o      dir_o;                // program has direct calls?
+    u3_weak   less;                 // subject requirement iff dir_o == c3y (sock)
     struct {
       c3_o      own_o;                // program owns ops_y?
       c3_w      len_w;                // length of bytecode (bytes)
@@ -46,6 +65,10 @@
       c3_w      len_w;                // number of registration sites
       u3j_rite* rit_u;                // array of sites
     } reg_u;                          // registration site data
+    struct {
+      c3_w      len_w;                // number of direct calls
+      u3n_dire* dat_u;                // array of call info
+    } dir_u;                          // direct call data
   } u3n_prog;
 
   /**  Functions.

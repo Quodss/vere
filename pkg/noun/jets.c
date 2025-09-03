@@ -842,6 +842,7 @@ _cj_soft(u3_noun cor, u3_noun axe)
 **
 ** `cor` is RETAINED iff there is no kick, TRANSFERRED if one.
 ** `axe` is RETAINED.
+**  ice test is skipped if `axe` is 0.
 */
 static u3_weak
 _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
@@ -868,7 +869,7 @@ _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
     }
 #endif
 
-    if ( _(ham_u->ice) ) {
+    if ( _(ham_u->ice) || 0 == axe ) {
       u3_weak pro = ham_u->fun_f(cor);
 
 #ifdef U3_MEMORY_DEBUG
@@ -920,6 +921,16 @@ _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
     }
     return u3_none;
   }
+}
+
+/* u3j_call_direct(): try to kick by jet, no validation. No ice test.
+** Return u3_none if no kick.
+** `cor` is RETAINED iff there is no kick, TRANSFERRED if one.
+*/
+u3_weak
+u3j_call_direct(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u)
+{
+  return _cj_kick_z(cor, cop_u, ham_u, 0);
 }
 
 /* _cj_hook_in(): execute hook from core, or fail.
