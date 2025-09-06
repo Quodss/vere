@@ -2878,8 +2878,8 @@ _n_burn(u3n_prog* pog_u, u3_noun bus, c3_ys mov, c3_ys off)
       top = _n_peek(off);
       o   = *top;
       dir_u = &(pog_u->dir_u.dat_u[x]);
-      if ( _(dir_u->jet_o) ) {
-        *top = u3j_call_direct(o, dir_u->cop_u, dir_u->ham_u);
+      if ( dir_u->ham_u ) {
+        *top = u3j_call_direct(o, dir_u->ham_u);
         if ( u3_none != *top ) BURN();
         _n_pop(mov);
       }
@@ -2904,8 +2904,8 @@ _n_burn(u3n_prog* pog_u, u3_noun bus, c3_ys mov, c3_ys off)
       top = _n_peek(off);
       o = *top;
       dir_u = &(pog_u->dir_u.dat_u[x]);
-      if ( _(dir_u->jet_o) ) {
-        *top = u3j_call_direct(o, dir_u->cop_u, dir_u->ham_u);
+      if ( dir_u->ham_u ) {
+        *top = u3j_call_direct(o, dir_u->ham_u);
         if ( u3_none != *top ) BURN();
         *top = o;
       }

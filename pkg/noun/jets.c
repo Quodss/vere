@@ -847,6 +847,7 @@ _cj_soft(u3_noun cor, u3_noun axe)
 static u3_weak
 _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
 {
+  c3_c* cos_c = ( cop_u ) ? cop_u->cos_c : "????";
   if ( 0 == ham_u->fun_f ) {
     return u3_none;
   }
@@ -862,7 +863,7 @@ _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
       char soc_c[5];
 
       memset(soc_c, 0, 5);
-      strncpy(soc_c, cop_u->cos_c, 4);
+      strncpy(soc_c, cos_c, 4);
       soc_c[4] = 0;
       cod_w = u3i_string(soc_c);
       cod_w = u3a_lush(cod_w);
@@ -900,7 +901,7 @@ _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
 
       if ( c3n == u3r_sing(ame, pro) ) {
         u3l_log("test: %s %s: mismatch: good %x, bad %x",
-               cop_u->cos_c,
+               cos_c,
                (!strcmp(".2", ham_u->fcs_c)) ? "$" : ham_u->fcs_c,
                u3r_mug(ame),
                u3r_mug(pro));
@@ -912,7 +913,7 @@ _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
 
 #if 0
         u3l_log("test: %s %s",
-               cop_u->cos_c,
+               cos_c,
                (!strcmp(".2", ham_u->fcs_c)) ? "$" : ham_u->fcs_c);
 #endif
         u3z(ame);
@@ -928,9 +929,9 @@ _cj_kick_z(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u, u3_atom axe)
 ** `cor` is RETAINED iff there is no kick, TRANSFERRED if one.
 */
 u3_weak
-u3j_call_direct(u3_noun cor, u3j_core* cop_u, u3j_harm* ham_u)
+u3j_call_direct(u3_noun cor, u3j_harm* ham_u)
 {
-  return _cj_kick_z(cor, cop_u, ham_u, 0);
+  return _cj_kick_z(cor, NULL, ham_u, 0);
 }
 
 /* _cj_hook_in(): execute hook from core, or fail.

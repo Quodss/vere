@@ -34,9 +34,7 @@
   struct _u3n_prog;
   typedef struct {
     u3p(_u3n_prog)  pog_p;   //  called program
-    c3_o            jet_o;   //  jet matched & driver available?
-    u3j_core*       cop_u;   //  jet core
-    u3j_harm*       ham_u;   //  jet arm
+    u3j_harm*       ham_u;   //  jet arm, nullable
   } u3n_dire;
 
   /* u3n_prog: program compiled from nock

@@ -176,7 +176,6 @@
       */
         u3_weak
         u3j_call_direct(u3_noun   cor,
-                        u3j_core* cop_u,
                         u3j_harm* ham_u);
 
       /* u3j_soft():
