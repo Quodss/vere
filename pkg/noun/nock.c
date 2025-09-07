@@ -723,6 +723,7 @@ _n_prog_new(c3_w byc_w, c3_w cal_w,
   u3n_prog* pog_u     = u3a_malloc(sizeof(u3n_prog) + dat_w);
   pog_u->dir_o = c3n;
   pog_u->less  = u3_none;
+  pog_u->fol   = u3_none;
   
   pog_u->byc_u.own_o = c3y;
   pog_u->byc_u.len_w = byc_w;
@@ -761,6 +762,7 @@ _n_prog_old(u3n_prog* sep_u)
   u3n_prog* pog_u     = u3a_malloc(sizeof(u3n_prog) + dat_w);
   pog_u->dir_o = c3n;
   pog_u->less  = u3_none;
+  pog_u->fol   = u3_none;
 
   pog_u->byc_u.own_o = c3n;
   pog_u->byc_u.len_w = sep_u->byc_u.len_w;

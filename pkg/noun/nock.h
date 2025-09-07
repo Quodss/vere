@@ -42,6 +42,7 @@
   typedef struct _u3n_prog {
     c3_o      dir_o;                // program has direct calls?
     u3_weak   less;                 // subject requirement iff dir_o == c3y (sock)
+    u3_weak   fol;                  //  formula iff dir_o == c3y
     struct {
       c3_o      own_o;                // program owns ops_y?
       c3_w      len_w;                // length of bytecode (bytes)
