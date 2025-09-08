@@ -33,16 +33,13 @@
    */
   struct _u3n_prog;
   typedef struct {
-    u3p(_u3n_prog)  pog_p;   //  called program
+    u3p(_u3n_prog)  pog_p;   //  called program post or [less nomm] during compilation
     u3j_harm*       ham_u;   //  jet arm, nullable
   } u3n_dire;
 
   /* u3n_prog: program compiled from nock
    */
   typedef struct _u3n_prog {
-    c3_o      dir_o;                // program has direct calls?
-    u3_weak   less;                 // subject requirement iff dir_o == c3y (sock)
-    u3_weak   fol;                  //  formula iff dir_o == c3y
     struct {
       c3_o      own_o;                // program owns ops_y?
       c3_w      len_w;                // length of bytecode (bytes)

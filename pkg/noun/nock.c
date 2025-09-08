@@ -3,6 +3,7 @@
 #include "nock.h"
 
 #include "allocate.h"
+#include "direct.h"
 #include "hashtable.h"
 #include "imprison.h"
 #include "jets.h"
@@ -548,7 +549,7 @@ _n_arg(c3_y cod_y)
     case SLIB: case SKIB: case KICB: case TICB:
     case BUSH: case BAST: case BALT:
     case MUTB: case KUTB: case MITB: case KITB:
-    case HILB: case HINB:
+    case HILB: case HINB: case DIRB: case TIRB:
       return sizeof(c3_y);
 
     case FASK: case FASL: case FISL: case FISK:
@@ -557,7 +558,7 @@ _n_arg(c3_y cod_y)
     case SLIS: case SKIS: case KICS: case TICS:
     case SUSH: case SAST: case SALT:
     case MUTS: case KUTS: case MITS: case KITS:
-    case HILS: case HINS:
+    case HILS: case HINS: case DIRS: case TIRS:
       return sizeof(c3_s);
 
     case SWIP: case SWIN:
@@ -572,8 +573,8 @@ _n_arg(c3_y cod_y)
 
 /* _n_melt(): measure space for list of ops (from _n_comp) */
 static u3_noun
-_n_melt(u3_noun ops, c3_w* byc_w, c3_w* cal_w,
-        c3_w* reg_w, c3_w* lit_w, c3_w* mem_w)
+_n_melt(u3_noun ops, c3_w* byc_w, c3_w* cal_w, c3_w* reg_w,
+        c3_w* lit_w, c3_w* mem_w, c3_w* dir_w)
 {
   c3_w len_w = u3qb_lent(ops),
        i_w = len_w - 1,
@@ -651,7 +652,7 @@ _n_melt(u3_noun ops, c3_w* byc_w, c3_w* cal_w,
         case SAST: case SALT: case KICS: case TICS:
         case FISK: case FISL: case SUSH: case SANS:
         case LISL: case LISK: case SKIS: case SLIS:
-        case HILS: case HINS:
+        case HILS: case HINS: case DIRS: case TIRS:
           u3_assert(0); //overflows
           break;
 
@@ -685,6 +686,19 @@ _n_melt(u3_noun ops, c3_w* byc_w, c3_w* cal_w,
             u3_assert(0);
           }
           break;
+        
+        case DIRB: case TIRB:
+          a_w = (*dir_w)++;
+          if ( a_w <= 0xFF ) {
+            siz_y[i_w] = 2;
+          }
+          else if ( a_w <= 0xFFFF ) {
+            siz_y[i_w] = 3;
+          }
+          else {
+            fprintf(stderr, "_n_melt(): over 2^16 direct call sites.\r\n");
+            u3_assert(0);
+          }
       }
     }
 
@@ -707,23 +721,23 @@ _n_prog_dat(u3n_prog* pog_u)
 /* _n_prog_new(): allocate and set up pointers for u3n_prog
  */
 static u3n_prog*
-_n_prog_new(c3_w byc_w, c3_w cal_w,
-            c3_w reg_w, c3_w lit_w, c3_w mem_w)
+_n_prog_new(c3_w byc_w, c3_w cal_w, c3_w reg_w,
+            c3_w lit_w, c3_w mem_w, c3_w dir_w)
 {
   c3_w cab_w = (sizeof(u3j_site) * cal_w),
        reb_w = (sizeof(u3j_rite) * reg_w),
        lib_w = (sizeof(u3_noun) * lit_w),
        meb_w = (sizeof(u3n_memo) * mem_w),
+       mid_w = (sizeof(u3n_dire) * dir_w),
        pad_w = (8 - byc_w % 8) % 8,
        pod_w = lit_w % 2,
        ped_w = mem_w % 2,
-       dat_w = byc_w + cab_w + reb_w + lib_w + meb_w + pad_w +
-               (pod_w * sizeof(u3_noun)) + (ped_w * sizeof(u3n_memo));
+       pid_w = reg_w % 2,
+       dat_w = byc_w + cab_w + reb_w + lib_w + meb_w + mid_w + pad_w
+               + (pod_w * sizeof(u3_noun)) + (ped_w * sizeof(u3n_memo))
+               + (pid_w * sizeof(u3j_rite));
 
   u3n_prog* pog_u     = u3a_malloc(sizeof(u3n_prog) + dat_w);
-  pog_u->dir_o = c3n;
-  pog_u->less  = u3_none;
-  pog_u->fol   = u3_none;
   
   pog_u->byc_u.own_o = c3y;
   pog_u->byc_u.len_w = byc_w;
@@ -740,6 +754,9 @@ _n_prog_new(c3_w byc_w, c3_w cal_w,
 
   pog_u->reg_u.len_w = reg_w;
   pog_u->reg_u.rit_u = (u3j_rite*) (pog_u->cal_u.sit_u + pog_u->cal_u.len_w);
+
+  pog_u->dir_u.len_w = dir_w;
+  pog_u->dir_u.dat_u = (u3n_dire*) (pog_u->reg_u.rit_u + pog_u->reg_u.len_w + pid_w);
 
   return pog_u;
 }
@@ -760,9 +777,6 @@ _n_prog_old(u3n_prog* sep_u)
                (pod_w * sizeof(u3_noun)) + (ped_w * sizeof(u3n_memo));
 
   u3n_prog* pog_u     = u3a_malloc(sizeof(u3n_prog) + dat_w);
-  pog_u->dir_o = c3n;
-  pog_u->less  = u3_none;
-  pog_u->fol   = u3_none;
 
   pog_u->byc_u.own_o = c3n;
   pog_u->byc_u.len_w = sep_u->byc_u.len_w;
@@ -965,10 +979,11 @@ _n_prog_from_ops(u3_noun ops)
        cal_w = 0,
        reg_w = 0,
        lit_w = 0,
-       mem_w = 0;
+       mem_w = 0,
+       dir_w = 0;
 
-  sip   = _n_melt(ops, &byc_w, &cal_w, &reg_w, &lit_w, &mem_w);
-  pog_u = _n_prog_new(byc_w, cal_w, reg_w, lit_w, mem_w);
+  sip   = _n_melt(ops, &byc_w, &cal_w, &reg_w, &lit_w, &mem_w, &dir_w);
+  pog_u = _n_prog_new(byc_w, cal_w, reg_w, lit_w, mem_w, dir_w);
   _n_prog_asm(ops, pog_u, sip);
   return pog_u;
 }
@@ -1676,6 +1691,140 @@ _n_bite(u3_noun fol) {
   u3_noun ops  = u3_nul;
   _n_comp(&ops, fol, c3y, c3y);
   return _n_prog_from_ops(ops);
+}
+
+typedef enum {
+  _dir_tail,
+  _dir_lose,
+  _dir_keep
+} _dir_flag;
+
+// RETAINS
+static c3_w
+_n_comp_direct(u3_noun* ops,
+  u3_noun   nomm,
+  _dir_flag lag_e,
+  u3_noun*  queu,
+  u3_noun   cole,
+  u3_noun   code)
+{
+  c3_stub;
+}
+
+// RETAINS
+static u3n_prog*
+_n_bite_direct(u3_noun less,
+  u3_noun  nomm,
+  u3_noun* queu,
+  u3_noun  cole,
+  u3_noun  code)
+{
+  u3_noun ops = u3_nul;
+  _n_comp_direct(&ops, nomm, _dir_tail, queu, cole, code);
+  return _n_prog_from_ops(ops);
+}
+
+// RETAINS
+static u3n_prog*
+_n_compile_direct(u3_noun less,
+  u3_noun nomm,
+  u3_noun fol,
+  u3_noun* queu,
+  u3_noun cole,
+  u3_noun code)
+{
+  u3_noun key = u3nc(u3k(less), u3k(fol));
+  u3n_prog* pog_u = _n_bite_direct(less, nomm, queu, cole, code);
+  u3h_put(u3R->byc.dar_p, key, u3a_outa(pog_u));
+  u3z(key);
+  return pog_u;
+}
+
+//  yes iff produced fresh code that requires a rewrite
+//  RETAINS
+static c3_o
+_n_find_direct(u3_noun less_fol,
+  u3_noun* queu,
+  u3_noun cole,
+  u3_noun code,
+  u3n_prog** pog_o_u)
+{
+  u3_weak pog = u3h_git(u3R->byc.dar_p, less_fol);
+  if ( u3_none != pog ) {
+    *pog_o_u = u3to(u3n_prog, pog);
+    return c3n;
+  }
+  u3_noun u_nomm = u3qdb_get(code, less_fol);
+  u3_assert(u3_nul != u_nomm);
+  *pog_o_u = _n_compile_direct(u3h(less_fol),
+              u3t(u_nomm), u3t(less_fol), queu, cole, code);
+  u3z(u_nomm);
+  return c3y;
+}
+
+static void
+_cb_fresh_rewrite(u3_noun pog)
+{
+  u3p(u3h_root) dar_p = u3R->byc.dar_p;
+  u3n_prog*     pog_u = u3to(u3n_prog, pog);
+  u3n_dire*     dir_u = pog_u->dir_u.dat_u;
+  c3_w          len_w = pog_u->dir_u.len_w;
+  u3_noun       less_nomm;
+
+  for (c3_w i_w = 0; i_w < len_w; i_w++) {
+    less_nomm = dir_u[i_w].pog_p;
+    pog = u3x_good(u3h_git(dar_p, less_nomm));
+    dir_u[i_w].pog_p = pog;
+  }
+}
+
+//  [&+sub fol] pair must be present in code/fols
+//  RETAINS
+static u3n_prog*
+_n_build_direct(u3_noun sub,
+  u3_noun fol,
+  u3_noun cole,
+  u3_noun code,
+  u3_noun fols)
+{
+  u3_noun lit = u3kdb_got(u3k(fols), u3k(fol));
+  u3_noun less_nomm = u3x_good(u3d_match_sock(c3y, sub, lit));
+  u3z(lit);
+  //  As we compile new code with direct calls, we might not have a post
+  //  of a directly called program yet. We will instead put a pair
+  //  [sock formula] in u3n_dire.pog_p, and rewrite it once we are done with
+  //  compiling. u3R->byc.dar_p provides [sock formula] -> u3_post(u3n_prog)
+  //  mapping. 
+  //
+  //  fresh_p is a map [sock formula] -> u3_post(u3n_prog) of programs that
+  //  a) need to be rewritten,
+  //  b) are already compiled, so they can be skipped.
+  //
+  u3p(u3h_root) fresh_p = u3h_new();
+  //  queu is a worklist [sock *] for our breadth-first compilation order
+  //
+  u3_noun queu = u3_nul;
+  u3_noun less, nomm;
+  u3r_cell(less_nomm, &less, &nomm);
+  u3_noun less_fol_first = u3nc(u3k(less), u3k(fol));
+  u3n_prog* out_u = _n_compile_direct(less, nomm, fol, &queu, cole, code);
+  u3h_put(fresh_p, less_fol_first, u3of(u3n_prog, out_u));
+  u3n_prog* pog_u;
+  u3_noun less_fol;
+  while (u3_nul != queu) {
+    u3r_cell(queu, &less_fol, &queu);
+    if ( u3_none != u3h_git(fresh_p, less_fol) ) continue;
+    if ( c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) )
+    {
+      u3h_put(fresh_p, less_fol, u3of(u3n_prog, pog_u));
+    }
+  }
+
+  u3h_walk(fresh_p, _cb_fresh_rewrite);
+
+  u3h_free(fresh_p);
+  u3z(less_fol_first);
+  return out_u;
 }
 
 /* _n_find(): return prog for given formula with prefix (u3_nul for none).
@@ -3020,7 +3169,8 @@ _cn_take_prog_cb(u3p(u3n_prog) pog_p)
                         pog_u->cal_u.len_w,
                         pog_u->reg_u.len_w,
                         pog_u->lit_u.len_w,
-                        pog_u->mem_u.len_w);
+                        pog_u->mem_u.len_w,
+                        pog_u->dir_u.len_w);
     memcpy(gop_u->byc_u.ops_y, pog_u->byc_u.ops_y, pog_u->byc_u.len_w + pad_w);
   }
   else {
@@ -3255,6 +3405,17 @@ u3n_free()
   u3p(u3h_root) har_p = u3R->byc.har_p;
   u3h_walk(har_p, _n_feb);
   u3h_free(har_p);
+
+  har_p = u3R->byc.dar_p;
+  u3h_walk(har_p, _n_feb);
+  u3h_free(har_p);
+
+  har_p = u3R->byc.lar_p;
+  //  don't walk the table, its prog references were owned by the already freed
+  //  u3R->byc.dar_p
+  //
+  u3h_free(har_p);
+  
 }
 
 /* u3n_kick_on(): fire `gat` without changing the sample.
@@ -3311,5 +3472,3 @@ u3n_nock_an(u3_noun bus, u3_noun fol)
 
   return u3n_nock_et(gul, bus, fol);
 }
-
-

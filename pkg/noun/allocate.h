@@ -159,6 +159,9 @@
 
         struct {                              //  bytecode state
           u3p(u3h_root) har_p;                //  formula->post of bytecode
+                                              /* direct calls */
+          u3p(u3h_root) dar_p;                //  [sock formula] -> bytecode
+          u3p(u3h_root) lar_p;                //  formula -> list [sock code]
         } byc;
 
         struct {                              //  scry namespace
@@ -183,11 +186,8 @@
           u3p(u3h_root) per_p;                //  persistent
         } cax;
 
-        struct {
+        struct {                              // direct calls
           u3_noun ka;                         //  ~ | +ka core vase  XX reclaim
-          /* Ephemeral tables */
-          u3p(u3h_root) har_p;                //  ~ | [sock formula]->bytecode
-          u3p(u3h_root) lar_p;                //  ~ | formula->list [sock code]
         } dir;
       } u3a_road;
       typedef u3a_road u3_road;

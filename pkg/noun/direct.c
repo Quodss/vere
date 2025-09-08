@@ -2,7 +2,7 @@
 
 #include "direct.h"
 
-// RETAINS cape
+// RETAINS
 //
 static void
 _ca_rip(u3_noun cape, u3_noun* l, u3_noun* r)
@@ -103,87 +103,48 @@ _compile(u3_noun sub,
     c3_stub;
 }
 
-// RETAINS arguments
-// `list` is (list [sock pro=*])
+// RETAINS
+// `list` is (list pro=[sock *])
 //
-static u3_weak
-_match_sock(u3_noun cape, u3_noun data, u3_noun list)
+u3_weak
+u3d_match_sock(u3_noun cape, u3_noun data, u3_noun list)
 {
     u3_weak pro = u3_none;
     u3_noun cape_max, data_max;
-    u3_noun i, cape_i, data_i, pro_i;
+    u3_noun i, cape_i, data_i;
     while ( u3_nul != list )
     {
         u3x_cell(list, &i, &list);
         u3x_mean(i, 4, &cape_i,
                     5, &data_i,
-                    3, &pro_i,
                     0);
         if ( c3n == _so_huge(cape_i, data_i, cape, data) ) continue;
-        //  found a match
+        //  first match or better match
         //
-        if ( u3_none == pro )
+        if ( (u3_none == pro)
+              || (c3y == _so_huge(cape_max, data_max, cape_i, data_i)) )
         {
-            pro = pro_i;
+            pro = i;
             cape_max = cape_i;
             data_max = data_i;
         }
-        else if (c3n == _so_huge(cape_max, data_max, cape_i, data_i)) continue;
-        //  found a better match
-        //
-        pro = pro_i;
-        cape_max = cape_i;
-        data_max = data_i;
     }
-
     return pro;
 }
 
-static u3_noun
-_cons(u3_weak list, void* ptr_v)
-{
-    u3_noun* i = ptr_v;
-    u3_noun  t = (u3_none == list) ? u3_nul : list;
-    return u3nc(*i, t);
-}
-
-static void
-_brick(u3_noun pog)
-{
-    u3n_prog* pog_u = u3to(u3n_prog, pog);
-    if ( c3n == pog_u->dir_o ) return;
-    u3_noun key = u3nc(u3k(pog_u->less), u3k(pog_u->fol));
-    u3h_put(u3R->dir.har_p, key, pog);
-    u3z(key);
-
-    key = u3k(pog_u->fol);
-    u3_noun i = u3nc(u3k(pog_u->less), pog);
-    u3h_jib(u3R->dir.lar_p, key, _cons, (void*)&i);
-    u3z(key);
-}
-
-//  assumes that u3R->dir.har_p/lar_p are ~
-//
-static void
-_rebuild()
-{
-    u3R->dir.har_p = u3h_new();
-    u3R->dir.lar_p = u3h_new();
-    u3h_walk(u3R->byc.har_p, _brick);
-}
-
-//  RETAIN
+//  RETAINS arguments
 //
 u3n_prog*
 u3d_search(u3_noun sub, u3_noun fol)
 {
     u3n_prog* pog_u = NULL;
-    if ( !u3R->dir.lar_p ) _rebuild();
-    u3_weak lit = u3h_git(u3R->dir.lar_p, fol);
+    u3_weak lit = u3h_git(u3R->byc.lar_p, fol);
     if ( u3_none != lit )
     {
-        u3_weak pog = _match_sock(c3y, sub, lit);
-        pog_u = ( u3_none != pog ) ? u3to(u3n_prog, pog) : pog_u;
+        u3_weak less_pog = u3d_match_sock(c3y, sub, lit);
+        pog_u = ( u3_none != less_pog )
+              ? u3to(u3n_prog, u3t(less_pog))
+              : pog_u;
     }
     if ( pog_u ) return pog_u;
 

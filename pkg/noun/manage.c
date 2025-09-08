@@ -504,8 +504,8 @@ _pave_parts(void)
   u3R->jed.han_p = u3h_new();
   u3R->jed.bas_p = u3h_new();
   u3R->byc.har_p = u3h_new();
-  u3R->dir.har_p = u3_nul;
-  u3R->dir.lar_p = u3_nul;
+  u3R->byc.dar_p = u3h_new();
+  u3R->byc.lar_p = u3h_new();
 }
 
 /* _pave_road(): writes road boundaries to loom mem (stored at mat_w)
@@ -1198,7 +1198,7 @@ u3m_love(u3_noun pro)
 {
   //  save cache pointers from current road
   //
-  u3p(u3h_root) byc_p = u3R->byc.har_p;
+  u3p(u3h_root) byc_har_p = u3R->byc.har_p;
   u3a_jets      jed_u = u3R->jed;
   u3p(u3h_root) per_p = u3R->cax.per_p;
   u3_noun       ka    = u3R->dir.ka;
@@ -1212,7 +1212,7 @@ u3m_love(u3_noun pro)
   pro   = u3a_take(pro);
   ka    = u3a_take(ka);
   jed_u = u3j_take(jed_u);
-  byc_p = u3n_take(byc_p);
+  byc_har_p = u3n_take(byc_har_p);  //  XX TODO take dar/lar
   per_p = u3h_take(per_p);
 
   //  pop the stack
@@ -1223,20 +1223,9 @@ u3m_love(u3_noun pro)
   //  integrate junior caches
   //
   u3j_reap(jed_u);
-  u3n_reap(byc_p);
+  u3n_reap(byc_har_p);
   u3z_reap(u3z_memo_keep, per_p);
   u3z(u3R->dir.ka), u3R->dir.ka = ka;
-  if (u3R->dir.har_p)
-  {
-    u3h_free(u3R->dir.har_p);
-    u3R->dir.har_p = u3_nul;
-  }
-  
-  if (u3R->dir.lar_p)
-  {
-    u3h_free(u3R->dir.lar_p);
-    u3R->dir.lar_p = u3_nul;
-  }
 
   return pro;
 }
