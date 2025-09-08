@@ -1724,6 +1724,12 @@ _n_bite_direct(u3_noun less,
   return _n_prog_from_ops(ops);
 }
 
+static u3_noun
+_cb_jib_cons(u3_weak list, void* ptr_v)
+{
+  return u3nc(*(u3_noun*)ptr_v, ( u3_none == list ) ? u3_nul : list);
+}
+
 // RETAINS
 static u3n_prog*
 _n_compile_direct(u3_noun less,
@@ -1735,7 +1741,10 @@ _n_compile_direct(u3_noun less,
 {
   u3_noun key = u3nc(u3k(less), u3k(fol));
   u3n_prog* pog_u = _n_bite_direct(less, nomm, queu, cole, code);
-  u3h_put(u3R->byc.dar_p, key, u3a_outa(pog_u));
+  u3_noun pog = u3a_outa(pog_u);
+  u3_noun i_larp = u3nc(u3k(less), pog);
+  u3h_put(u3R->byc.dar_p, key, pog);
+  u3h_jib(u3R->byc.lar_p, fol, _cb_jib_cons, &i_larp);
   u3z(key);
   return pog_u;
 }
