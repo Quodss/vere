@@ -1212,7 +1212,7 @@ u3m_love(u3_noun pro)
   pro   = u3a_take(pro);
   ka    = u3a_take(ka);
   jed_u = u3j_take(jed_u);
-  byc_har_p = u3n_take(byc_har_p);  //  XX TODO take dar/lar
+  byc_har_p = u3n_take(byc_har_p);  //  XX TODO take dar/lar with post rewrites
   per_p = u3h_take(per_p);
 
   //  pop the stack
