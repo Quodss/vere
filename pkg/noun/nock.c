@@ -728,12 +728,12 @@ _n_prog_new(c3_w byc_w, c3_w cal_w, c3_w reg_w,
        reb_w = (sizeof(u3j_rite) * reg_w),
        lib_w = (sizeof(u3_noun) * lit_w),
        meb_w = (sizeof(u3n_memo) * mem_w),
-       mid_w = (sizeof(u3n_dire) * dir_w),
+       dib_w = (sizeof(u3n_dire) * dir_w),
        pad_w = (8 - byc_w % 8) % 8,
        pod_w = lit_w % 2,
        ped_w = mem_w % 2,
        pid_w = reg_w % 2,
-       dat_w = byc_w + cab_w + reb_w + lib_w + meb_w + mid_w + pad_w
+       dat_w = byc_w + cab_w + reb_w + lib_w + meb_w + dib_w + pad_w
                + (pod_w * sizeof(u3_noun)) + (ped_w * sizeof(u3n_memo))
                + (pid_w * sizeof(u3j_rite));
 
