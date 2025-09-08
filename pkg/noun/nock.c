@@ -771,10 +771,13 @@ _n_prog_old(u3n_prog* sep_u)
        reb_w = sizeof(u3j_rite) * sep_u->reg_u.len_w,
        lib_w = sizeof(u3_noun) * sep_u->lit_u.len_w,
        meb_w = sizeof(u3n_memo) * sep_u->mem_u.len_w,
+       dib_w = (sizeof(u3n_dire) * sep_u->dir_u.len_w),
        pod_w = sep_u->lit_u.len_w % 2,
        ped_w = sep_u->mem_u.len_w % 2,
-       dat_w = cab_w + reb_w + lib_w + meb_w +
-               (pod_w * sizeof(u3_noun)) + (ped_w * sizeof(u3n_memo));
+       pid_w = sep_u->reg_u.len_w % 2,
+       dat_w = cab_w + reb_w + lib_w + meb_w + dib_w
+                + (pod_w * sizeof(u3_noun)) + (ped_w * sizeof(u3n_memo))
+                + (pid_w * sizeof(u3j_rite));
 
   u3n_prog* pog_u     = u3a_malloc(sizeof(u3n_prog) + dat_w);
 
@@ -793,6 +796,9 @@ _n_prog_old(u3n_prog* sep_u)
 
   pog_u->reg_u.len_w = sep_u->reg_u.len_w;
   pog_u->reg_u.rit_u = (u3j_rite*) (pog_u->cal_u.sit_u + pog_u->cal_u.len_w);
+
+  pog_u->dir_u.len_w = sep_u->dir_u.len_w;
+  pog_u->dir_u.dat_u = (u3n_dire*) (pog_u->reg_u.rit_u + pog_u->reg_u.len_w + pid_w);
 
   memcpy(pog_u->lit_u.non, sep_u->lit_u.non, dat_w);
   return pog_u;
