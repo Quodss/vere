@@ -715,7 +715,7 @@ _n_melt(u3_noun ops, c3_w* byc_w, c3_w* cal_w, c3_w* reg_w,
 static void*
 _n_prog_dat(u3n_prog* pog_u)
 {
-  return ((void*) pog_u) + sizeof(u3n_prog);
+  return pog_u + 1;
 }
 
 /* _n_prog_new(): allocate and set up pointers for u3n_prog
@@ -724,8 +724,16 @@ static u3n_prog*
 _n_prog_new(c3_w byc_w, c3_w cal_w, c3_w reg_w,
             c3_w lit_w, c3_w mem_w, c3_w dir_w)
 {
+  //  program data segment already has alignment of 8
+  //  also ops_y does not require padding
+  //
   c3_w len_w = byc_w;
 
+  // for each array:
+  //  align the byte offset;
+  //  record current byte offset for the array pointer;
+  //  advance the offset by the size of the array.
+  //
   len_w = c3_align(len_w, 8, C3_ALGHI);
   c3_w let_w = len_w;
   len_w += (sizeof(u3_noun) * lit_w);
@@ -773,10 +781,13 @@ _n_prog_new(c3_w byc_w, c3_w cal_w, c3_w reg_w,
 
 /* _n_prog_old(): as _n_prog_new(),
  *                but leech off senior program's data segment
+ *                XX also leech dir_u?
  */
 static u3n_prog*
 _n_prog_old(u3n_prog* sep_u)
 {
+  //  program data segment already has alignment of 8
+  //
   c3_w len_w = (sizeof(u3_noun) * sep_u->lit_u.len_w);
 
   len_w = c3_align(len_w, 8, C3_ALGHI);
@@ -979,6 +990,11 @@ _n_prog_asm(u3_noun ops, u3n_prog* pog_u, u3_noun sip)
           sit_u->ham_u = NULL;
           sit_u->fin_p = 0;
           break;
+        }
+
+        /* direct call site key and jet match */
+        case DIRB: case TIRB: {
+          c3_stub;
         }
       }
     }
@@ -1287,7 +1303,7 @@ _n_comp(u3_noun* ops, u3_noun fol, c3_o los_o, c3_o tel_o)
     tot_w += _n_comp(ops, cod, c3n, c3n);
     ++tot_w; _n_emit(ops, SWAP);
     tot_w += _n_comp(ops, arg, c3n, c3n);
-    ++tot_w; _n_emit(ops, (c3y == los_o ) ? AULT : AUTO);
+    ++tot_w; _n_emit(ops, (c3y == los_o) ? AULT : AUTO);
   }
   else switch ( cod ) {
     case 0:
@@ -1716,22 +1732,267 @@ _n_bite(u3_noun fol) {
   return _n_prog_from_ops(ops);
 }
 
-typedef enum {
-  _dir_tail,
-  _dir_lose,
-  _dir_keep
-} _dir_flag;
-
 // RETAINS
+// compile away all hints for now
+//
 static c3_w
 _n_comp_direct(u3_noun* ops,
-  u3_noun   nomm,
-  _dir_flag lag_e,
-  u3_noun*  queu,
-  u3_noun   cole,
-  u3_noun   code)
+  u3_noun  nomm,
+  c3_o     los_o,
+  c3_o     tel_o,
+  u3_noun* queu,
+  u3_noun  cole,
+  u3_noun  code)
 {
-  c3_stub;
+  c3_y op_y;
+  c3_w tot_w = 0;
+  u3_noun cod, arg, hed, tel, info, boot;
+  u3x_cell(nomm, &cod, &arg);
+  if ( c3y == u3du(cod) ) {
+    tot_w += _n_comp_direct(ops, cod, c3n, c3n, queu, cole, code);
+    ++tot_w; _n_emit(ops, SWAP);
+    tot_w += _n_comp_direct(ops, arg, c3n, c3n, queu, cole, code);
+    ++tot_w; _n_emit(ops, (c3y == los_o) ? AULT : AUTO);
+  }
+  else switch ( cod ) {
+    case 0:
+      if ( c3n == u3ud(arg) ) {
+        u3m_bail(c3__fail);
+        return 0;
+      }
+      switch ( arg ) {
+        case 0:
+          ++tot_w; _n_emit(ops, BAIL);
+          break;
+        case 1:
+          if ( c3n == los_o ) {
+            ++tot_w; _n_emit(ops, COPY);
+          }
+          break;
+        case 2:
+          ++tot_w; _n_emit(ops, (c3y == los_o) ? HELD : HEAD);
+          break;
+        case 3:
+          ++tot_w; _n_emit(ops, (c3y == los_o) ? TALL : TAIL);
+          break;
+        default:
+          op_y = (c3y == los_o)
+               ? (arg <= 0xFF ? FABL : arg <= 0xFFFF ? FASL : FIBL)  // overflows to FISL
+               : (arg <= 0xFF ? FABK : arg <= 0xFFFF ? FASK : FIBK); // overflows to FISK
+          ++tot_w; _n_emit(ops, u3nc(op_y, u3k(arg)));
+          break;
+      }
+      break;
+    
+    case 1:
+      switch ( arg ) {
+        case 0:
+          ++tot_w; _n_emit(ops, (c3y == los_o) ? LIL0 : LIT0);
+          break;
+        case 1:
+          ++tot_w; _n_emit(ops, (c3y == los_o) ? LIL1 : LIT1);
+          break;
+        default:
+          op_y = (c3y == los_o)
+               ? (arg <= 0xFF ? LILB : arg <= 0xFFFF ? LILS : LIBL)  // overflows to LISL
+               : (arg <= 0xFF ? LITB : arg <= 0xFFFF ? LITS : LIBK); // overflows to LISK
+          ++tot_w; _n_emit(ops, u3nc(op_y, u3k(arg)));
+          break;
+      }
+      break;
+    
+    case 2:
+      u3x_trel(arg, &hed, &tel, &info);
+      if ( u3_nul == info ) {
+        // indirect call: fall back to regular interpreter
+        // XX TODO reanalysis
+        //
+        tot_w += _n_comp_direct(ops, hed, c3n, c3n, queu, cole, code);
+        ++tot_w; _n_emit(ops, SWAP);
+        tot_w += _n_comp_direct(ops, tel, c3n, c3n, queu, cole, code);
+        op_y = (c3y == tel_o) ? NOCT
+             : (c3y == los_o) ? NOLK : NOCK;
+        ++tot_w; _n_emit(ops, op_y);
+      }
+      else {
+        //  don't compile the formula for the formula, we already know the
+        //  result and it won't ever crash
+        //
+        tot_w += _n_comp_direct(ops, hed, los_o, c3n, queu, cole, code);
+        boot = u3t(info);
+        op_y = (c3y == tel_o) ? TIRB : DIRB; // overflows to TIRS/DIRS
+        ++tot_w; _n_emit(ops, u3nt(op_y, u3k(boot), u3qdb_get(cole, boot)));
+        *queu = u3nc(u3k(boot), *queu);
+      }
+      break;
+    
+    case 3:
+      tot_w += _n_comp_direct(ops, arg, los_o, c3n, queu, cole, code);
+      ++tot_w; _n_emit(ops, DEEP);
+      break;
+    
+    case 4:
+      tot_w += _n_comp_direct(ops, arg, los_o, c3n, queu, cole, code);
+      ++tot_w; _n_emit(ops, BUMP);
+      break;
+    
+    case 5: {
+      u3x_cell(arg, &hed, &tel);
+
+      if ( c3n == u3du(hed) ) {
+        u3m_bail(c3__fail);
+        return 0;
+      }
+      else {
+        c3_t hec_t, tec_t;
+        hec_t = (1 == u3h(hed));
+        if ( c3n == u3du(tel) ) {
+          u3m_bail(c3__fail);
+          break;
+        }
+        else {
+          tec_t = (1 == u3h(tel));
+        }
+        if ( hec_t && tec_t ) {
+          if ( c3y == u3r_sing(u3t(hed), u3t(tel)) ) {
+            ++tot_w; _n_emit(ops, (c3y == los_o) ? LIL0 : LIT0);
+          }
+          else {
+            ++tot_w; _n_emit(ops, (c3y == los_o) ? LIL1 : LIT1);
+          }
+        }
+        else if ( !hec_t && !tec_t ) {
+          tot_w += _n_comp_direct(ops, hed, c3n, c3n, queu, cole, code);
+          ++tot_w; _n_emit(ops, SWAP);
+          tot_w += _n_comp_direct(ops, tel, c3n, c3n, queu, cole, code);
+          ++tot_w; _n_emit(ops, (c3y == los_o) ? SALM : SAME);
+        }
+        else {
+          tot_w += _n_comp_direct(ops,
+                      (hec_t ? tel : hed), los_o, c3n, queu, cole, code);
+
+          u3_noun lit = u3t(hec_t ? hed : tel);
+          switch ( lit ) {
+            case 0:
+              ++tot_w; _n_emit(ops, SAM0);
+              break;
+            case 1:
+              ++tot_w; _n_emit(ops, SAM1);
+              break;
+            default:
+              // overflows to SANS
+              op_y = lit <= 0xFF ? SAMB : lit <= 0xFFFF ? SAMS : SANB;
+              ++tot_w; _n_emit(ops, u3nc(op_y, u3k(lit)));
+          }
+        }
+      }
+      break;
+    }
+
+    case 6: {
+      u3_noun mid, lit;
+      u3x_trel(arg, &hed, &mid, &tel);
+      //  u3r_safe works for Nomm as well
+      //
+      if ( c3y == u3r_safe(hed, &lit) && u3_none != lit ) {
+        switch ( lit ) {
+          case 0:
+            tot_w += _n_comp_direct(ops, mid, los_o, tel_o, queu, cole, code);
+            break;
+
+          case 1:
+            tot_w += _n_comp_direct(ops, tel, los_o, tel_o, queu, cole, code);
+            break;
+
+          default:
+            ++tot_w; _n_emit(ops, BAIL);
+            break;
+        }
+      }
+      else {
+        u3_noun yep = u3_nul,
+                nop = u3_nul;
+        c3_w    yep_w, nop_w;
+
+        tot_w += _n_comp_direct(ops, hed, c3n, c3n, queu, cole, code);
+        //  mid and tel are already formulaic since Nomm is not given from the
+        //  outside
+        //
+        yep_w = _n_comp(&yep, mid, los_o, tel_o);
+        nop_w = _n_comp(&nop, tel, los_o, tel_o);
+
+        // SBIP and SBIN get sized during assembly
+        ++yep_w; _n_emit(&yep, u3nc(SBIP, nop_w));
+        ++tot_w; _n_emit(ops, u3nc(SBIN, yep_w));
+        tot_w += yep_w; _n_apen(ops, yep);
+        tot_w += nop_w; _n_apen(ops, nop);
+      }
+      break;
+    }
+
+    case 7:
+      u3x_cell(arg, &hed, &tel);
+      tot_w += _n_comp_direct(ops, hed, los_o, c3n, queu, cole, code);
+      tot_w += _n_comp_direct(ops, tel, c3y, tel_o, queu, cole, code);
+      break;
+    
+    case 10: {
+      u3_noun axe, nef;
+      u3x_cell(arg, &hed, &tel);
+      u3x_cell(hed, &axe, &nef);
+      tot_w += _n_comp_direct(ops, tel, c3n, c3n, queu, cole, code);
+      ++tot_w; _n_emit(ops, SWAP);
+      tot_w += _n_comp_direct(ops, nef, c3n, c3n, queu, cole, code);
+
+      ++tot_w;
+      switch ( axe ) {
+        case 2:
+          _n_emit(ops, (c3y == los_o) ? MUTH : KUTH);
+          break;
+
+        case 3:
+          _n_emit(ops, (c3y == los_o) ? MUTT : KUTT);
+          break;
+
+        case u3x_sam:
+          _n_emit(ops, (c3y == los_o) ? MUSM : KUSM);
+          break;
+
+        default:
+          op_y = (c3y == los_o)
+               ? (axe <= 0xFF) ? MUTB : (axe <= 0xFFFF) ? MUTS : MITB  // overflows to MITS
+               : (axe <= 0xFF) ? KUTB : (axe <= 0xFFFF) ? KUTS : KITB; // overflows to KITS
+          _n_emit(ops, u3nc(op_y, u3k(axe)));
+          break;
+      }
+      break;
+    }
+
+    case 11:
+      u3x_cell(arg, &hed, &tel);
+      if ( c3y == u3ud(hed) ) {
+        tot_w += _n_comp_direct(ops, tel, los_o, tel_o, queu, cole, code);
+      }
+      else {
+        u3_noun zep, hod;
+        u3x_cell(hed, &zep, &hod);
+        tot_w += _n_comp_direct(ops, hod, c3n, c3n, queu, cole, code);
+        ++tot_w; _n_emit(ops, TOSS);
+        tot_w += _n_comp_direct(ops, tel, los_o, tel_o, queu, cole, code);
+      }
+      break;
+    
+    case 12:
+      //  XX TODO scry
+      //
+      u3m_bail(c3__fail);
+      break;
+
+    default:
+      u3m_bail(c3__fail);
+      return 0;
+  }
+  return tot_w;
 }
 
 // RETAINS
@@ -1743,7 +2004,7 @@ _n_bite_direct(u3_noun less,
   u3_noun  code)
 {
   u3_noun ops = u3_nul;
-  _n_comp_direct(&ops, nomm, _dir_tail, queu, cole, code);
+  _n_comp_direct(&ops, nomm, c3y, c3y, queu, cole, code);
   return _n_prog_from_ops(ops);
 }
 
@@ -1755,7 +2016,7 @@ _cb_jib_cons(u3_weak list, void* ptr_v)
 
 // RETAINS
 static u3n_prog*
-_n_compile_direct(u3_noun less,
+_n_generate_direct(u3_noun less,
   u3_noun nomm,
   u3_noun fol,
   u3_noun* queu,
@@ -1788,7 +2049,7 @@ _n_find_direct(u3_noun less_fol,
   }
   u3_noun u_nomm = u3qdb_get(code, less_fol);
   u3_assert(u3_nul != u_nomm);
-  *pog_o_u = _n_compile_direct(u3h(less_fol),
+  *pog_o_u = _n_generate_direct(u3h(less_fol),
               u3t(u_nomm), u3t(less_fol), queu, cole, code);
   u3z(u_nomm);
   return c3y;
@@ -1839,23 +2100,28 @@ _n_build_direct(u3_noun sub,
   u3_noun less, nomm;
   u3r_cell(less_nomm, &less, &nomm);
   u3_noun less_fol_first = u3nc(u3k(less), u3k(fol));
-  u3n_prog* out_u = _n_compile_direct(less, nomm, fol, &queu, cole, code);
+  u3n_prog* out_u = _n_generate_direct(less, nomm, fol, &queu, cole, code);
   u3h_put(fresh_p, less_fol_first, u3of(u3n_prog, out_u));
+  u3z(less_fol_first);
+
   u3n_prog* pog_u;
-  u3_noun less_fol;
+  u3_noun less_fol, t;
   while (u3_nul != queu) {
-    u3r_cell(queu, &less_fol, &queu);
-    if ( u3_none != u3h_git(fresh_p, less_fol) ) continue;
-    if ( c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) )
-    {
+    u3r_cell(queu, &less_fol, &t);
+    u3k(less_fol);
+    u3k(t), u3z(queu), queu = t;
+
+    if ( u3_none == u3h_git(fresh_p, less_fol)
+          && c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) ) {
       u3h_put(fresh_p, less_fol, u3of(u3n_prog, pog_u));
     }
+    
+    u3z(less_fol);
   }
 
   u3h_walk(fresh_p, _cb_fresh_rewrite);
-
   u3h_free(fresh_p);
-  u3z(less_fol_first);
+
   return out_u;
 }
 

@@ -33,7 +33,7 @@
    */
   struct _u3n_prog;
   typedef struct {
-    u3p(_u3n_prog)  pog_p;   //  called program post or [less nomm] during compilation
+    u3p(_u3n_prog)  pog_p;   //  called program post or [less formula] during compilation
     u3j_harm*       ham_u;   //  jet arm, nullable
   } u3n_dire;
 
