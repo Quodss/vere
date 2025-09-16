@@ -835,52 +835,12 @@ _n_prog_old(u3n_prog* sep_u)
 
 //  RETAINS
 static u3j_harm*
-_direct_match_bell(u3_noun path, u3_atom axis)
+_direct_match_bell(u3_noun bell)
 {
-  if ( u3_nul == path ) return NULL;
-  u3_noun hed;
-  u3j_core* dev_u = u3D.dev_u;
-  u3j_core* cor_u;
-  do {
-    u3x_cell(path, &hed, &path);
-    cor_u = NULL;
-
-    while ( dev_u->cos_c ) {
-      if ( c3y == u3r_sing_c(dev_u->cos_c, hed) ) {
-        //  found a matching core
-        //
-        cor_u = dev_u;
-        dev_u = cor_u->dev_u;
-        break;
-      }
-      dev_u++;
-    }
-
-  } while (u3_nul != path && cor_u && dev_u);
-
-  if ( u3_nul != path ) return NULL;
-  if ( !cor_u )         return NULL;
-  u3j_harm* arm_u = cor_u->arm_u;
-  if ( !arm_u ) return NULL;
-
-  c3_d axe_d;
-  c3_l axe_l;
-  while ( 0 != arm_u->fcs_c ) {
-    if ( (1 != sscanf(arm_u->fcs_c+1, "%" SCNu64, &axe_d)) ||
-         axe_d >> 32ULL ||
-         (((c3_w)1 << 31) & (axe_l = (c3_w)axe_d)) ||
-         (axe_l < 2) )
-    {
-      u3l_log("jets: direct_match: bad fcs %s", arm_u->fcs_c);
-    }
-    else {
-      if ( axis == axe_l ) break;
-    }
-    arm_u++;
-  }
-
-  if ( 0 == arm_u->fcs_c ) return NULL;
-  return arm_u;
+  u3_weak harm = u3h_git(u3H->rod_u.jed.pax_p, bell);
+  return ( u3_none == harm )
+    ? NULL
+    : (u3j_harm*)(c3_p)u3r_chub(0, u3x_atom(harm));
 }
 
 /* _n_prog_asm_inx(): write an index to the bytestream with overflow
@@ -1050,21 +1010,9 @@ _n_prog_asm(u3_noun ops, u3n_prog* pog_u, u3_noun sip)
           u3n_dire* dir_u = &(pog_u->dir_u.dat_u[dir_s++]);
           dir_u->pog_p = u3k(u3h(u3t(op)));  // [sock fol] pair, to be rewritten
           u3_noun bell = u3t(u3t(op));  // ~ | [~ path axis]
-          u3_noun xap, axis;
-          if ( c3y == u3r_mean(bell, 6, &xap, 7, &axis, 0) ) {
-            u3_noun pax = u3qb_flop(xap);
-            if ( c3n == u3a_is_cat(axis) ) {
-              u3l_log("nock: direct jet match: bad axis");
-              dir_u->ham_u = NULL;
-            }
-            else {
-              dir_u->ham_u = _direct_match_bell(pax, axis);
-            }
-            u3z(pax);
-          }
-          else {
-            dir_u->ham_u = NULL;
-          }
+          dir_u->ham_u = ( u3_nul == bell )
+                       ? NULL
+                       : _direct_match_bell(u3t(bell));
           break;
         }
       }

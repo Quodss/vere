@@ -309,7 +309,12 @@ _cj_warm_hump(c3_l jax_l, u3_noun huc)
 /* _cj_install(): install dashboard entries.
 */
 static c3_w
-_cj_install(u3j_core* ray_u, c3_w jax_l, u3_noun pel, u3_noun lab, u3j_core* dev_u)
+_cj_install(u3j_core* ray_u,
+  c3_w jax_l,
+  u3_noun pel,
+  u3_noun lab,
+  u3j_core* dev_u,
+  u3_noun pax)
 {
   c3_w i_w;
   u3_assert(u3R == &(u3H->rod_u));
@@ -318,7 +323,8 @@ _cj_install(u3j_core* ray_u, c3_w jax_l, u3_noun pel, u3_noun lab, u3j_core* dev
     for ( i_w = 0; 0 != dev_u[i_w].cos_c; i_w++ ) {
       u3j_core* kid_u = &dev_u[i_w];
       u3_noun   loc   = _cj_core_loc(u3k(pel), kid_u),
-                bal   = u3nc(u3k(u3h(u3t(loc))), u3k(lab));
+                bal   = u3nc(u3k(u3h(u3t(loc))), u3k(lab)),
+                xap   = u3nc(u3i_string(kid_u->cos_c), u3k(pax));
 
       kid_u->jax_l   = jax_l;
       ray_u[jax_l] = *kid_u;
@@ -339,11 +345,36 @@ _cj_install(u3j_core* ray_u, c3_w jax_l, u3_noun pel, u3_noun lab, u3j_core* dev
         }
       }
 
-      jax_l = _cj_install(ray_u, ++jax_l, loc, bal, kid_u->dev_u);
+      if ( kid_u->arm_u ) {
+        u3j_harm* jet_u = kid_u->arm_u;
+        c3_d axe_d;
+        c3_l axe_l;
+        while ( jet_u->fcs_c ) {
+          if ( '.' == *(jet_u->fcs_c) ) {
+            c3_d axe_d = 0;
+            if ( (1 != sscanf(jet_u->fcs_c+1, "%" SCNu64, &axe_d)) ||
+                axe_d >> 32ULL ||
+                (((c3_w)1 << 31) & (axe_l = (c3_w)axe_d)) ||
+                (axe_l < 2) )
+            {
+              u3l_log("jets: _cj_install: bad fcs %s", jet_u->fcs_c);
+            }
+            else {
+              u3_noun key = u3nc(u3k(xap), axe_l);
+              u3h_put(u3R->jed.pax_p, key, u3i_chub((c3_d)(c3_p)jet_u));
+              u3z(key);
+            }
+          }
+          jet_u++;
+        }
+      }
+
+      jax_l = _cj_install(ray_u, ++jax_l, loc, bal, kid_u->dev_u, xap);
     }
   }
   u3z(pel);
   u3z(lab);
+  u3z(pax);
   return jax_l;
 }
 
@@ -814,13 +845,16 @@ u3j_boot(c3_o nuu_o)
 
   if ( c3n == nuu_o ) {
     u3h_free(u3R->jed.hot_p);
+    u3h_free(u3R->jed.pax_p);
   }
   u3R->jed.hot_p = u3h_new();
+  u3R->jed.pax_p = u3h_new();
 
   return _cj_install(u3D.ray_u, 1,
                      (c3_l) (long long) u3D.dev_u[0].par_u,
                      u3_nul,
-                     u3D.dev_u);
+                     u3D.dev_u,
+                     u3_nul);
 }
 
 /* _cj_soft(): kick softly by arm axis.
