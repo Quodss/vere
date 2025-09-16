@@ -9,6 +9,7 @@
 #include "jets.h"
 #include "jets/k.h"
 #include "jets/q.h"
+#include "log.h"
 #include "manage.h"
 #include "options.h"
 #include "retrieve.h"
@@ -832,6 +833,56 @@ _n_prog_old(u3n_prog* sep_u)
   return pog_u;
 }
 
+//  RETAINS
+static u3j_harm*
+_direct_match_bell(u3_noun path, u3_atom axis)
+{
+  if ( u3_nul == path ) return NULL;
+  u3_noun hed;
+  u3j_core* dev_u = u3D.dev_u;
+  u3j_core* cor_u;
+  do {
+    u3x_cell(path, &hed, &path);
+    cor_u = NULL;
+
+    while ( dev_u->cos_c ) {
+      if ( c3y == u3r_sing_c(dev_u->cos_c, hed) ) {
+        //  found a matching core
+        //
+        cor_u = dev_u;
+        dev_u = cor_u->dev_u;
+        break;
+      }
+      dev_u++;
+    }
+
+  } while (u3_nul != path && cor_u && dev_u);
+
+  if ( u3_nul != path ) return NULL;
+  if ( !cor_u )         return NULL;
+  u3j_harm* arm_u = cor_u->arm_u;
+  if ( !arm_u ) return NULL;
+
+  c3_d axe_d;
+  c3_l axe_l;
+  while ( 0 != arm_u->fcs_c ) {
+    if ( (1 != sscanf(arm_u->fcs_c+1, "%" SCNu64, &axe_d)) ||
+         axe_d >> 32ULL ||
+         (((c3_w)1 << 31) & (axe_l = (c3_w)axe_d)) ||
+         (axe_l < 2) )
+    {
+      u3l_log("jets: direct_match: bad fcs %s", arm_u->fcs_c);
+    }
+    else {
+      if ( axis == axe_l ) break;
+    }
+    arm_u++;
+  }
+
+  if ( 0 == arm_u->fcs_c ) return NULL;
+  return arm_u;
+}
+
 /* _n_prog_asm_inx(): write an index to the bytestream with overflow
  */
 static void
@@ -860,7 +911,8 @@ _n_prog_asm(u3_noun ops, u3n_prog* pog_u, u3_noun sip)
   c3_s    lit_s  = 0,
           cal_s  = 0,
           mem_s  = 0,
-          reg_s  = 0;
+          reg_s  = 0,
+          dir_s  = 0;
   c3_w    i_w    = pog_u->byc_u.len_w-1;
 
   buf_y[i_w] = HALT;
@@ -994,7 +1046,26 @@ _n_prog_asm(u3_noun ops, u3n_prog* pog_u, u3_noun sip)
 
         /* direct call site key and jet match */
         case DIRB: case TIRB: {
-          c3_stub;
+          _n_prog_asm_inx(buf_y, &i_w, dir_s, cod);
+          u3n_dire* dir_u = &(pog_u->dir_u.dat_u[dir_s++]);
+          dir_u->pog_p = u3k(u3h(u3t(op)));  // [sock fol] pair, to be rewritten
+          u3_noun bell = u3t(u3t(op));  // ~ | [~ path axis]
+          u3_noun xap, axis;
+          if ( c3y == u3r_mean(bell, 6, &xap, 7, &axis, 0) ) {
+            u3_noun pax = u3qb_flop(xap);
+            if ( c3n == u3a_is_cat(axis) ) {
+              u3l_log("nock: direct jet match: bad axis");
+              dir_u->ham_u = NULL;
+            }
+            else {
+              dir_u->ham_u = _direct_match_bell(pax, axis);
+            }
+            u3z(pax);
+          }
+          else {
+            dir_u->ham_u = NULL;
+          }
+          break;
         }
       }
     }
@@ -2014,25 +2085,6 @@ _cb_jib_cons(u3_weak list, void* ptr_v)
   return u3nc(*(u3_noun*)ptr_v, ( u3_none == list ) ? u3_nul : list);
 }
 
-// RETAINS
-static u3n_prog*
-_n_generate_direct(u3_noun less,
-  u3_noun nomm,
-  u3_noun fol,
-  u3_noun* queu,
-  u3_noun cole,
-  u3_noun code)
-{
-  u3_noun key = u3nc(u3k(less), u3k(fol));
-  u3n_prog* pog_u = _n_bite_direct(less, nomm, queu, cole, code);
-  u3_noun pog = u3a_outa(pog_u);
-  u3_noun i_larp = u3nc(u3k(less), pog);
-  u3h_put(u3R->byc.dar_p, key, pog);
-  u3h_jib(u3R->byc.lar_p, fol, _cb_jib_cons, &i_larp);
-  u3z(key);
-  return pog_u;
-}
-
 //  yes iff produced fresh code that requires a rewrite
 //  RETAINS
 static c3_o
@@ -2047,10 +2099,17 @@ _n_find_direct(u3_noun less_fol,
     *pog_o_u = u3to(u3n_prog, pog);
     return c3n;
   }
+
   u3_noun u_nomm = u3qdb_get(code, less_fol);
   u3_assert(u3_nul != u_nomm);
-  *pog_o_u = _n_generate_direct(u3h(less_fol),
-              u3t(u_nomm), u3t(less_fol), queu, cole, code);
+  *pog_o_u = _n_bite_direct(u3h(less_fol),
+              u3t(u_nomm), queu, cole, code);
+
+  pog = u3a_outa(*pog_o_u);
+  u3_noun i_larp = u3nc(u3k(u3h(less_fol)), pog);
+  u3h_put(u3R->byc.dar_p, less_fol, pog);
+  u3h_jib(u3R->byc.lar_p, u3t(less_fol), _cb_jib_cons, &i_larp);
+
   u3z(u_nomm);
   return c3y;
 }
@@ -2062,12 +2121,13 @@ _cb_fresh_rewrite(u3_noun pog)
   u3n_prog*     pog_u = u3to(u3n_prog, pog);
   u3n_dire*     dir_u = pog_u->dir_u.dat_u;
   c3_w          len_w = pog_u->dir_u.len_w;
-  u3_noun       less_nomm;
+  u3_noun       less_fol;
 
   for (c3_w i_w = 0; i_w < len_w; i_w++) {
-    less_nomm = dir_u[i_w].pog_p;
-    pog = u3x_good(u3h_git(dar_p, less_nomm));
+    less_fol = dir_u[i_w].pog_p;
+    pog = u3x_good(u3h_git(dar_p, less_fol));
     dir_u[i_w].pog_p = pog;
+    u3z(less_fol);
   }
 }
 
@@ -2100,7 +2160,7 @@ _n_build_direct(u3_noun sub,
   u3_noun less, nomm;
   u3r_cell(less_nomm, &less, &nomm);
   u3_noun less_fol_first = u3nc(u3k(less), u3k(fol));
-  u3n_prog* out_u = _n_generate_direct(less, nomm, fol, &queu, cole, code);
+  u3n_prog* out_u = _n_bite_direct(less, nomm, &queu, cole, code);
   u3h_put(fresh_p, less_fol_first, u3of(u3n_prog, out_u));
   u3z(less_fol_first);
 

@@ -44,7 +44,7 @@ _so_huge(u3_noun cape_one,
     if ( c3y == u3ud(data_two) )
     {
         u3x_loob(cape_two);
-        if ( c3n == cape_one ) return u3m_bail(c3__exit);  // debug assert
+        if ( c3n == cape_one ) return u3m_bail(c3__exit);  // normalization assert
         return c3n;
     }
 
