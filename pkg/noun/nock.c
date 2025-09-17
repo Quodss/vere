@@ -2086,7 +2086,7 @@ _n_find_direct(u3_noun less_fol,
 {
   u3_weak pog = u3h_git(u3R->byc.dar_p, less_fol);
   if ( u3_none != pog ) {
-    *pog_o_u = u3to(u3n_prog, pog);
+    *pog_o_u = _cn_to_prog(pog);
     return c3n;
   }
 
@@ -2095,7 +2095,7 @@ _n_find_direct(u3_noun less_fol,
   *pog_o_u = _n_bite_direct(u3h(less_fol),
               u3t(u_nomm), queu, cole, code);
 
-  pog = u3a_outa(*pog_o_u);
+  pog = _cn_of_prog(*pog_o_u);
   u3_noun i_larp = u3nc(u3k(u3h(less_fol)), pog);
   u3h_put(u3R->byc.dar_p, less_fol, pog);
   u3h_jib(u3R->byc.lar_p, u3t(less_fol), _cb_jib_cons, &i_larp);
@@ -2108,7 +2108,7 @@ static void
 _cb_fresh_rewrite(u3_noun pog)
 {
   u3p(u3h_root) dar_p = u3R->byc.dar_p;
-  u3n_prog*     pog_u = u3to(u3n_prog, pog);
+  u3n_prog*     pog_u = _cn_to_prog(pog);
   u3n_dire*     dir_u = pog_u->dir_u.dat_u;
   c3_w          len_w = pog_u->dir_u.len_w;
   u3_noun       less_fol;
@@ -2156,7 +2156,7 @@ u3n_build_direct(u3_noun sub,
   u3r_cell(less_nomm, &less, &nomm);
   u3_noun less_fol_first = u3nc(u3k(less), u3k(fol));
   u3n_prog* out_u = _n_bite_direct(less, nomm, &queu, cole, code);
-  u3h_put(fresh_p, less_fol_first, u3of(u3n_prog, out_u));
+  u3h_put(fresh_p, less_fol_first, _cn_of_prog(out_u));
   u3z(less_fol_first);
 
   u3n_prog* pog_u;
@@ -2167,8 +2167,8 @@ u3n_build_direct(u3_noun sub,
     u3k(t), u3z(queu), queu = t;
 
     if ( u3_none == u3h_git(fresh_p, less_fol)
-          && c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) ) {
-      u3h_put(fresh_p, less_fol, u3of(u3n_prog, pog_u));
+         && c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) ) {
+      u3h_put(fresh_p, less_fol, _cn_of_prog(pog_u));
     }
     
     u3z(less_fol);
