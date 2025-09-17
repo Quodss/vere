@@ -164,5 +164,12 @@
     */
       void
       u3n_ream(void);
+    
+      u3n_prog*
+      u3n_build_direct(u3_noun sub,
+        u3_noun fol,
+        u3_noun cole,
+        u3_noun code,
+        u3_noun fols);
 
 #endif /* ifndef U3_NOCK_H */

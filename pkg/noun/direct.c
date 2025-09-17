@@ -86,23 +86,6 @@ u3d_rout(u3_noun sub, u3_noun fol)
     u3R->dir.ka = u3n_slam_on(gat, u3nc(sub, fol));
 }
 
-// RETAINS arguments
-//
-// cole: [sock formula] -> [path axis]; cold state
-// code: [sock formula] -> nomm-1; code objects for direct calls
-// fols: formula -> (list [sock nomm-1]): code objects for lookups
-// returns pointer to the program for [sub fol] pair
-//
-static u3n_prog*
-_compile(u3_noun sub,
-         u3_noun fol,
-         u3_noun cole,
-         u3_noun code,
-         u3_noun fols)
-{
-    c3_stub;
-}
-
 // RETAINS
 // `list` is (list pro=[sock *])
 //
@@ -167,7 +150,7 @@ u3d_search(u3_noun sub, u3_noun fol)
     u3_noun cole, code, fols;
     u3r_mean(boil, 2, &cole, 6, &code, 7, &fols, 0);
 
-    pog_u = _compile(sub, fol, cole, code, fols);
+    pog_u = u3n_build_direct(sub, fol, cole, code, fols);
     u3z(boil);
     return pog_u;
 }

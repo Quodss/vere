@@ -2081,8 +2081,13 @@ _cb_fresh_rewrite(u3_noun pog)
 
 //  [&+sub fol] pair must be present in code/fols
 //  RETAINS
-static u3n_prog*
-_n_build_direct(u3_noun sub,
+//
+//    cole: [sock formula] -> [path axis]; cold state
+//    code: [sock formula] -> nomm-1; code objects for direct calls
+//    fols: formula -> (list [sock nomm-1]): code objects for lookups
+//
+u3n_prog*
+u3n_build_direct(u3_noun sub,
   u3_noun fol,
   u3_noun cole,
   u3_noun code,
