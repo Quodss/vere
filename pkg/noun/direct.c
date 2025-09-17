@@ -127,7 +127,7 @@ u3d_search(u3_noun sub, u3_noun fol)
     {
         u3_weak less_pog = u3d_match_sock(c3y, sub, lit);
         pog_u = ( u3_none != less_pog )
-              ? u3to(u3n_prog, u3t(less_pog))
+              ? _cn_to_prog(u3t(less_pog))
               : NULL;
     }
     if ( pog_u ) return pog_u;

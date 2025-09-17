@@ -563,6 +563,7 @@ _pave_home(void)
   u3R->mat_p = u3R->cap_p = top_p;
 
   _pave_parts();
+  u3R->dir.ka = u3_nul;
 }
 
 STATIC_ASSERT( (c3_wiseof(u3v_home) <= (1U << u3a_page)),
@@ -2515,8 +2516,6 @@ u3m_boot(c3_c* dir_c, size_t len_i)
     memset(u3A, 0, sizeof(*u3A));
     return 0;
   }
-
-  u3H->rod_u.dir.ka = u3_nul;
 }
 
 /* u3m_boot_lite(): start without checkpointing.
