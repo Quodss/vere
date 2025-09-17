@@ -2156,6 +2156,12 @@ u3n_build_direct(u3_noun sub,
   u3r_cell(less_nomm, &less, &nomm);
   u3_noun less_fol_first = u3nc(u3k(less), u3k(fol));
   u3n_prog* out_u = _n_bite_direct(less, nomm, &queu, cole, code);
+
+  u3_noun pog = _cn_of_prog(out_u);
+  u3_noun i_larp = u3nc(u3k(less), pog);
+  u3h_put(u3R->byc.dar_p, less_fol_first, pog);
+  u3h_jib(u3R->byc.lar_p, fol, _cb_jib_cons, &i_larp);
+
   u3h_put(fresh_p, less_fol_first, _cn_of_prog(out_u));
   u3z(less_fol_first);
 
