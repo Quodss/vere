@@ -116,6 +116,7 @@ u3d_match_sock(u3_noun cape, u3_noun data, u3_noun list)
 }
 
 //  RETAINS arguments
+//  XX remove u3dc, use hard-coded axes
 //
 u3n_prog*
 u3d_search(u3_noun sub, u3_noun fol)
@@ -127,7 +128,7 @@ u3d_search(u3_noun sub, u3_noun fol)
         u3_weak less_pog = u3d_match_sock(c3y, sub, lit);
         pog_u = ( u3_none != less_pog )
               ? u3to(u3n_prog, u3t(less_pog))
-              : pog_u;
+              : NULL;
     }
     if ( pog_u ) return pog_u;
 
@@ -148,7 +149,11 @@ u3d_search(u3_noun sub, u3_noun fol)
 
     u3_noun boil = u3n_slam_on(gat, lon);
     u3_noun cole, code, fols;
-    u3r_mean(boil, 2, &cole, 6, &code, 7, &fols, 0);
+    if ( c3n == u3r_mean(boil, 2, &cole, 6, &code, 7, &fols, 0) )
+    {
+        u3m_bail(c3__fail);
+        return 0;
+    }
 
     pog_u = u3n_build_direct(sub, fol, cole, code, fols);
     u3z(boil);
