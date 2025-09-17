@@ -2116,7 +2116,7 @@ _cb_fresh_rewrite(u3_noun pog)
   for (c3_w i_w = 0; i_w < len_w; i_w++) {
     less_fol = dir_u[i_w].pog_p;
     pog = u3x_good(u3h_git(dar_p, less_fol));
-    dir_u[i_w].pog_p = pog;
+    dir_u[i_w].pog_p = pog << u3a_vits;
     u3z(less_fol);
   }
 }
