@@ -258,6 +258,30 @@ _cj_axis(u3_noun fol)
   }
 }
 
+//  read 31-bit integer for an arm axis from a dot-prefixed C string
+//  returns 0 on failure
+//
+static c3_l
+_cj_read_axe(c3_c* str_c, c3_c* who_c)
+{
+  //  ".2" common case shortcut
+  //
+  if ( '2' == str_c[1] && 0 == str_c[2] ) return 2;
+
+  c3_d axe_d = 0;
+  c3_l axe_l = 0;
+  if ( (1 != sscanf(str_c + 1, "%" SCNu64, &axe_d)) ||
+       axe_d >> 32ULL ||
+       (((c3_w)1 << 31) & (axe_l = (c3_w)axe_d)) ||
+       (axe_l < 2) )
+    {
+      u3l_log("jets: %s: bad fcs %s", who_c, str_c);
+      return 0;
+    }
+  
+    return axe_l;
+}
+
 /* _cj_warm_hump(): generate axis-to-arm map.  RETAIN.
 */
 static u3_noun
@@ -276,15 +300,7 @@ _cj_warm_hump(c3_l jax_l, u3_noun huc)
       c3_l axe_l = 0;
 
       if ( '.' == *(jet_u->fcs_c) ) {
-        c3_d axe_d = 0;
-
-        if ( (1 != sscanf(jet_u->fcs_c+1, "%" SCNu64, &axe_d)) ||
-             axe_d >> 32ULL ||
-             (((c3_w)1 << 31) & (axe_l = (c3_w)axe_d)) ||
-             (axe_l < 2) )
-        {
-          u3l_log("jets: activate: bad fcs %s", jet_u->fcs_c);
-        }
+        axe_l = _cj_read_axe(jet_u->fcs_c, "activate");
       }
       else {
         u3_noun nam = u3i_string(jet_u->fcs_c);
@@ -346,26 +362,13 @@ _cj_install(u3j_core* ray_u,
       }
 
       if ( kid_u->arm_u ) {
-        u3j_harm* jet_u = kid_u->arm_u;
-        c3_d axe_d;
-        c3_l axe_l;
-        while ( jet_u->fcs_c ) {
-          if ( '.' == *(jet_u->fcs_c) ) {
-            c3_d axe_d = 0;
-            if ( (1 != sscanf(jet_u->fcs_c+1, "%" SCNu64, &axe_d)) ||
-                axe_d >> 32ULL ||
-                (((c3_w)1 << 31) & (axe_l = (c3_w)axe_d)) ||
-                (axe_l < 2) )
-            {
-              u3l_log("jets: _cj_install: bad fcs %s", jet_u->fcs_c);
-            }
-            else {
-              u3_noun key = u3nc(u3k(xap), axe_l);
-              u3h_put(u3R->jed.pax_p, key, u3i_chub((c3_d)(c3_p)jet_u));
-              u3z(key);
-            }
-          }
-          jet_u++;
+        for (u3j_harm* jet_u = kid_u->arm_u; jet_u->fcs_c; jet_u++ ) {
+          if ( '.' != jet_u->fcs_c[0] ) continue;
+          c3_l axe_l = _cj_read_axe(jet_u->fcs_c, "_cj_install");
+          if ( !axe_l ) continue;
+          u3_noun key = u3nc(u3k(xap), axe_l);
+          u3h_put(u3R->jed.pax_p, key, u3i_chub((c3_d)(c3_p)jet_u));
+          u3z(key);
         }
       }
 
