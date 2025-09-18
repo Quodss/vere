@@ -3803,15 +3803,35 @@ _n_ream(u3_noun kev)
 {
   u3n_prog* pog_u = _cn_to_prog(u3t(kev));
 
-  c3_w pad_w = (8 - pog_u->byc_u.len_w % 8) % 8;
-  c3_w pod_w = pog_u->lit_u.len_w % 2;
-  c3_w ped_w = pog_u->mem_u.len_w % 2;
+  c3_y* dat_y = _n_prog_dat(pog_u);
+  c3_w  len_w = pog_u->byc_u.len_w;
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w let_w = len_w;
+  len_w += (sizeof(u3_noun) * pog_u->lit_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w mim_w = len_w;
+  len_w += (sizeof(u3n_memo) * pog_u->mem_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w cel_w = len_w;
+  len_w += (sizeof(u3j_site) * pog_u->cal_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w rig_w = len_w;
+  len_w += (sizeof(u3j_rite) * pog_u->reg_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w der_w = len_w;
+  len_w += (sizeof(u3n_dire) * pog_u->dir_u.len_w);
+
   // fix up pointers for loom portability
-  pog_u->byc_u.ops_y = (c3_y*) _n_prog_dat(pog_u);
-  pog_u->lit_u.non   = (u3_noun*) (pog_u->byc_u.ops_y + pog_u->byc_u.len_w + pad_w);
-  pog_u->mem_u.sot_u = (u3n_memo*) (pog_u->lit_u.non + pog_u->lit_u.len_w + pod_w);
-  pog_u->cal_u.sit_u = (u3j_site*) (pog_u->mem_u.sot_u + pog_u->mem_u.len_w + ped_w);
-  pog_u->reg_u.rit_u = (u3j_rite*) (pog_u->cal_u.sit_u + pog_u->cal_u.len_w);
+  pog_u->byc_u.ops_y = dat_y;
+  pog_u->lit_u.non   = (u3_noun*)  (dat_y + let_w);
+  pog_u->mem_u.sot_u = (u3n_memo*) (dat_y + mim_w);
+  pog_u->cal_u.sit_u = (u3j_site*) (dat_y + cel_w);
+  pog_u->reg_u.rit_u = (u3j_rite*) (dat_y + rig_w);
 
   for ( c3_w i_w = 0; i_w < pog_u->cal_u.len_w; ++i_w ) {
     u3j_site_ream(&(pog_u->cal_u.sit_u[i_w]));
