@@ -1113,6 +1113,8 @@ _n_emit(u3_noun *ops, u3_noun op)
 }
 
 static c3_w _n_comp(u3_noun*, u3_noun, c3_o, c3_o);
+static c3_w _n_comp_direct(u3_noun*, u3_noun, c3_o, c3_o,
+  u3_noun*, u3_noun, u3_noun);
 
 /* _n_bint(): hint-processing helper for _n_comp.
  *            hif: hint-formula (first part of 11). RETAIN.
@@ -1150,11 +1152,11 @@ _n_bint(u3_noun* ops, u3_noun hif, u3_noun nef, c3_o los_o, c3_o tel_o)
         ++tot_w; _n_emit(ops, ( c3y == los_o ) ? TOSS : SWAP);
       } break;
       
-      //  entry point into SKA computation
+      //  entry point into SKA computation: defer `nef` compilation
       //
       case c3__ska: {
         c3_y op = _(tel_o) ? TISB
-                : _(los_o) ? DISB : LISB;
+                : _(los_o) ? LISB : DISB;
         ++tot_w; _n_emit(ops, u3nc(op, u3k(nef)));
       }
       break;
@@ -1249,6 +1251,149 @@ _n_bint(u3_noun* ops, u3_noun hif, u3_noun nef, c3_o los_o, c3_o tel_o)
         ++tot_w; _n_emit(ops, TOSS);
 
         mem_w += _n_comp(&mem, nef, c3y, c3n);
+        ++mem_w; _n_emit(&mem, SAVE);
+
+        op_y   = (c3y == los_o) ? SLIB : SKIB; // overflows to SLIS / SKIS
+        u3z_cid cid = u3z_memo_toss;
+        {
+          u3_weak con = u3r_skip(hod);
+          if ( (u3_none != con) && (c3y == u3du(con)) ) {
+            cid = u3z_memo_keep;
+          }
+        }
+        ++tot_w; _n_emit(ops, u3nq(op_y, cid, mem_w, u3k(nef)));
+        tot_w += mem_w; _n_apen(ops, mem);
+        break;
+      }
+    }
+  }
+
+  return tot_w;
+}
+
+static c3_w
+_n_bint_direct(u3_noun* ops,
+  u3_noun hif,
+  u3_noun nef,
+  c3_o los_o,
+  c3_o tel_o,
+  u3_noun* queu,
+  u3_noun cole,
+  u3_noun code)
+{
+  c3_w tot_w = 0;
+
+  if ( c3n == u3du(hif) ) {
+    switch ( hif ) {
+      //  compile whitelisted atomic hints to dispatch protocol;
+      //
+      case c3__cash:
+      case c3__xray:
+      case c3__meme:
+      case c3__nara:
+      case c3__hela:
+      case c3__bout: {
+        u3_noun fen = u3_nul;
+        c3_w  nef_w = _n_comp_direct(&fen, nef, los_o, c3n, queu, cole, code);
+        // add appropriate hind opcode
+        ++nef_w; _n_emit(&fen, ( c3y == los_o ) ? HILL : HILK);
+        // skip over the cleanup opcode
+        ++nef_w; _n_emit(&fen, u3nc(SBIP, 1));
+
+        //  call hilt_fore
+        //  HILB overflows to HILS
+        ++tot_w; _n_emit(ops, u3nc(HILB, u3nc(u3k(hif), u3k(nef))));
+        // if fore return c3n, skip fen
+        ++tot_w; _n_emit(ops, u3nc(SBIN, nef_w));
+        tot_w += nef_w; _n_apen(ops, fen);
+        // post-skip cleanup opcode
+        ++tot_w; _n_emit(ops, ( c3y == los_o ) ? TOSS : SWAP);
+      } break;
+      
+      //  compute and drop all others; %ska case is ignored
+      //
+      default: {
+        return _n_comp_direct(ops, nef, los_o, tel_o, queu, cole, code);
+      }
+    }
+  }
+  else {
+    u3_noun zep, hod;
+    u3x_cell(hif, &zep, &hod);
+
+    switch ( zep ) {
+      default: {
+        //  compile whitelisted dynamic hints to dispatch protocol;
+        //  compute and drop all others;
+        //
+        switch ( zep ) {
+          default: {
+            tot_w += _n_comp_direct(ops, hod, c3n, c3n, queu, cole, code);
+            ++tot_w; _n_emit(ops, TOSS);
+            tot_w += _n_comp_direct(ops, nef, los_o, tel_o, queu, cole, code);
+          } break;
+          case c3__xray:
+          case c3__meme:
+          case c3__nara:
+          case c3__hela:
+          case c3__spin:
+          case c3__bout: {
+            u3_noun fen = u3_nul;
+            c3_w  nef_w = _n_comp_direct(&fen, nef, los_o, c3n,
+                                         queu, cole, code);
+            // add appropriate hind opcode
+            ++nef_w; _n_emit(&fen, ( c3y == los_o ) ? HINL : HINK);
+            // skip over the cleanup opcode
+            ++nef_w; _n_emit(&fen, u3nc(SBIP, 1));
+
+            // push clue
+            tot_w += _n_comp_direct(ops, hod, c3n, c3n, queu, cole, code);
+            //  call hint_fore
+            //  HINB overflows to HINS
+            ++tot_w; _n_emit(ops, u3nc(HINB, u3nc(u3k(zep), u3k(nef))));
+            // if fore return c3n, skip fen
+            ++tot_w; _n_emit(ops, u3nc(SBIN, nef_w));
+            tot_w += nef_w; _n_apen(ops, fen);
+            // post-skip cleanup opcode
+            ++tot_w; _n_emit(ops, ( c3y == los_o ) ? TOSS : SWAP);
+          } break;
+        }
+      } break;
+
+      case c3__hunk:
+      case c3__lose:
+      case c3__mean:
+      case c3__spot:
+        tot_w += _n_comp_direct(ops, hod, c3n, c3n, queu, cole, code);
+        ++tot_w; _n_emit(ops, u3nc(BUSH, zep)); // overflows to SUSH
+        tot_w += _n_comp_direct(ops, nef, los_o, c3n, queu, cole, code);
+        ++tot_w; _n_emit(ops, DROP);
+        break;
+
+      case c3__live:
+        tot_w += _n_comp_direct(ops, hod, c3n, c3n, queu, cole, code);
+        ++tot_w; _n_emit(ops, HECK);
+        tot_w += _n_comp_direct(ops, nef, los_o, tel_o, queu, cole, code);
+        break;
+
+      case c3__slog:
+        tot_w += _n_comp_direct(ops, hod, c3n, c3n, queu, cole, code);
+        ++tot_w; _n_emit(ops, SLOG);
+        tot_w += _n_comp_direct(ops, nef, los_o, tel_o, queu, cole, code);
+        break;
+
+      // germ and sole are unused...
+      // fast was treated during analysis
+
+      case c3__memo: {
+        u3_noun mem = u3_nul;
+        c3_w mem_w = 0;
+        c3_y op_y;
+
+        tot_w += _n_comp_direct(ops, hod, c3n, c3n, queu, cole, code);
+        ++tot_w; _n_emit(ops, TOSS);
+
+        mem_w += _n_comp_direct(&mem, nef, c3y, c3n, queu, cole, code);
         ++mem_w; _n_emit(&mem, SAVE);
 
         op_y   = (c3y == los_o) ? SLIB : SKIB; // overflows to SLIS / SKIS
@@ -2031,20 +2176,11 @@ _n_comp_direct(u3_noun* ops,
 
     case 11:
       u3x_cell(arg, &hed, &tel);
-      if ( c3y == u3ud(hed) ) {
-        tot_w += _n_comp_direct(ops, tel, los_o, tel_o, queu, cole, code);
-      }
-      else {
-        u3_noun zep, hod;
-        u3x_cell(hed, &zep, &hod);
-        tot_w += _n_comp_direct(ops, hod, c3n, c3n, queu, cole, code);
-        ++tot_w; _n_emit(ops, TOSS);
-        tot_w += _n_comp_direct(ops, tel, los_o, tel_o, queu, cole, code);
-      }
+      tot_w += _n_bint_direct(ops, hed, tel, los_o, tel_o, queu, cole, code);
       break;
     
     case 12:
-      //  XX TODO scry
+      //  XX TODO scry, persistence of byc.dar_p/lar_p, check 12 treatment in +ka
       //
       u3m_bail(c3__fail);
       break;
@@ -2058,8 +2194,7 @@ _n_comp_direct(u3_noun* ops,
 
 // RETAINS
 static u3n_prog*
-_n_bite_direct(u3_noun less,
-  u3_noun  nomm,
+_n_bite_direct(u3_noun nomm,
   u3_noun* queu,
   u3_noun  cole,
   u3_noun  code)
@@ -2092,9 +2227,7 @@ _n_find_direct(u3_noun less_fol,
 
   u3_noun u_nomm = u3qdb_get(code, less_fol);
   u3_assert(u3_nul != u_nomm);
-  *pog_o_u = _n_bite_direct(u3h(less_fol),
-              u3t(u_nomm), queu, cole, code);
-
+  *pog_o_u = _n_bite_direct(u3t(u_nomm), queu, cole, code);
   pog = _cn_of_prog(*pog_o_u);
   u3_noun i_larp = u3nc(u3k(u3h(less_fol)), pog);
   u3h_put(u3R->byc.dar_p, less_fol, pog);
@@ -2116,12 +2249,14 @@ _cb_fresh_rewrite(u3_noun pog)
   for (c3_w i_w = 0; i_w < len_w; i_w++) {
     less_fol = dir_u[i_w].pog_p;
     pog = u3x_good(u3h_git(dar_p, less_fol));
+    //  uncompress the offset
+    //
     dir_u[i_w].pog_p = pog << u3a_vits;
     u3z(less_fol);
   }
 }
 
-//  [&+sub fol] pair must be present in code/fols
+//  [&+sub fol] pair must be findable in fols
 //  RETAINS
 //
 //    cole: [sock formula] -> [path axis]; cold state
@@ -2135,8 +2270,8 @@ u3n_build_direct(u3_noun sub,
   u3_noun code,
   u3_noun fols)
 {
-  u3_noun lit = u3kdb_got(u3k(fols), u3k(fol));
-  u3_noun less_nomm = u3x_good(u3d_match_sock(c3y, sub, lit));
+  u3_noun lit       = u3x_good(u3kdb_got(u3k(fols), u3k(fol))),
+          less_nomm = u3x_good(u3d_match_sock(c3y, sub, lit));
   u3z(lit);
   //  As we compile new code with direct calls, we might not have a post
   //  of a directly called program yet. We will instead put a pair
@@ -2155,14 +2290,14 @@ u3n_build_direct(u3_noun sub,
   u3_noun less, nomm;
   u3r_cell(less_nomm, &less, &nomm);
   u3_noun less_fol_first = u3nc(u3k(less), u3k(fol));
-  u3n_prog* out_u = _n_bite_direct(less, nomm, &queu, cole, code);
-
+  //  if we are here then this nomm was not compiled, no need to search
+  //
+  u3n_prog* out_u = _n_bite_direct(nomm, &queu, cole, code);
   u3_noun pog = _cn_of_prog(out_u);
   u3_noun i_larp = u3nc(u3k(less), pog);
   u3h_put(u3R->byc.dar_p, less_fol_first, pog);
   u3h_jib(u3R->byc.lar_p, fol, _cb_jib_cons, &i_larp);
-
-  u3h_put(fresh_p, less_fol_first, _cn_of_prog(out_u));
+  u3h_put(fresh_p, less_fol_first, pog);
   u3z(less_fol_first);
 
   u3n_prog* pog_u;
