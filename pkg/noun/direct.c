@@ -80,9 +80,31 @@ void
 u3d_prep_ka()
 {
     if ( u3R->dir.ka ) return;
-    // XX commit a trap and kick it here
+    // [sock=hoon soak=hoon noir=hoon skan=hoon]
     //
-    u3R->dir.ka = u3s_cue_bytes((c3_d)u3_Ka_core_len, u3_Ka_core);
+    u3_noun hoons = u3s_cue_bytes((c3_d)u3_Ka_core_len, u3_Ka_core);
+    u3_noun sock, soak, noir, skan;
+    if ( c3n == u3r_mean(hoons,
+        2,  &sock,
+        6,  &soak,
+        14, &noir,
+        15, &skan, 0) ) {
+        u3m_bail(c3__fail);
+    }
+
+    u3_noun bild = u3v_wish("!>(..zuse)");
+    u3_noun slap = u3v_wish("slap");
+
+    bild = u3n_slam_on(u3k(slap), u3nc(bild, u3k(sock)));
+    bild = u3n_slam_on(u3k(slap), u3nc(bild, u3k(soak)));
+    bild = u3n_slam_on(u3k(slap), u3nc(bild, u3k(noir)));
+    bild = u3n_slam_on(u3k(slap), u3nc(bild, u3k(skan)));
+    
+    u3_noun ka = u3n_slam_on(slap,
+        u3nc(bild, u3nt(c3__wing, c3_s2('k', 'a'), u3_nul)));
+
+    u3z(hoons);
+    u3R->dir.ka = ka;
 }
 
 //  XX: reentrance?
