@@ -852,7 +852,8 @@ _n_prog_old(u3n_prog* sep_u)
 static u3j_harm*
 _direct_match_bell(u3_noun bell)
 {
-  u3_weak harm = u3h_git(u3H->rod_u.jed.pax_p, bell);
+  // u3_weak harm = u3h_git(u3H->rod_u.jed.pax_p, bell);
+  u3_weak harm = u3_none;
   return ( u3_none == harm )
     ? NULL
     : (u3j_harm*)(c3_p)u3r_chub(0, u3x_atom(harm));

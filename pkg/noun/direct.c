@@ -172,7 +172,9 @@ u3d_search(u3_noun sub, u3_noun fol)
     // ( [%wing p=~[%lon]] )
     //
     u3_noun gen = u3nt(c3__wing, c3_s3('l','o','n'), u3_nul);
-    u3_noun vax = u3dc("slap", u3k(u3R->dir.ka), gen);
+    u3_noun slap = u3v_wish("slap");
+    // u3_noun vax = u3dc("slap", u3k(u3R->dir.ka), gen);
+    u3_noun vax = u3n_slam_on(slap, u3nc(u3k(u3R->dir.ka), gen));
     u3_noun lon = u3k(u3t(vax));
     u3z(vax);
 
