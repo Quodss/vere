@@ -3964,9 +3964,9 @@ u3n_free()
   u3h_walk(har_p, _n_feb);
   u3h_free(har_p);
 
-  har_p = u3R->byc.dar_p;
-  u3h_walk(har_p, _n_feb);
-  u3h_free(har_p);
+  u3p(u3h_root) dar_p = u3R->byc.dar_p;
+  u3h_walk(dar_p, _n_feb);
+  u3h_free(dar_p);
 
   har_p = u3R->byc.lar_p;
   //  don't walk the table, its prog references were owned by the already freed
