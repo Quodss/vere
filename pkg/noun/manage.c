@@ -600,6 +600,7 @@ _pave_home(void)
   u3R = &u3H->rod_u;
 
   _pave_parts();
+  u3R->dir.ka = u3_nul;
 }
 
 STATIC_ASSERT( ((c3_wiseof(u3v_home) * 4) == sizeof(u3v_home)),
@@ -1092,6 +1093,7 @@ u3m_leap(c3_w pad_w)
   {
     u3R = rod_u;
     _pave_parts();
+    u3R->dir.ka = u3to(u3_road, u3R->par_p)->dir.ka;
   }
 #ifdef U3_MEMORY_DEBUG
   rod_u->all.fre_w = 0;
@@ -1180,6 +1182,7 @@ u3m_love(u3_noun pro)
   u3p(u3h_root) byc_p = u3R->byc.har_p;
   u3a_jets      jed_u = u3R->jed;
   u3p(u3h_root) per_p = u3R->cax.per_p;
+  u3_noun       ka    = u3R->dir.ka;
 
   //  fallback to parent road (child heap on parent's stack)
   //
@@ -1188,6 +1191,7 @@ u3m_love(u3_noun pro)
   //  copy product and caches off our stack
   //
   pro   = u3a_take(pro);
+  ka    = u3a_take(ka);
   jed_u = u3j_take(jed_u);
   byc_p = u3n_take(byc_p);
   per_p = u3h_take(per_p);
@@ -1202,6 +1206,7 @@ u3m_love(u3_noun pro)
   u3j_reap(jed_u);
   u3n_reap(byc_p);
   u3z_reap(u3z_memo_keep, per_p);
+  u3z(u3R->dir.ka), u3R->dir.ka = ka;
 
   return pro;
 }

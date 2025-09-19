@@ -3,6 +3,7 @@
 #include "nock.h"
 
 #include "allocate.h"
+#include "direct.h"
 #include "hashtable.h"
 #include "imprison.h"
 #include "jets.h"
@@ -521,7 +522,18 @@ _n_nock_on(u3_noun bus, u3_noun fol)
   X(KUTS, "kuts", &&do_kuts),  /* 92: c3_s */                                  \
   X(KITB, "kitb", &&do_kitb),  /* 93: c3_b */                                  \
   X(KITS, "kits", &&do_kits),  /* 94: c3_s */                                  \
-  X(LAST,   NULL,      NULL),  /* 95 */
+  /* SKA-specific output */                                                    \
+  /* Search for a program with direct calls and execute it */                  \
+  /* Head position, keep */                                                    \
+  X(DISB, "disb", &&do_disb),  /* 99:  c3_y */                                 \
+  X(DISS, "diss", &&do_diss),  /* 100: c3_s */                                 \
+  /* Head position, lose */                                                    \
+  X(LISB, "lisb", &&do_lisb),  /* 101: c3_y */                                 \
+  X(LISS, "liss", &&do_liss),  /* 102: c3_s */                                 \
+  /* Tail position */                                                          \
+  X(TISB, "tisb", &&do_tisb),  /* 103: c3_y */                                 \
+  X(TISS, "tiss", &&do_tiss),  /* 104: c3_s */                                 \
+  X(LAST,   NULL,      NULL),  /* 105 */
 
 // Opcodes. Define X to select the enum name from OPCODES.
 #define X(opcode, name, indirect_jump) opcode
@@ -541,6 +553,7 @@ _n_arg(c3_y cod_y)
     case BUSH: case BAST: case BALT:
     case MUTB: case KUTB: case MITB: case KITB:
     case HILB: case HINB:
+    case DISB: case LISB: case TISB: 
       return sizeof(c3_y);
 
     case FASK: case FASL: case FISL: case FISK:
@@ -550,6 +563,7 @@ _n_arg(c3_y cod_y)
     case SUSH: case SAST: case SALT:
     case MUTS: case KUTS: case MITS: case KITS:
     case HILS: case HINS:
+    case DISS: case LISS: case TISS: 
       return sizeof(c3_s);
 
     case SWIP: case SWIN:
@@ -644,6 +658,7 @@ _n_melt(u3_noun ops, c3_w* byc_w, c3_w* cal_w,
         case FISK: case FISL: case SUSH: case SANS:
         case LISL: case LISK: case SKIS: case SLIS:
         case HILS: case HINS:
+        case DISS: case LISS: case TISS:
           u3_assert(0); //overflows
           break;
 
@@ -665,6 +680,7 @@ _n_melt(u3_noun ops, c3_w* byc_w, c3_w* cal_w,
         case SANB: case LIBL: case LIBK:
         case KITB: case MITB:
         case HILB: case HINB:
+        case DISB: case LISB: case TISB:
           a_w = (*lit_w)++;
           if ( a_w <= 0xFF ) {
             siz_y[i_w] = 2;
@@ -906,6 +922,7 @@ _n_prog_asm(u3_noun ops, u3n_prog* pog_u, u3_noun sip)
         case BUSH: case SANB:
         case KITB: case MITB:
         case HILB: case HINB:
+        case DISB: case LISB: case TISB:
           _n_prog_asm_inx(buf_y, &i_w, lit_s, cod);
           pog_u->lit_u.non[lit_s++] = u3k(u3t(op));
           break;
@@ -1046,6 +1063,15 @@ _n_bint(u3_noun* ops, u3_noun hif, u3_noun nef, c3_o los_o, c3_o tel_o)
         // post-skip cleanup opcode
         ++tot_w; _n_emit(ops, ( c3y == los_o ) ? TOSS : SWAP);
       } break;
+
+      //  entry point into SKA computation: defer `nef` compilation
+      //
+      case c3__ska: {
+        c3_y op = _(tel_o) ? TISB
+                : _(los_o) ? LISB : DISB;
+        ++tot_w; _n_emit(ops, u3nc(op, u3k(nef)));
+      }
+      break;
     }
   }
   else {
@@ -2794,6 +2820,48 @@ _n_burn(u3n_prog* pog_u, u3_noun bus, c3_ys mov, c3_ys off)
       top = _n_peek(off);
     edit_in:
       *top = u3i_edit(*top, x, o);
+      BURN();
+    
+    do_tiss:
+      x = pog_u->lit_u.non[_n_resh(pog, &ip_w)];
+      goto tis_in;
+
+    do_tisb:
+      x = pog_u->lit_u.non[pog[ip_w++]];
+    tis_in:
+      top = _n_peek(off);
+      o = *top;
+      goto dis_out;
+
+    do_liss:
+      x = pog_u->lit_u.non[_n_resh(pog, &ip_w)];
+      goto lis_in;
+
+    do_lisb:
+      x = pog_u->lit_u.non[pog[ip_w++]];
+    lis_in:
+      o = _n_pep(mov, off);
+      goto dis_frame;
+
+    do_diss:
+      x = pog_u->lit_u.non[_n_resh(pog, &ip_w)];
+      goto dis_in;
+
+    do_disb:
+      x = pog_u->lit_u.non[pog[ip_w++]];
+    dis_in:
+      top = _n_peek(off);
+      o = u3k(*top);
+    dis_frame:
+      fam = u3to(burnframe, u3R->cap_p) + off + mov;
+      u3R->cap_p = u3of(burnframe, fam - off);
+      fam->ip_w  = ip_w;
+      fam->pog_u = pog_u;
+      _n_push(mov, off, o);
+    dis_out:
+      pog_u = u3d_search(o, x);
+      pog   = pog_u->byc_u.ops_y;
+      ip_w  = 0;
       BURN();
   }
 }

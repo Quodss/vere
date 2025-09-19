@@ -179,6 +179,10 @@
           u3p(u3h_root) har_p;                //  transient
           u3p(u3h_root) per_p;                //  persistent
         } cax;
+
+        struct {                              // direct calls
+          u3_noun ka;                         //  ~ | +ka core vase  XX reclaim
+        } dir;
       } u3a_road;
       typedef u3a_road u3_road;
 
