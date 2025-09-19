@@ -2220,41 +2220,43 @@ _n_find_direct(u3_noun less_fol,
   u3_noun code,
   u3n_prog** pog_o_u)
 {
-  u3_weak pog = u3h_git(u3R->byc.dar_p, less_fol);
-  if ( u3_none != pog ) {
-    *pog_o_u = _cn_to_prog(pog);
-    return c3n;
-  }
+  abort();
+  // u3_weak pog = u3h_git(u3R->byc.dar_p, less_fol);
+  // if ( u3_none != pog ) {
+  //   *pog_o_u = _cn_to_prog(pog);
+  //   return c3n;
+  // }
 
-  u3_noun u_nomm = u3qdb_get(code, less_fol);
-  u3_assert(u3_nul != u_nomm);
-  *pog_o_u = _n_bite_direct(u3t(u_nomm), queu, cole, code);
-  pog = _cn_of_prog(*pog_o_u);
-  u3_noun i_larp = u3nc(u3k(u3h(less_fol)), pog);
-  u3h_put(u3R->byc.dar_p, less_fol, pog);
-  u3h_jib(u3R->byc.lar_p, u3t(less_fol), _cb_jib_cons, &i_larp);
+  // u3_noun u_nomm = u3qdb_get(code, less_fol);
+  // u3_assert(u3_nul != u_nomm);
+  // *pog_o_u = _n_bite_direct(u3t(u_nomm), queu, cole, code);
+  // pog = _cn_of_prog(*pog_o_u);
+  // u3_noun i_larp = u3nc(u3k(u3h(less_fol)), pog);
+  // u3h_put(u3R->byc.dar_p, less_fol, pog);
+  // u3h_jib(u3R->byc.lar_p, u3t(less_fol), _cb_jib_cons, &i_larp);
 
-  u3z(u_nomm);
-  return c3y;
+  // u3z(u_nomm);
+  // return c3y;
 }
 
 static void
 _cb_fresh_rewrite(u3_noun pog)
 {
-  u3p(u3h_root) dar_p = u3R->byc.dar_p;
-  u3n_prog*     pog_u = _cn_to_prog(pog);
-  u3n_dire*     dir_u = pog_u->dir_u.dat_u;
-  c3_w          len_w = pog_u->dir_u.len_w;
-  u3_noun       less_fol;
+  abort();
+  // u3p(u3h_root) dar_p = u3R->byc.dar_p;
+  // u3n_prog*     pog_u = _cn_to_prog(pog);
+  // u3n_dire*     dir_u = pog_u->dir_u.dat_u;
+  // c3_w          len_w = pog_u->dir_u.len_w;
+  // u3_noun       less_fol;
 
-  for (c3_w i_w = 0; i_w < len_w; i_w++) {
-    less_fol = dir_u[i_w].pog_p;
-    pog = u3x_good(u3h_git(dar_p, less_fol));
-    //  uncompress the offset
-    //
-    dir_u[i_w].pog_p = pog << u3a_vits;
-    u3z(less_fol);
-  }
+  // for (c3_w i_w = 0; i_w < len_w; i_w++) {
+  //   less_fol = dir_u[i_w].pog_p;
+  //   pog = u3x_good(u3h_git(dar_p, less_fol));
+  //   //  uncompress the offset
+  //   //
+  //   dir_u[i_w].pog_p = pog << u3a_vits;
+  //   u3z(less_fol);
+  // }
 }
 
 //  [&+sub fol] pair must be findable in fols
@@ -2271,55 +2273,56 @@ u3n_build_direct(u3_noun sub,
   u3_noun code,
   u3_noun fols)
 {
-  u3_noun lit       = u3x_good(u3kdb_got(u3k(fols), u3k(fol))),
-          less_nomm = u3x_good(u3d_match_sock(c3y, sub, lit));
-  u3z(lit);
-  //  As we compile new code with direct calls, we might not have a post
-  //  of a directly called program yet. We will instead put a pair
-  //  [sock formula] in u3n_dire.pog_p, and rewrite it once we are done with
-  //  compiling. u3R->byc.dar_p provides [sock formula] -> u3_post(u3n_prog)
-  //  mapping. 
-  //
-  //  fresh_p is a map [sock formula] -> u3_post(u3n_prog) of programs that
-  //  a) need to be rewritten,
-  //  b) are already compiled, so they can be skipped.
-  //
-  u3p(u3h_root) fresh_p = u3h_new();
-  //  queu is a worklist [sock *] for our breadth-first compilation order
-  //
-  u3_noun queu = u3_nul;
-  u3_noun less, nomm;
-  u3r_cell(less_nomm, &less, &nomm);
-  u3_noun less_fol_first = u3nc(u3k(less), u3k(fol));
-  //  if we are here then this nomm was not compiled, no need to search
-  //
-  u3n_prog* out_u = _n_bite_direct(nomm, &queu, cole, code);
-  u3_noun pog = _cn_of_prog(out_u);
-  u3_noun i_larp = u3nc(u3k(less), pog);
-  u3h_put(u3R->byc.dar_p, less_fol_first, pog);
-  u3h_jib(u3R->byc.lar_p, fol, _cb_jib_cons, &i_larp);
-  u3h_put(fresh_p, less_fol_first, pog);
-  u3z(less_fol_first);
+  abort();
+  // u3_noun lit       = u3x_good(u3kdb_got(u3k(fols), u3k(fol))),
+  //         less_nomm = u3x_good(u3d_match_sock(c3y, sub, lit));
+  // u3z(lit);
+  // //  As we compile new code with direct calls, we might not have a post
+  // //  of a directly called program yet. We will instead put a pair
+  // //  [sock formula] in u3n_dire.pog_p, and rewrite it once we are done with
+  // //  compiling. u3R->byc.dar_p provides [sock formula] -> u3_post(u3n_prog)
+  // //  mapping. 
+  // //
+  // //  fresh_p is a map [sock formula] -> u3_post(u3n_prog) of programs that
+  // //  a) need to be rewritten,
+  // //  b) are already compiled, so they can be skipped.
+  // //
+  // u3p(u3h_root) fresh_p = u3h_new();
+  // //  queu is a worklist [sock *] for our breadth-first compilation order
+  // //
+  // u3_noun queu = u3_nul;
+  // u3_noun less, nomm;
+  // u3r_cell(less_nomm, &less, &nomm);
+  // u3_noun less_fol_first = u3nc(u3k(less), u3k(fol));
+  // //  if we are here then this nomm was not compiled, no need to search
+  // //
+  // u3n_prog* out_u = _n_bite_direct(nomm, &queu, cole, code);
+  // u3_noun pog = _cn_of_prog(out_u);
+  // u3_noun i_larp = u3nc(u3k(less), pog);
+  // u3h_put(u3R->byc.dar_p, less_fol_first, pog);
+  // u3h_jib(u3R->byc.lar_p, fol, _cb_jib_cons, &i_larp);
+  // u3h_put(fresh_p, less_fol_first, pog);
+  // u3z(less_fol_first);
 
-  u3n_prog* pog_u;
-  u3_noun less_fol, t;
-  while (u3_nul != queu) {
-    u3r_cell(queu, &less_fol, &t);
-    u3k(less_fol);
-    u3k(t), u3z(queu), queu = t;
+  // u3n_prog* pog_u;
+  // u3_noun less_fol, t;
+  // while (u3_nul != queu) {
+  //   u3r_cell(queu, &less_fol, &t);
+  //   u3k(less_fol);
+  //   u3k(t), u3z(queu), queu = t;
 
-    if ( u3_none == u3h_git(fresh_p, less_fol)
-         && c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) ) {
-      u3h_put(fresh_p, less_fol, _cn_of_prog(pog_u));
-    }
+  //   if ( u3_none == u3h_git(fresh_p, less_fol)
+  //        && c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) ) {
+  //     u3h_put(fresh_p, less_fol, _cn_of_prog(pog_u));
+  //   }
     
-    u3z(less_fol);
-  }
+  //   u3z(less_fol);
+  // }
 
-  u3h_walk(fresh_p, _cb_fresh_rewrite);
-  u3h_free(fresh_p);
+  // u3h_walk(fresh_p, _cb_fresh_rewrite);
+  // u3h_free(fresh_p);
 
-  return out_u;
+  // return out_u;
 }
 
 /* _n_find(): return prog for given formula with prefix (u3_nul for none).
@@ -3964,15 +3967,15 @@ u3n_free()
   u3h_walk(har_p, _n_feb);
   u3h_free(har_p);
 
-  u3p(u3h_root) dar_p = u3R->byc.dar_p;
-  u3h_walk(dar_p, _n_feb);
-  u3h_free(dar_p);
+  // u3p(u3h_root) dar_p = u3R->byc.dar_p;
+  // u3h_walk(dar_p, _n_feb);
+  // u3h_free(dar_p);
 
-  har_p = u3R->byc.lar_p;
+  // har_p = u3R->byc.lar_p;
   //  don't walk the table, its prog references were owned by the already freed
   //  u3R->byc.dar_p
   //
-  u3h_free(har_p);
+  // u3h_free(har_p);
   
 }
 

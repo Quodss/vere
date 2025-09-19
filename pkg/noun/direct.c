@@ -79,7 +79,10 @@ _so_huge(u3_noun cape_one,
 void
 u3d_prep_ka()
 {
-    if ( u3R->dir.ka ) return;
+    if ( u3R->dir.ka ) {
+        fprintf(stderr, "dir.ka: %x\r\n", u3R->dir.ka);
+        return;
+    }
     // [sock=hoon soak=hoon noir=hoon skan=hoon]
     //
     u3_noun hoons = u3s_cue_bytes((c3_d)u3_Ka_core_len, u3_Ka_core);
@@ -105,6 +108,7 @@ u3d_prep_ka()
 
     u3z(hoons);
     u3R->dir.ka = ka;
+    fprintf(stderr, "dir.ka: %x\r\n", u3R->dir.ka);
 }
 
 //  XX: reentrance?
@@ -120,6 +124,7 @@ u3d_rout(u3_noun sub, u3_noun fol)
     u3_noun gat = u3k(u3t(vax));
     u3z(vax);
     u3R->dir.ka = u3n_slam_on(gat, u3nc(sub, fol));
+    fprintf(stderr, "dir.ka: %x\r\n", u3R->dir.ka);
 }
 
 // RETAINS
@@ -158,14 +163,14 @@ u3n_prog*
 u3d_search(u3_noun sub, u3_noun fol)
 {
     u3n_prog* pog_u = NULL;
-    u3_weak lit = u3h_git(u3R->byc.lar_p, fol);
-    if ( u3_none != lit )
-    {
-        u3_weak less_pog = u3d_match_sock(c3y, sub, lit);
-        pog_u = ( u3_none != less_pog )
-              ? _cn_to_prog(u3t(less_pog))
-              : NULL;
-    }
+    // u3_weak lit = u3h_git(u3R->byc.lar_p, fol);
+    // if ( u3_none != lit )
+    // {
+    //     u3_weak less_pog = u3d_match_sock(c3y, sub, lit);
+    //     pog_u = ( u3_none != less_pog )
+    //           ? _cn_to_prog(u3t(less_pog))
+    //           : NULL;
+    // }
     if ( pog_u ) return pog_u;
 
     u3d_rout(u3k(sub), u3k(fol));
@@ -174,6 +179,7 @@ u3d_search(u3_noun sub, u3_noun fol)
     u3_noun gen = u3nt(c3__wing, c3_s3('l','o','n'), u3_nul);
     u3_noun slap = u3v_wish("slap");
     // u3_noun vax = u3dc("slap", u3k(u3R->dir.ka), gen);
+    fprintf(stderr, "dir.ka: %x\r\n", u3R->dir.ka);
     u3_noun vax = u3n_slam_on(slap, u3nc(u3k(u3R->dir.ka), gen));
     u3_noun lon = u3k(u3t(vax));
     u3z(vax);

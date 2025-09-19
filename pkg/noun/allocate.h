@@ -189,8 +189,8 @@ STATIC_ASSERT( u3a_vits <= u3a_min_log,
         struct {                              //  bytecode state
           u3p(u3h_root) har_p;                //  formula->post of bytecode
                                               /* direct calls */
-          u3p(u3h_root) dar_p;                //  [sock formula] -> bytecode
-          u3p(u3h_root) lar_p;                //  formula -> list [sock code]
+          // u3p(u3h_root) dar_p;                //  [sock formula] -> bytecode
+          // u3p(u3h_root) lar_p;                //  formula -> list [sock code]
         } byc;
 
         struct {                              //  scry namespace
