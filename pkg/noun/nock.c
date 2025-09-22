@@ -2266,9 +2266,6 @@ u3n_build_direct(u3_noun sub,
   u3_noun i_larp = u3nc(u3k(less), pog);
   u3h_put(u3R->byc.dar_p, less_fol, pog);
   u3h_jib(u3R->byc.lar_p, fol, _cb_jib_cons, &i_larp);
-  if ( c3n == u3a_is_cat(pog) ) {
-    u3_assert(!"pog_p not direct atom");
-  }
   u3h_put(fresh_p, less_fol, pog);
   u3z(less_fol);
 
@@ -2280,12 +2277,8 @@ u3n_build_direct(u3_noun sub,
     u3k(t), u3z(queu), queu = t;
 
     if ( u3_none == u3h_git(fresh_p, less_fol)
-         && c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) ) {
-      u3_noun pog = u3of(u3n_prog, pog_u);
-      if ( c3n == u3a_is_cat(pog) ) {
-        u3_assert(!"pog_p not direct atom");
-      }
-      u3h_put(fresh_p, less_fol, pog);
+          && c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) ) {
+      u3h_put(fresh_p, less_fol, u3of(u3n_prog, pog_u));
     }
 
     u3z(less_fol);
@@ -3833,7 +3826,7 @@ _n_bam(u3_noun kev, void* dat)
 u3m_quac*
 u3n_mark()
 {
-  u3m_quac** qua_u = c3_malloc(sizeof(*qua_u) * 6);
+  u3m_quac** qua_u = c3_malloc(sizeof(*qua_u) * 7);
   c3_w siz_w = 0;
 
   qua_u[0] = c3_calloc(sizeof(*qua_u[0]));
@@ -3865,7 +3858,12 @@ u3n_mark()
   qua_u[4]->siz_w = u3h_mark(u3R->byc.lar_p) * 4;
   siz_w += qua_u[4]->siz_w;
 
-  qua_u[5] = NULL;
+  qua_u[5] = c3_calloc(sizeof(*qua_u[5]));
+  qua_u[5]->nam_c = strdup("+ka SKA core");
+  qua_u[5]->siz_w = u3a_mark_noun(u3R->dir.ka) * 4;
+  siz_w += qua_u[5]->siz_w;
+  
+  qua_u[6] = NULL;
 
   u3m_quac* tot_u = c3_malloc(sizeof(*tot_u));
   tot_u->nam_c = strdup("total nock stuff");
