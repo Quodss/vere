@@ -157,6 +157,9 @@
 
         struct {                              //  bytecode state
           u3p(u3h_root) har_p;                //  formula->post of bytecode
+          /* Direct calls */
+          u3p(u3h_root) dar_p;                //  [less fol]->post of bytecode
+          u3p(u3h_root) lar_p;                //  fol->(list [less post]) of bytecode
         } byc;
 
         struct {                              //  scry namespace

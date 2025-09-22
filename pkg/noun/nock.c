@@ -1711,6 +1711,74 @@ _n_bite(u3_noun fol) {
   return _n_prog_from_ops(ops);
 }
 
+
+//  [&+sub fol] pair must be findable in fols
+//  RETAINS
+//
+//    cole: [sock formula] -> [path axis]; cold state
+//    code: [sock formula] -> nomm-1; code objects for direct calls
+//    fols: formula -> (list [sock nomm-1]): code objects for lookups
+//
+u3n_prog*
+u3n_build_direct(u3_noun sub,
+  u3_noun fol,
+  u3_noun cole,
+  u3_noun code,
+  u3_noun fols)
+{
+  c3_stub;
+  // u3_noun lit       = u3x_good(u3kdb_got(u3k(fols), u3k(fol))),
+  //         less_nomm = u3x_good(u3d_match_sock(c3y, sub, lit));
+  // u3z(lit);
+  // //  As we compile new code with direct calls, we might not have a post
+  // //  of a directly called program yet. We will instead put a pair
+  // //  [sock formula] in u3n_dire.pog_p, and rewrite it once we are done with
+  // //  compiling. u3R->byc.dar_p provides [sock formula] -> u3_post(u3n_prog)
+  // //  mapping. 
+  // //
+  // //  fresh_p is a map [sock formula] -> u3_post(u3n_prog) of programs that
+  // //  a) need to be rewritten,
+  // //  b) are already compiled, so they can be skipped.
+  // //
+  // u3p(u3h_root) fresh_p = u3h_new();
+  // //  queu is a worklist [sock *] for our breadth-first compilation order
+  // //
+  // u3_noun queu = u3_nul;
+  // u3_noun less, nomm, less_fol;
+  // u3r_cell(less_nomm, &less, &nomm);
+  // less_fol = u3nc(u3k(less), u3k(fol));
+  // //  if we are here then this nomm was not compiled, no need to search
+  // //
+  // u3n_prog* out_u = _n_bite_direct(nomm, &queu, cole, code);
+  // u3_noun pog = _cn_of_prog(out_u);
+  // u3_noun i_larp = u3nc(u3k(less), pog);
+  // u3h_put(u3R->byc.dar_p, less_fol, pog);
+  // u3h_jib(u3R->byc.lar_p, fol, _cb_jib_cons, &i_larp);
+  // u3h_put(fresh_p, less_fol, pog);
+  // u3z(less_fol);
+
+  // u3n_prog* pog_u;
+  // u3_noun less_fol, t;
+  // while (u3_nul != queu) {
+  //   u3r_cell(queu, &less_fol, &t);
+  //   u3k(less_fol);
+  //   u3k(t), u3z(queu), queu = t;
+
+  //   if ( u3_none == u3h_git(fresh_p, less_fol)
+  //        && c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) ) {
+  //     u3h_put(fresh_p, less_fol, _cn_of_prog(pog_u));
+  //   }
+
+  //   u3z(less_fol);
+  // }
+
+  // u3h_walk(fresh_p, _cb_fresh_rewrite);
+  // u3h_free(fresh_p);
+
+  // return out_u;
+}
+
+
 /* _n_find(): return prog for given formula with prefix (u3_nul for none).
  *            RETAIN.
  */
@@ -2994,6 +3062,7 @@ _cn_take_prog_dat(u3n_prog* dst_u, u3n_prog* src_u)
     u3j_rite_take(&(dst_u->reg_u.rit_u[i_w]),
                   &(src_u->reg_u.rit_u[i_w]));
   }
+  // XX take dir_u 
 }
 
 /*  _cn_take_prog_cb(): u3h_take_with cb for taking junior u3n_prog's.
@@ -3005,14 +3074,14 @@ _cn_take_prog_cb(u3p(u3n_prog) pog_p)
   u3n_prog* gop_u;
 
   if ( c3y == pog_u->byc_u.own_o ) {
-    c3_w pad_w = (8 - pog_u->byc_u.len_w % 8) % 8;
+    c3_w byc_w = c3_align(pog_u->byc_u.len_w, 8, C3_ALGHI);
     gop_u = _n_prog_new(pog_u->byc_u.len_w,
                         pog_u->cal_u.len_w,
                         pog_u->reg_u.len_w,
                         pog_u->lit_u.len_w,
                         pog_u->mem_u.len_w,
                         pog_u->dir_u.len_w);
-    memcpy(gop_u->byc_u.ops_y, pog_u->byc_u.ops_y, pog_u->byc_u.len_w + pad_w);
+    memcpy(gop_u->byc_u.ops_y, pog_u->byc_u.ops_y, byc_w);
   }
   else {
     gop_u = _n_prog_old(pog_u);
@@ -3091,6 +3160,7 @@ _cn_merge_prog_cb(u3_noun kev, void* wit)
 
 /* u3n_reap(): promote bytecode state.
 */
+//  XX add dar_p, lar_p in args
 void
 u3n_reap(u3p(u3h_root) har_p)
 {
@@ -3149,6 +3219,7 @@ u3n_ream()
 {
   u3_assert(u3R == &(u3H->rod_u));
   u3h_walk(u3R->byc.har_p, _n_ream);
+  u3h_walk(u3R->byc.dar_p, _n_ream);
 }
 
 /* _n_prog_mark(): mark program for gc.
@@ -3192,7 +3263,8 @@ _n_bam(u3_noun kev, void* dat)
 u3m_quac*
 u3n_mark()
 {
-  u3m_quac** qua_u = c3_malloc(sizeof(*qua_u) * 3);
+  u3m_quac** qua_u = c3_malloc(sizeof(*qua_u) * 6);
+  c3_w siz_w = 0;
 
   qua_u[0] = c3_calloc(sizeof(*qua_u[0]));
   qua_u[0]->nam_c = strdup("bytecode programs");
@@ -3200,16 +3272,34 @@ u3n_mark()
   u3p(u3h_root) har_p = u3R->byc.har_p;
   u3h_walk_with(har_p, _n_bam, &qua_u[0]->siz_w);
   qua_u[0]->siz_w = qua_u[0]->siz_w * 4;
+  siz_w += qua_u[0]->siz_w;
 
   qua_u[1] = c3_calloc(sizeof(*qua_u[1]));
   qua_u[1]->nam_c = strdup("bytecode cache");
   qua_u[1]->siz_w = u3h_mark(har_p) * 4;
+  siz_w += qua_u[1]->siz_w;
 
-  qua_u[2] = NULL;
+  qua_u[2] = c3_calloc(sizeof(*qua_u[2]));
+  qua_u[2]->nam_c = strdup("direct bytecode programs");
+  u3h_walk_with(u3R->byc.dar_p, _n_bam, &qua_u[2]->siz_w);
+  qua_u[2]->siz_w = qua_u[2]->siz_w * 4;
+  siz_w += qua_u[2]->siz_w;
+
+  qua_u[3] = c3_calloc(sizeof(*qua_u[3]));
+  qua_u[3]->nam_c = strdup("direct bytecode cache");
+  qua_u[3]->siz_w = u3h_mark(u3R->byc.dar_p) * 4;
+  siz_w += qua_u[3]->siz_w;
+
+  qua_u[4] = c3_calloc(sizeof(*qua_u[4]));
+  qua_u[4]->nam_c = strdup("direct bytecode jar");
+  qua_u[4]->siz_w = u3h_mark(u3R->byc.lar_p) * 4;
+  siz_w += qua_u[4]->siz_w;
+
+  qua_u[5] = NULL;
 
   u3m_quac* tot_u = c3_malloc(sizeof(*tot_u));
   tot_u->nam_c = strdup("total nock stuff");
-  tot_u->siz_w = qua_u[0]->siz_w + qua_u[1]->siz_w;
+  tot_u->siz_w = siz_w;
   tot_u->qua_u = qua_u;
 
   return tot_u;
@@ -3217,6 +3307,7 @@ u3n_mark()
 
 /* u3n_reclaim(): clear ad-hoc persistent caches to reclaim memory.
 */
+//  XX don't clear dar_p/lar_p?
 void
 u3n_reclaim(void)
 {
@@ -3227,6 +3318,8 @@ u3n_reclaim(void)
   //
   u3n_free();
   u3R->byc.har_p = u3h_new();
+  u3R->byc.dar_p = u3h_new();
+  u3R->byc.lar_p = u3h_new();
 }
 
 /* u3n_rewrite_compact(): rewrite the bytecode cache for compaction.
@@ -3242,11 +3335,18 @@ u3n_reclaim(void)
  * must step back one word to get the padding, step then step back that
  * many more words (plus one?).
  */
+//  XX actually rewrite dar_p/lar_p?
 void
 u3n_rewrite_compact()
 {
   u3h_rewrite(u3R->byc.har_p);
   u3R->byc.har_p = u3a_rewritten(u3R->byc.har_p);
+
+  u3h_rewrite(u3R->byc.dar_p);
+  u3R->byc.dar_p = u3a_rewritten(u3R->byc.dar_p);
+
+  u3h_rewrite(u3R->byc.lar_p);
+  u3R->byc.lar_p = u3a_rewritten(u3R->byc.lar_p);
 }
 
 
@@ -3258,14 +3358,25 @@ _n_feb(u3_noun kev)
   _cn_prog_free(u3to(u3n_prog, u3t(kev)));
 }
 
+/* u3n_free_table(): free bytecode table
+ */
+void
+u3n_free_table(u3p(u3h_root) har_p)
+{
+  u3h_walk(har_p, _n_feb);
+  u3h_free(har_p);
+}
+
 /* u3n_free(): free bytecode cache
  */
 void
 u3n_free()
 {
-  u3p(u3h_root) har_p = u3R->byc.har_p;
-  u3h_walk(har_p, _n_feb);
-  u3h_free(har_p);
+  u3n_free_table(u3R->byc.har_p);
+  u3n_free_table(u3R->byc.dar_p);
+  // programs in lar_p are owned by the already freed dar_p
+  //
+  u3h_free(u3R->byc.lar_p);  
 }
 
 /* u3n_kick_on(): fire `gat` without changing the sample.

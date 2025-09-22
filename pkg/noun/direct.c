@@ -10,21 +10,6 @@ u3x_loob(u3_noun som)
     return ( som > 1 ) ? u3m_bail(c3__exit) : som;
 }
 
-static inline c3_w
-_cn_of_prog(u3n_prog *pog_u)
-{
-//   u3_post pog_p = u3of(u3n_prog, pog_u);
-//   return pog_p >> u3a_vits;
-    return u3of(u3n_prog, pog_u);
-}
-
-static inline u3n_prog*
-_cn_to_prog(c3_w pog_w)
-{
-//   u3_post pog_p = pog_w << u3a_vits;
-//   return u3to(u3n_prog, pog_p);
-    return u3to(u3n_prog, pog_w);
-}
 
 // RETAINS
 //
@@ -173,14 +158,14 @@ u3n_prog*
 u3d_search(u3_noun sub, u3_noun fol)
 {
     u3n_prog* pog_u = NULL;
-    // u3_weak lit = u3h_git(u3R->byc.lar_p, fol);
-    // if ( u3_none != lit )
-    // {
-    //     u3_weak less_pog = u3d_match_sock(c3y, sub, lit);
-    //     pog_u = ( u3_none != less_pog )
-    //           ? _cn_to_prog(u3t(less_pog))
-    //           : NULL;
-    // }
+    u3_weak lit = u3h_git(u3R->byc.lar_p, fol);
+    if ( u3_none != lit )
+    {
+        u3_weak less_pog = u3d_match_sock(c3y, sub, lit);
+        pog_u = ( u3_none != less_pog )
+              ? u3to(u3n_prog, u3t(less_pog))
+              : NULL;
+    }
     if ( pog_u ) return pog_u;
 
     u3d_rout(u3k(sub), u3k(fol));
@@ -209,8 +194,7 @@ u3d_search(u3_noun sub, u3_noun fol)
         return 0;
     }
 
-    c3_stub;
-    // pog_u = u3n_build_direct(sub, fol, cole, code, fols);
-    // u3z(boil);
-    // return pog_u;
+    pog_u = u3n_build_direct(sub, fol, cole, code, fols);
+    u3z(boil);
+    return pog_u;
 }

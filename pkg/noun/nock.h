@@ -159,10 +159,25 @@
      */
       void
       u3n_free(void);
+    
+    /* u3n_free_table(): free bytecode table
+     */
+      void
+      u3n_free_table(u3p(u3h_root) har_p);
 
     /* u3n_ream(): refresh after restoring from checkpoint.
     */
       void
       u3n_ream(void);
+
+    /* u3n_build_direct(): Compile [sub fol] pair with direct calls and
+    *  its callees recursively
+    */
+      u3n_prog*
+      u3n_build_direct(u3_noun sub,
+        u3_noun fol,
+        u3_noun cole,
+        u3_noun code,
+        u3_noun fols);
 
 #endif /* ifndef U3_NOCK_H */
