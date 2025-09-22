@@ -715,35 +715,60 @@ _n_prog_dat(u3n_prog* pog_u)
 /* _n_prog_new(): allocate and set up pointers for u3n_prog
  */
 static u3n_prog*
-_n_prog_new(c3_w byc_w, c3_w cal_w,
-            c3_w reg_w, c3_w lit_w, c3_w mem_w)
+_n_prog_new(c3_w byc_w, c3_w cal_w, c3_w reg_w,
+            c3_w lit_w, c3_w mem_w, c3_w dir_w)
 {
-  c3_w cab_w = (sizeof(u3j_site) * cal_w),
-       reb_w = (sizeof(u3j_rite) * reg_w),
-       lib_w = (sizeof(u3_noun) * lit_w),
-       meb_w = (sizeof(u3n_memo) * mem_w),
-       pad_w = (8 - byc_w % 8) % 8,
-       pod_w = lit_w % 2,
-       ped_w = mem_w % 2,
-       dat_w = byc_w + cab_w + reb_w + lib_w + meb_w + pad_w +
-               (pod_w * sizeof(u3_noun)) + (ped_w * sizeof(u3n_memo));
+  //  program data segment already has alignment of 8
+  //  also ops_y does not require padding
+  //
+  c3_w len_w = byc_w;
 
-  u3n_prog* pog_u     = u3a_malloc(sizeof(u3n_prog) + dat_w);
+  // for each array:
+  //  align the byte offset;
+  //  record current byte offset for the array pointer;
+  //  advance the offset by the size of the array.
+  //
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w let_w = len_w;
+  len_w += (sizeof(u3_noun) * lit_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w mim_w = len_w;
+  len_w += (sizeof(u3n_memo) * mem_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w cel_w = len_w;
+  len_w += (sizeof(u3j_site) * cal_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w rig_w = len_w;
+  len_w += (sizeof(u3j_rite) * reg_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w der_w = len_w;
+  len_w += (sizeof(u3n_dire) * dir_w);
+
+  u3n_prog* pog_u = u3a_malloc(sizeof(u3n_prog) + len_w);
+  c3_y*     dat_y = _n_prog_dat(pog_u);
+
   pog_u->byc_u.own_o = c3y;
   pog_u->byc_u.len_w = byc_w;
-  pog_u->byc_u.ops_y = (c3_y*) _n_prog_dat(pog_u);
+  pog_u->byc_u.ops_y = dat_y;
 
   pog_u->lit_u.len_w = lit_w;
-  pog_u->lit_u.non   = (u3_noun*) (pog_u->byc_u.ops_y + pog_u->byc_u.len_w + pad_w);
+  pog_u->lit_u.non   = (u3_noun*) (dat_y + let_w);
 
   pog_u->mem_u.len_w = mem_w;
-  pog_u->mem_u.sot_u = (u3n_memo*) (pog_u->lit_u.non + pog_u->lit_u.len_w + pod_w);
+  pog_u->mem_u.sot_u = (u3n_memo*) (dat_y + mim_w);
 
   pog_u->cal_u.len_w = cal_w;
-  pog_u->cal_u.sit_u = (u3j_site*) (pog_u->mem_u.sot_u + pog_u->mem_u.len_w + ped_w);
+  pog_u->cal_u.sit_u = (u3j_site*) (dat_y + cel_w);
 
   pog_u->reg_u.len_w = reg_w;
-  pog_u->reg_u.rit_u = (u3j_rite*) (pog_u->cal_u.sit_u + pog_u->cal_u.len_w);
+  pog_u->reg_u.rit_u = (u3j_rite*) (dat_y + rig_w);
+
+  pog_u->dir_u.len_w = dir_w;
+  pog_u->dir_u.dat_u = (u3n_dire*) (dat_y + der_w);
 
   return pog_u;
 }
@@ -754,33 +779,50 @@ _n_prog_new(c3_w byc_w, c3_w cal_w,
 static u3n_prog*
 _n_prog_old(u3n_prog* sep_u)
 {
-  c3_w cab_w = sizeof(u3j_site) * sep_u->cal_u.len_w,
-       reb_w = sizeof(u3j_rite) * sep_u->reg_u.len_w,
-       lib_w = sizeof(u3_noun) * sep_u->lit_u.len_w,
-       meb_w = sizeof(u3n_memo) * sep_u->mem_u.len_w,
-       pod_w = sep_u->lit_u.len_w % 2,
-       ped_w = sep_u->mem_u.len_w % 2,
-       dat_w = cab_w + reb_w + lib_w + meb_w +
-               (pod_w * sizeof(u3_noun)) + (ped_w * sizeof(u3n_memo));
+  //  program data segment already has alignment of 8
+  //
+  c3_w len_w = (sizeof(u3_noun) * sep_u->lit_u.len_w);
 
-  u3n_prog* pog_u     = u3a_malloc(sizeof(u3n_prog) + dat_w);
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w mim_w = len_w;
+  len_w += (sizeof(u3n_memo) * sep_u->mem_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w cel_w = len_w;
+  len_w += (sizeof(u3j_site) * sep_u->cal_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w rig_w = len_w;
+  len_w += (sizeof(u3j_rite) * sep_u->reg_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w der_w = len_w;
+  len_w += (sizeof(u3n_dire) * sep_u->dir_u.len_w);
+
+  u3n_prog* pog_u = u3a_malloc(sizeof(u3n_prog) + len_w);
+  c3_y*     dat_y = _n_prog_dat(pog_u);
+
   pog_u->byc_u.own_o = c3n;
   pog_u->byc_u.len_w = sep_u->byc_u.len_w;
   pog_u->byc_u.ops_y = sep_u->byc_u.ops_y;
 
   pog_u->lit_u.len_w = sep_u->lit_u.len_w;
-  pog_u->lit_u.non   = (u3_noun*) _n_prog_dat(pog_u);
+  pog_u->lit_u.non   = (u3_noun*) dat_y;
 
   pog_u->mem_u.len_w = sep_u->mem_u.len_w;
-  pog_u->mem_u.sot_u = (u3n_memo*) (pog_u->lit_u.non + pog_u->lit_u.len_w + pod_w);
+  pog_u->mem_u.sot_u = (u3n_memo*) (dat_y + mim_w);
 
   pog_u->cal_u.len_w = sep_u->cal_u.len_w;
-  pog_u->cal_u.sit_u = (u3j_site*) (pog_u->mem_u.sot_u + pog_u->mem_u.len_w + ped_w);
+  pog_u->cal_u.sit_u = (u3j_site*) (dat_y + cel_w);
 
   pog_u->reg_u.len_w = sep_u->reg_u.len_w;
-  pog_u->reg_u.rit_u = (u3j_rite*) (pog_u->cal_u.sit_u + pog_u->cal_u.len_w);
+  pog_u->reg_u.rit_u = (u3j_rite*) (dat_y + rig_w);
 
-  memcpy(pog_u->lit_u.non, sep_u->lit_u.non, dat_w);
+  pog_u->dir_u.len_w = sep_u->dir_u.len_w;
+  pog_u->dir_u.dat_u = (u3n_dire*) (dat_y + der_w);
+
+  memcpy(pog_u->lit_u.non, sep_u->lit_u.non, len_w);
+
   return pog_u;
 }
 
@@ -969,7 +1011,7 @@ _n_prog_from_ops(u3_noun ops)
        mem_w = 0;
 
   sip   = _n_melt(ops, &byc_w, &cal_w, &reg_w, &lit_w, &mem_w);
-  pog_u = _n_prog_new(byc_w, cal_w, reg_w, lit_w, mem_w);
+  pog_u = _n_prog_new(byc_w, cal_w, reg_w, lit_w, mem_w, 0);
   _n_prog_asm(ops, pog_u, sip);
   return pog_u;
 }
@@ -1805,7 +1847,7 @@ _cn_etch_bytecode(u3_noun fol) {
   c3_y* pog_y = pog_u->byc_u.ops_y;
   c3_w len_w = pog_u->byc_u.len_w;
   c3_w ip_w=0, num_w=0, bop_w=0, dex_w=0;
-  c3_w len_c = 1; // opening "{"
+  c3_w len_c = 2; // closing "}", null terminator
   // set par_w (parameter flag) to an invalid value,
   // so we can break imeadately if needed
   c3_w par_w = 5;
@@ -2968,7 +3010,8 @@ _cn_take_prog_cb(u3p(u3n_prog) pog_p)
                         pog_u->cal_u.len_w,
                         pog_u->reg_u.len_w,
                         pog_u->lit_u.len_w,
-                        pog_u->mem_u.len_w);
+                        pog_u->mem_u.len_w,
+                        pog_u->dir_u.len_w);
     memcpy(gop_u->byc_u.ops_y, pog_u->byc_u.ops_y, pog_u->byc_u.len_w + pad_w);
   }
   else {
@@ -3064,15 +3107,35 @@ _n_ream(u3_noun kev)
   c3_w i_w;
   u3n_prog* pog_u = u3to(u3n_prog, u3t(kev));
 
-  c3_w pad_w = (8 - pog_u->byc_u.len_w % 8) % 8;
-  c3_w pod_w = pog_u->lit_u.len_w % 2;
-  c3_w ped_w = pog_u->mem_u.len_w % 2;
+  c3_y* dat_y = _n_prog_dat(pog_u);
+  c3_w  len_w = pog_u->byc_u.len_w;
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w let_w = len_w;
+  len_w += (sizeof(u3_noun) * pog_u->lit_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w mim_w = len_w;
+  len_w += (sizeof(u3n_memo) * pog_u->mem_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w cel_w = len_w;
+  len_w += (sizeof(u3j_site) * pog_u->cal_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w rig_w = len_w;
+  len_w += (sizeof(u3j_rite) * pog_u->reg_u.len_w);
+
+  len_w = c3_align(len_w, 8, C3_ALGHI);
+  c3_w der_w = len_w;
+  len_w += (sizeof(u3n_dire) * pog_u->dir_u.len_w);
+
   // fix up pointers for loom portability
-  pog_u->byc_u.ops_y = (c3_y*) _n_prog_dat(pog_u);
-  pog_u->lit_u.non   = (u3_noun*) (pog_u->byc_u.ops_y + pog_u->byc_u.len_w + pad_w);
-  pog_u->mem_u.sot_u = (u3n_memo*) (pog_u->lit_u.non + pog_u->lit_u.len_w + pod_w);
-  pog_u->cal_u.sit_u = (u3j_site*) (pog_u->mem_u.sot_u + pog_u->mem_u.len_w + ped_w);
-  pog_u->reg_u.rit_u = (u3j_rite*) (pog_u->cal_u.sit_u + pog_u->cal_u.len_w);
+  pog_u->byc_u.ops_y = dat_y;
+  pog_u->lit_u.non   = (u3_noun*)  (dat_y + let_w);
+  pog_u->mem_u.sot_u = (u3n_memo*) (dat_y + mim_w);
+  pog_u->cal_u.sit_u = (u3j_site*) (dat_y + cel_w);
+  pog_u->reg_u.rit_u = (u3j_rite*) (dat_y + rig_w);
 
   for ( i_w = 0; i_w < pog_u->cal_u.len_w; ++i_w ) {
     u3j_site_ream(&(pog_u->cal_u.sit_u[i_w]));
