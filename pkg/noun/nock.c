@@ -2208,8 +2208,9 @@ _n_find_direct(u3_noun less_fol,
 }
 
 static void
-_cb_fresh_rewrite(u3_noun pog)
+_cb_fresh_rewrite(u3_noun kev)
 {
+  u3_noun pog = u3t(kev);
   u3p(u3h_root) dar_p = u3R->byc.dar_p;
   u3n_prog*     pog_u = u3to(u3n_prog, pog);
   u3n_dire*     dir_u = pog_u->dir_u.dat_u;
@@ -2265,6 +2266,9 @@ u3n_build_direct(u3_noun sub,
   u3_noun i_larp = u3nc(u3k(less), pog);
   u3h_put(u3R->byc.dar_p, less_fol, pog);
   u3h_jib(u3R->byc.lar_p, fol, _cb_jib_cons, &i_larp);
+  if ( c3n == u3a_is_cat(pog) ) {
+    u3_assert(!"pog_p not direct atom");
+  }
   u3h_put(fresh_p, less_fol, pog);
   u3z(less_fol);
 
@@ -2277,7 +2281,11 @@ u3n_build_direct(u3_noun sub,
 
     if ( u3_none == u3h_git(fresh_p, less_fol)
          && c3y == _n_find_direct(less_fol, &queu, cole, code, &pog_u) ) {
-      u3h_put(fresh_p, less_fol, u3of(u3n_prog, pog_u));
+      u3_noun pog = u3of(u3n_prog, pog_u);
+      if ( c3n == u3a_is_cat(pog) ) {
+        u3_assert(!"pog_p not direct atom");
+      }
+      u3h_put(fresh_p, less_fol, pog);
     }
 
     u3z(less_fol);
