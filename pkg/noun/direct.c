@@ -75,7 +75,6 @@ void
 u3d_prep_ka()
 {
     if ( u3R->dir.ka ) {
-        fprintf(stderr, "dir.ka: %x\r\n", u3R->dir.ka);
         return;
     }
     // [sock=hoon soak=hoon noir=hoon skan=hoon]
@@ -103,7 +102,6 @@ u3d_prep_ka()
 
     u3z(hoons);
     u3R->dir.ka = ka;
-    fprintf(stderr, "dir.ka: %x\r\n", u3R->dir.ka);
 }
 
 //  XX: reentrance?
@@ -119,7 +117,19 @@ u3d_rout(u3_noun sub, u3_noun fol)
     
     u3_noun typ = u3nt(c3__cell, c3__noun, c3__noun);
     u3_noun sam = u3nt(typ, sub, fol);  //  !>([sub=* fol=*])
-    u3R->dir.ka = u3dc("slam", rout, sam);
+
+    u3_noun slam = u3v_wish("slam");
+    u3_noun gul = u3nt(u3nc(1, 0), u3nc(0, 0), 0);  // |~(^ ~)
+
+    u3_noun pro = u3n_slam_et(gul, slam, u3nc(rout, sam));
+
+    u3_assert(_(u3du(pro)));
+    if ( 0 != u3h(pro) )
+    {
+        u3m_bail(c3__fail);
+    }
+    u3R->dir.ka = u3k(u3t(pro));
+    u3z(pro);
 }
 
 // RETAINS
@@ -169,24 +179,31 @@ u3d_search(u3_noun sub, u3_noun fol)
     if ( pog_u ) return pog_u;
 
     u3d_rout(u3k(sub), u3k(fol));
+    u3_noun slap = u3v_wish("slap");
+    u3_noun gul  = u3nt(u3nc(1, 0), u3nc(0, 0), 0);  // |~(^ ~)
+    
     // ( [%wing p=~[%lon]] )
     //
     u3_noun gen = u3nt(c3__wing, c3_s3('l','o','n'), u3_nul);
-    u3_noun slap = u3v_wish("slap");
-    // u3_noun vax = u3dc("slap", u3k(u3R->dir.ka), gen);
-    fprintf(stderr, "dir.ka: %x\r\n", u3R->dir.ka);
-    u3_noun vax = u3n_slam_on(slap, u3nc(u3k(u3R->dir.ka), gen));
+    u3_noun vax = u3n_slam_on(u3k(slap), u3nc(u3k(u3R->dir.ka), gen));
     u3_noun lon = u3k(u3t(vax));
     u3z(vax);
 
     // ( [%wing p=~[%cook]] )
     //
     gen = u3nt(c3__wing, c3__cook, u3_nul);
-    vax = u3dc("slap", u3k(u3R->dir.ka), gen);
+    vax = u3n_slam_on(slap, u3nc(u3k(u3R->dir.ka), gen));
     u3_noun gat = u3k(u3t(vax));
     u3z(vax);
 
-    u3_noun boil = u3n_slam_on(gat, lon);
+    u3_noun pro = u3n_slam_et(gul, gat, lon);
+    u3_assert(_(u3du(pro)));
+    if ( 0 != u3h(pro) )
+    {
+        u3m_bail(c3__fail);
+    }
+    u3_noun boil = u3t(pro);
+    
     u3_noun cole, code, fols;
     if ( c3n == u3r_mean(boil, 2, &cole, 6, &code, 7, &fols, 0) )
     {
@@ -195,6 +212,6 @@ u3d_search(u3_noun sub, u3_noun fol)
     }
 
     pog_u = u3n_build_direct(sub, fol, cole, code, fols);
-    u3z(boil);
+    u3z(pro);
     return pog_u;
 }
