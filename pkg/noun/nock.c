@@ -2072,31 +2072,12 @@ _n_comp_direct(u3_noun* ops,
               yep = u3_nul,
               nop = u3_nul;
       c3_w    yep_w, nop_w;
-      c3_t    yep_t, nop_t;
       u3x_trel(arg, &hed, &mid, &tel);
-
+      //  nomm is always valid
+      //
       tot_w += _n_comp_direct(ops, hed, c3n, c3n, queu, cole, code);
-      yep_t = _n_formulaic(mid);
-      nop_t = _n_formulaic(tel);
-
-      if ( !yep_t && !nop_t ) {
-        u3m_bail(c3__exit);
-        break;
-      }
-
-      if ( yep_t ) {
-        yep_w = _n_comp_direct(&yep, mid, los_o, tel_o, queu, cole, code);
-      }
-      else {
-        yep_w = 1; _n_emit(&yep, BAIL);
-      }
-
-      if ( nop_t ) {
-        nop_w = _n_comp_direct(&nop, tel, los_o, tel_o, queu, cole, code);
-      }
-      else {
-        nop_w = 1; _n_emit(&nop, BAIL);
-      }
+      yep_w  = _n_comp_direct(&yep, mid, los_o, tel_o, queu, cole, code);
+      nop_w  = _n_comp_direct(&nop, tel, los_o, tel_o, queu, cole, code);
 
       // SBIP and SBIN get sized during assembly
       ++yep_w; _n_emit(&yep, u3nc(SBIP, nop_w));
