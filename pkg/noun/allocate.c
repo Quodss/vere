@@ -2278,6 +2278,7 @@ u3a_rewrite_compact(void)
   u3a_rewrite_noun(u3R->pro.don);
   u3a_rewrite_noun(u3R->pro.day);
   u3a_rewrite_noun(u3R->pro.trace);
+  u3a_rewrite_noun(u3R->dir.ka);
   u3h_rewrite(u3R->cax.har_p);
   u3h_rewrite(u3R->cax.per_p);
 
@@ -2287,6 +2288,7 @@ u3a_rewrite_compact(void)
   u3R->pro.don = u3a_rewritten_noun(u3R->pro.don);
   u3R->pro.day = u3a_rewritten_noun(u3R->pro.day);
   u3R->pro.trace = u3a_rewritten_noun(u3R->pro.trace);
+  u3R->dir.ka = u3a_rewritten_noun(u3R->dir.ka);
   u3R->cax.har_p = u3a_rewritten(u3R->cax.har_p);
   u3R->cax.per_p = u3a_rewritten(u3R->cax.per_p);
 }
