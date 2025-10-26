@@ -458,6 +458,14 @@ _lord_plea_work_done(u3_lord* god_u,
   god_u->cb_u.work_done_f(god_u->cb_u.ptr_v, egg_u, act);
 }
 
+static c3_t
+_check_list_refcounts(u3_noun list)
+{
+  if (u3_nul == list) return true;
+  u3a_noun* hed_u = u3a_to_ptr(u3h(list));
+  return (hed_u->use_w == 1) && _check_list_refcounts(u3t(list));
+}
+
 /* _lord_plea_work(): hear serf %work response
 */
 static void
@@ -488,7 +496,10 @@ _lord_plea_work(u3_lord* god_u, u3_noun dat)
 
     case c3y: {
       u3z(job);
-      _lord_plea_work_done(god_u, egg_u, u3k(u3t(dat)));
+      u3_noun act = u3t(dat);
+      fprintf(stderr, _check_list_refcounts(act) ? "_lord_plea_work: all ones"
+                                                 : "_lord_plea_work: duplication");
+      _lord_plea_work_done(god_u, egg_u, u3k(act));
     } break;
 
     case c3n: {

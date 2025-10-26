@@ -164,6 +164,14 @@ _pier_on_lord_work_spun(void* ptr_v)
   u3_term_stop_spinner();
 }
 
+static c3_t
+_check_list_refcounts(u3_noun list)
+{
+  if (u3_nul == list) return true;
+  u3a_noun* hed_u = u3a_to_ptr(u3h(list));
+  return (hed_u->use_w == 1) && _check_list_refcounts(u3t(list));
+}
+
 /* _pier_on_lord_work_done(): event completion from worker.
 */
 static void
@@ -185,6 +193,8 @@ _pier_on_lord_work_done(void*    ptr_v,
   //  XX consider async
   //
   u3_auto_kick(pir_u->wok_u->car_u, act);
+  fprintf(stderr, _check_list_refcounts(act) ? "_pier_on_lord_work_done: all ones"
+                                             : "_pier_on_lord_work_done: duplication");
   u3z(act);
 
   _pier_work(pir_u->wok_u);
