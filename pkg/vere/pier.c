@@ -193,8 +193,8 @@ _pier_on_lord_work_done(void*    ptr_v,
   //  XX consider async
   //
   u3_auto_kick(pir_u->wok_u->car_u, act);
-  fprintf(stderr, _check_list_refcounts(act) ? "_pier_on_lord_work_done: all ones"
-                                             : "_pier_on_lord_work_done: duplication");
+  fprintf(stderr, _check_list_refcounts(act) ? "_pier_on_lord_work_done: all ones\r\n"
+                                             : "_pier_on_lord_work_done: duplication\r\n");
   u3z(act);
 
   _pier_work(pir_u->wok_u);

@@ -497,8 +497,8 @@ _lord_plea_work(u3_lord* god_u, u3_noun dat)
     case c3y: {
       u3z(job);
       u3_noun act = u3t(dat);
-      fprintf(stderr, _check_list_refcounts(act) ? "_lord_plea_work: all ones"
-                                                 : "_lord_plea_work: duplication");
+      fprintf(stderr, _check_list_refcounts(act) ? "_lord_plea_work: all ones\r\n"
+                                                 : "_lord_plea_work: duplication\r\n");
       _lord_plea_work_done(god_u, egg_u, u3k(act));
     } break;
 
