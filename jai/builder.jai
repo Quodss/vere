@@ -3,7 +3,8 @@
 #import "String";
 #import "File";
 
-build :: () {
+build :: ()
+{
     //  we don't need this file to produce an executable
     //
     set_build_options_dc(.{do_output=false});
@@ -56,11 +57,52 @@ build :: () {
     );
     set_build_options(options, w);
 
+
+    compiler_begin_intercept(w);
     add_build_file("mole.jai", w);
     add_build_file("mule.jai", w);
+
+    //  we are listening to and handling compiler messages in a loop
+    //
+    message_loop();
+
+    compiler_end_intercept(w);
+
+    noun_transfer_check();
 }
 
 //  run `build` function when this file is compiled
 //  together with do_output=false this makes this file a build script
 //
 #run build();
+
+
+refcount_errors := 0;
+procedure_bodies: [..] *Code_Procedure_Body;
+refcount_exceptions: [..] struct { name: string; note: string; };
+
+message_loop :: ()
+{
+    while true {
+        message := compiler_wait_for_message();
+        if message.kind == .COMPLETE     break;
+        if message.kind != .TYPECHECKED  continue;
+        code := cast(*Message_Typechecked) message;
+        for code.procedure_headers {
+            handle_our_notes(it.expression);
+        }
+        for code.procedure_bodies {
+            array_add(*procedure_bodies, it.expression);
+        }
+    }
+}
+
+handle_our_notes :: (h: *Code_Procedure_Header)
+{
+    // stub
+}
+
+noun_transfer_check :: ()
+{
+    // stub
+}
