@@ -79,7 +79,12 @@ build :: ()
 
 refcount_errors := 0;
 procedure_bodies: [..] *Code_Procedure_Body;
-refcount_exceptions: [..] struct { name: string; note: string; };
+bitmask :: u64;
+refcount_exceptions: [..] struct {
+    using head: *Code_Procedure_Header;
+    retains_args: bitmask;
+    retains_prod: bitmask;
+};
 
 message_loop :: ()
 {
@@ -88,12 +93,8 @@ message_loop :: ()
         if message.kind == .COMPLETE     break;
         if message.kind != .TYPECHECKED  continue;
         code := cast(*Message_Typechecked) message;
-        for code.procedure_headers {
-            handle_our_notes(it.expression);
-        }
-        for code.procedure_bodies {
-            array_add(*procedure_bodies, it.expression);
-        }
+        for code.procedure_headers handle_our_notes(it.expression);
+        for code.procedure_bodies  array_add(*procedure_bodies, it.expression);
     }
 }
 
