@@ -4,12 +4,15 @@
 #import "File";
 
 build :: () {
-    //  we don't need this file to produce and executable
+    //  we don't need this file to produce an executable
     //
     set_build_options_dc(.{do_output=false});
 
     w := compiler_create_workspace("builder");
     options := get_build_options();
+
+    //  get the command-line args
+    //
     args := options.compile_time_command_line;
 
     is_release := false;
@@ -17,7 +20,6 @@ build :: () {
     executable_name := "jai_output";
 
     for args {
-        print("%\n", it);
         if 0 == compare(it, "-release") {
             is_release = true;
             continue;
@@ -55,4 +57,7 @@ build :: () {
     add_build_file("mule.jai", w);
 }
 
+//  run `build` function when this file is compiled
+//  together with do_output=false this makes this file a build script
+//
 #run build();

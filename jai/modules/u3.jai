@@ -1,3 +1,6 @@
+//  Just a bunch of declarations
+//  Ideally these bindings should be generated automatically from header files
+//
 u3_noun :: #type u32;
 c3_c    :: #type u8;
 u3_atom :: #type u3_noun;
