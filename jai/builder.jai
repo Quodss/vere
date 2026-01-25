@@ -20,22 +20,25 @@ build :: () {
     executable_name := "jai_output";
 
     for args {
-        if 0 == compare(it, "-release") {
+        if "-release" == it {
             is_release = true;
             continue;
         }
         prefix := "-o=";
         if begins_with(it, prefix) {
             path := slice(it, prefix.count, it.count - prefix.count);
-            found, dir, file := split_from_right(path, #char "/");
-            if !found return; // XX error report
-            output_path = dir;
-
-            name, ext: string;
-            found, name, ext = split_from_right(file, #char ".");
-            if !found return;
-            if 0 != compare(ext, "a") return;
-            executable_name = name;
+            file: string = ---;
+            {
+                found, dir, file1 := split_from_right(path, #char "/");
+                if !found return; // XX error report
+                output_path = dir;
+                file = file1;
+            }
+            {
+                found, name, ext := split_from_right(file, #char ".");
+                if !found || "a" != ext return;
+                executable_name = name;
+            }
             continue;
         }
     }
