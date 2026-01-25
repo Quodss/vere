@@ -581,6 +581,16 @@ fn buildBinary(
     urbit.linkLibrary(whereami.artifact("whereami"));
     urbit.linkLibrary(wasm3.artifact("wasm3"));
 
+    const jai_run = b.addSystemCommand(&.{ "jai" });
+    jai_run.addFileArg(.{ .cwd_relative = "jai/builder.jai" });
+    jai_run.addArg("-");
+    if (optimize == .ReleaseFast) jai_run.addArg("-release");
+    const jai_output = jai_run.addPrefixedOutputFileArg("-o=",
+        "jai/build_output/jai_output.a");
+    
+    urbit.root_module.addObjectFile(jai_output);
+    urbit.step.dependOn(&jai_run.step);
+
     if (cfg.tracy_enable) {
         urbit.linkLibrary(tracy.?.artifact("tracy"));
         urbit.addIncludePath(tracy.?.path(""));

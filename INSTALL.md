@@ -3,6 +3,8 @@
 We use [`zig`][zig] to build Vere, which is packaged as a single binary,
 `urbit`.
 
+This experimental build uses Jai, and requires `jai` compiler to be in the path.
+
 ## Supported Targets
 
 Main (`-Dall`) targets:

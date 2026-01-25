@@ -344,8 +344,6 @@ const c_source_files = [_][]const u8{
     "jets/e/mat.c",
     "jets/e/mice.c",
     "jets/e/mink.c",
-    "jets/e/mole.c",
-    "jets/e/mule.c",
     "jets/e/parse.c",
     "jets/e/rd.c",
     "jets/e/rh.c",
