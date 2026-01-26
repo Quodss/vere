@@ -18,7 +18,7 @@ build :: ()
 
     is_release := false;
     output_path := "build_output/";
-    executable_name := "jai_output";
+    executable_name := "jai_output";  // ".a" will be appended
 
     for args {
         if "-release" == it {
@@ -42,6 +42,7 @@ build :: ()
             }
             continue;
         }
+        //  @Incomplete: unrecognized arguments are currently skipped, throw an error?
     }
 
     make_directory_if_it_does_not_exist(output_path, true);
@@ -52,15 +53,22 @@ build :: ()
     options.output_type            = .STATIC_LIBRARY;
 
     set_optimization(*options,
-        ifx is_release then Optimization_Type.VERY_OPTIMIZED
-        else Optimization_Type.VERY_DEBUG
+        ifx is_release then .VERY_OPTIMIZED
+        else .VERY_DEBUG
     );
     set_build_options(options, w);
 
-
+    //  if our goal is to merely build the files then only `add_build_file`
+    //  calls are necessary. but if we want to do stuff at compile time
+    //  we start listening for messages, send files to be built, then
+    //  handle incoming messages.
+    //
     compiler_begin_intercept(w);
-    add_build_file("mole.jai", w);
-    add_build_file("mule.jai", w);
+
+    {
+        add_build_file("mole.jai", w);
+        add_build_file("mule.jai", w);
+    }
 
     //  we are listening to and handling compiler messages in a loop
     //
@@ -68,7 +76,7 @@ build :: ()
 
     compiler_end_intercept(w);
 
-    noun_transfer_check();
+    post_compilation_check();
 }
 
 //  run `build` function when this file is compiled
@@ -98,26 +106,33 @@ message_loop :: ()
     }
 }
 
+// to test: does the note position matter? in the end vs in the comment?
+//
 handle_our_notes :: (h: *Code_Procedure_Header)
 {
     retains_args: bitmask;
     retains_prod: bitmask;
     for h.notes {
-        if "RetainsArgs" == it.text {
+        if !begins_with(it.text, "u3") continue;
+        
+        if "u3_retains_args" == it.text {
             retains_args = 0xffff_ffff_ffff_ffff;
+            continue;
         }
-        else if begins_with(it.text, "RetainsArg") {
-            prefix := "RetainsArg";
-            num_str := slice(it.text, prefix.count, it.text.count - prefix.count);
+        pfix := "u3_retains_arg";
+        if begins_with(it.text, pfix) {
+            num_str := slice(it.text, pfix.count, it.text.count - pfix.count);
             num, ok := parse_int(*num_str, u64);
             if ok retains_args |= (cast(u64) 1) << num; // @Incomplete: error report
+            continue;
         }
-        else if "RetainsProds" == it.text {
+        if "u3_retains_prods" == it.text {
             retains_prod = 0xffff_ffff_ffff_ffff;
+            continue;
         }
-        else if begins_with(it.text, "RetainsProd") {
-            prefix := "RetainsProd";
-            num_str := slice(it.text, prefix.count, it.text.count - prefix.count);
+        pfix = "u3_retains_prod";
+        if begins_with(it.text, pfix) {
+            num_str := slice(it.text, pfix.count, it.text.count - pfix.count);
             num, ok := parse_int(*num_str, u64);
             if ok retains_prod |= (cast(u64) 1) << num; // @Incomplete: error report
         }
@@ -126,7 +141,7 @@ handle_our_notes :: (h: *Code_Procedure_Header)
     array_add(*refcount_exceptions, {h, retains_args, retains_prod});
 }
 
-noun_transfer_check :: ()
+post_compilation_check :: ()
 {
     // stub
 }
