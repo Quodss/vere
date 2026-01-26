@@ -88,6 +88,7 @@ build :: ()
 refcount_errors := 0;
 procedure_bodies: [..] *Code_Procedure_Body;
 bitmask :: u64;
+bitmask_full :: 0xffff_ffff_ffff_ffff;
 refcount_exceptions: [..] struct {
     using head: *Code_Procedure_Header;
     retains_args: bitmask;
@@ -114,9 +115,9 @@ handle_our_notes :: (h: *Code_Procedure_Header)
     retains_prod: bitmask;
     for h.notes {
         if !begins_with(it.text, "u3") continue;
-        
+
         if "u3_retains_args" == it.text {
-            retains_args = 0xffff_ffff_ffff_ffff;
+            retains_args = bitmask_full;
             continue;
         }
         pfix := "u3_retains_arg";
@@ -127,7 +128,7 @@ handle_our_notes :: (h: *Code_Procedure_Header)
             continue;
         }
         if "u3_retains_prods" == it.text {
-            retains_prod = 0xffff_ffff_ffff_ffff;
+            retains_prod = bitmask_full;
             continue;
         }
         pfix = "u3_retains_prod";
