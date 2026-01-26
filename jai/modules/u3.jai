@@ -22,7 +22,8 @@ u3r_sing    :: (a: u3_atom, b: u3_noun) -> c3_o #c_call #foreign;
 u3k :: u3a_gain;
 u3z :: u3a_lose;
 
-
+//  we can overload `!` but it must return bool, and cannot return c3_o. Sad!
+//
 u3_not :: (a: c3_o) -> c3_o #c_call
 {
     return ifx .c3y == a then .c3n else .c3y;
