@@ -31,7 +31,7 @@ build :: ()
             file: string = ---;
             {
                 found, dir, file1 := split_from_right(path, #char "/");
-                if !found return; // XX error report
+                if !found return; // @Incomplete: error report
                 output_path = dir;
                 file = file1;
             }
@@ -100,7 +100,30 @@ message_loop :: ()
 
 handle_our_notes :: (h: *Code_Procedure_Header)
 {
-    // stub
+    retains_args: bitmask;
+    retains_prod: bitmask;
+    for h.notes {
+        if "RetainsArgs" == it.text {
+            retains_args = 0xffff_ffff_ffff_ffff;
+        }
+        else if begins_with(it.text, "RetainsArg") {
+            prefix := "RetainsArg";
+            num_str := slice(it.text, prefix.count, it.text.count - prefix.count);
+            num, ok := parse_int(*num_str, u64);
+            if ok retains_args |= (cast(u64) 1) << num; // @Incomplete: error report
+        }
+        else if "RetainsProds" == it.text {
+            retains_prod = 0xffff_ffff_ffff_ffff;
+        }
+        else if begins_with(it.text, "RetainsProd") {
+            prefix := "RetainsProd";
+            num_str := slice(it.text, prefix.count, it.text.count - prefix.count);
+            num, ok := parse_int(*num_str, u64);
+            if ok retains_prod |= (cast(u64) 1) << num; // @Incomplete: error report
+        }
+    }
+    if 0 == retains_args && 0 == retains_prod return;
+    array_add(*refcount_exceptions, {h, retains_args, retains_prod});
 }
 
 noun_transfer_check :: ()
