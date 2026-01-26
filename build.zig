@@ -581,12 +581,33 @@ fn buildBinary(
     urbit.linkLibrary(whereami.artifact("whereami"));
     urbit.linkLibrary(wasm3.artifact("wasm3"));
 
+    // add jai step
+    //
     const jai_run = b.addSystemCommand(&.{ "jai" });
     jai_run.addFileArg(.{ .cwd_relative = "jai/builder.jai" });
     jai_run.addArg("-");
     if (optimize == .ReleaseFast) jai_run.addArg("-release");
     const jai_output = jai_run.addPrefixedOutputFileArg("-o=",
         "jai/build_output/jai_output.a");
+    
+    // register all jai/* files as file arguments for cache invalidation
+    // this means that jai/builder.jai is registered twice but it probably
+    // does not matter
+    //
+    {
+        var dir = try std.fs.cwd().openDir("jai", .{ .iterate = true });
+        defer dir.close();
+
+        var walker = try dir.walk(b.allocator);
+        defer walker.deinit();
+
+        while ( try walker.next() ) |entry| {
+            if ( entry.kind != .file ) continue;
+            jai_run.addFileInput(.{ .cwd_relative =
+                try std.fs.path.join(b.allocator, &.{ "jai", entry.path })
+            });
+        }
+    }
     
     urbit.root_module.addObjectFile(jai_output);
     urbit.step.dependOn(&jai_run.step);

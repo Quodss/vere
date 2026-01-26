@@ -23,7 +23,7 @@ u3k :: u3a_gain;
 u3z :: u3a_lose;
 
 
-not :: (a: c3_o) -> c3_o #c_call
+u3_not :: (a: c3_o) -> c3_o #c_call
 {
     return ifx .c3y == a then .c3n else .c3y;
 }
@@ -35,7 +35,7 @@ u3a_is_cell :: inline (som: u3_noun) -> c3_o #c_call
 
 u3a_is_atom :: inline (som: u3_noun) -> c3_o #c_call
 {
-    return not(u3a_is_cell(som));
+    return u3_not(u3a_is_cell(som));
 }
 
 u3a_is_cat :: inline (som: u3_noun) -> c3_o #c_call
