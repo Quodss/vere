@@ -2,6 +2,7 @@
 #import "Compiler";
 #import "String";
 #import "File";
+#import "Program_Print";
 
 build :: ()
 {
@@ -86,11 +87,11 @@ build :: ()
 
 
 refcount_errors := 0;
-procedure_bodies: [..] *Code_Procedure_Body;
+procedure_headers: [..] *Code_Procedure_Header;
 bitmask :: u64;
 bitmask_full :: 0xffff_ffff_ffff_ffff;
 refcount_exceptions: [..] struct {
-    using head: *Code_Procedure_Header;
+    header: *Code_Procedure_Header;
     retains_args: bitmask;
     retains_prod: bitmask;
 };
@@ -102,8 +103,10 @@ message_loop :: ()
         if message.kind == .COMPLETE     break;
         if message.kind != .TYPECHECKED  continue;
         code := cast(*Message_Typechecked) message;
-        for code.procedure_headers handle_our_notes(it.expression);
-        for code.procedure_bodies  array_add(*procedure_bodies, it.expression);
+        for code.procedure_headers {
+            handle_our_notes(it.expression);
+            array_add(*procedure_headers, it.expression);
+        }
     }
 }
 
@@ -144,5 +147,41 @@ handle_our_notes :: (h: *Code_Procedure_Header)
 
 post_compilation_check :: ()
 {
-    // stub
+    for func: procedure_headers {
+        // @Incomplete: better heuristic/condition
+        is_noun_function: bool = ---;
+        {
+            using func.enclosing_load.enclosing_import;
+            is_noun_function = module_type == .MAIN_PROGRAM
+                            || module_type == .FILE && "u3" == module_name;
+        }
+
+        if !is_noun_function continue;
+
+        if !func.body_or_null continue;
+        retains_args: bitmask;
+        retains_prod: bitmask;
+        // @Incomplete: table
+        for exception: refcount_exceptions {
+            if exception.header == func {
+                retains_args = exception.retains_args;
+                retains_prod = exception.retains_prod;
+                break;
+            }
+        }
+        check_transfer_semantics(func.body_or_null, retains_args, retains_prod);
+    }
+}
+
+check_transfer_semantics :: (function: *Code_Procedure_Body,
+    retains_args: bitmask,
+    retains_prod: bitmask)
+{
+    log("%:", function.header.name);
+    for function.block.statements {
+        b: String_Builder;
+        print_expression(*b, it);
+        res := builder_to_string(*b);
+        log("    %    (%)", res, it.kind);
+    }
 }

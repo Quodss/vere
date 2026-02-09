@@ -16,8 +16,10 @@ u3a_gain    :: (a: u3_noun) -> u3_noun #c_call #foreign;
 u3a_lose    :: (a: u3_noun) -> () #c_call #foreign;
 u3n_slam_on :: (gat: u3_noun, sam: u3_noun) -> u3_noun #c_call #foreign;
 u3x_good    :: (a: u3_noun) -> u3_noun #c_call #foreign;
-u3r_at      :: (a: u3_atom, b: u3_noun) -> u3_noun #c_call #foreign;
-u3r_sing    :: (a: u3_atom, b: u3_noun) -> c3_o #c_call #foreign;
+// XX how to attach notes to decls?
+//
+u3r_at      :: (a: u3_atom, b: u3_noun) -> u3_noun #c_call #foreign; // @u3_retains_prods @u3_retains_args
+u3r_sing    :: (a: u3_atom, b: u3_noun) -> c3_o #c_call #foreign; // @u3_retains_prods @u3_retains_args
 
 u3k :: u3a_gain;
 u3z :: u3a_lose;
@@ -32,17 +34,17 @@ u3_not :: (a: c3_o) -> c3_o #c_call
 u3a_is_cell :: inline (som: u3_noun) -> c3_o #c_call
 {
     return ifx 0b11 == som >> 30 then .c3y else .c3n;
-}
+} @u3_retains_prods @u3_retains_args
 
 u3a_is_atom :: inline (som: u3_noun) -> c3_o #c_call
 {
     return u3_not(u3a_is_cell(som));
-}
+} @u3_retains_prods @u3_retains_args
 
 u3a_is_cat :: inline (som: u3_noun) -> c3_o #c_call
 {
     return ifx som >> 31 then .c3n else .c3y;
-}
+} @u3_retains_prods @u3_retains_args
 
 u3ud :: u3a_is_atom;
 u3du :: u3a_is_cell;
