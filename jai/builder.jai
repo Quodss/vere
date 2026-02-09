@@ -3,6 +3,8 @@
 #import "String";
 #import "File";
 #import "Program_Print";
+#import "Hash_Table";
+Hash  :: #import "Hash";
 
 build :: ()
 {
@@ -88,12 +90,12 @@ build :: ()
 
 refcount_errors := 0;
 procedure_headers: [..] *Code_Procedure_Header;
-bitmask :: u64;
-bitmask_full :: 0xffff_ffff_ffff_ffff;
+Bitmask :: u64;
+Bitmask_full :: 0xffff_ffff_ffff_ffff;
 refcount_exceptions: [..] struct {
     header: *Code_Procedure_Header;
-    retains_args: bitmask;
-    retains_prod: bitmask;
+    retains_args: Bitmask;
+    retains_prod: Bitmask;
 };
 
 message_loop :: ()
@@ -114,13 +116,13 @@ message_loop :: ()
 //
 handle_our_notes :: (h: *Code_Procedure_Header)
 {
-    retains_args: bitmask;
-    retains_prod: bitmask;
+    retains_args: Bitmask;
+    retains_prod: Bitmask;
     for h.notes {
         if !begins_with(it.text, "u3") continue;
 
         if "u3_retains_args" == it.text {
-            retains_args = bitmask_full;
+            retains_args = Bitmask_full;
             continue;
         }
         pfix := "u3_retains_arg";
@@ -131,7 +133,7 @@ handle_our_notes :: (h: *Code_Procedure_Header)
             continue;
         }
         if "u3_retains_prods" == it.text {
-            retains_prod = bitmask_full;
+            retains_prod = Bitmask_full;
             continue;
         }
         pfix = "u3_retains_prod";
@@ -159,8 +161,8 @@ post_compilation_check :: ()
         if !is_noun_function continue;
 
         if !func.body_or_null continue;
-        retains_args: bitmask;
-        retains_prod: bitmask;
+        retains_args: Bitmask;
+        retains_prod: Bitmask;
         // @Incomplete: table
         for exception: refcount_exceptions {
             if exception.header == func {
@@ -173,15 +175,65 @@ post_compilation_check :: ()
     }
 }
 
+SpaceKey :: struct {
+    name: string;
+    shadow: u64;
+};
+
+Space :: Table(SpaceKey, s64, space_key_hash, space_key_cmp);
+
+space_clone :: (s: *Space) -> Space
+{
+    out: Space;
+    memcpy(*out, *s, size_of(Space));
+    entries_slice_data_size := size_of(Space.Entry) * s.entries.count;
+    out.entries.data == alloc(entries_slice_data_size);
+    memcpy(out.entries.data, s.entries.data, entries_slice_data_size);
+
+    return out;
+}
+
+operator == :: (x: SpaceKey, y: SpaceKey) -> bool
+{
+    return x.name == y.name && x.shadow == y.shadow;
+}
+
+space_key_cmp :: (x: SpaceKey, y: SpaceKey) -> bool
+{
+    return x == y;
+}
+
+space_key_hash :: (k: SpaceKey) -> u32
+{
+    return Hash.get_hash(k.name) ^ Hash.get_hash(k.shadow);
+}
+
 check_transfer_semantics :: (function: *Code_Procedure_Body,
-    retains_args: bitmask,
-    retains_prod: bitmask)
+    retains_args: Bitmask,
+    retains_prod: Bitmask)
 {
     log("%:", function.header.name);
-    for function.block.statements {
+
+    space: Space;
+
+    for function.header.arguments {
+        if !it.type_inst.type_valued_expression continue;
+        if .IDENT != it.type_inst.type_valued_expression.kind continue;
+        ident := cast(*Code_Ident) it.type_inst.type_valued_expression;
+        log("    %: %,", it.name, ident.name);
+        table_add(*space, {it.name, 0}, 0);
+    }
+
+    transfer_execute_block(*space, function.block.statements);
+}
+
+transfer_execute_block :: (s: *Space, block: [] *Code_Node)
+{
+    for block {
         b: String_Builder;
         print_expression(*b, it);
         res := builder_to_string(*b);
-        log("    %    (%)", res, it.kind);
+        log("  %    (%)", res, it.kind);
+        //
     }
 }
