@@ -22,20 +22,46 @@ _setup(void)
 
 #define CON(hed, tel) u3nc(u3k(hed), u3k(tel))
 
-static u3_noun _function_0x2(u3_noun reg_0v0, u3_noun reg_0v1);
+/// transpiler output
+
+static u3_noun _function_0x2(u3_noun reg_0v0);
 
 static u3_noun _function_0x1(u3_noun reg_0v0);
 
-static u3_noun _function_0x0(u3_noun reg_0v0);
+static u3_noun _function_0x0(u3_noun reg_0v0, u3_noun reg_0v1);
 
 static u3_noun
-_function_0x2(u3_noun reg_0v0, u3_noun reg_0v1)
+_function_0x2(u3_noun reg_0v0)
+{
+  u3_noun rs[5];
+
+  rs[0] = reg_0v0;
+  rs[1] = u3nq(8, u3nc(1, 0), 8, u3nq(u3nq(1, 6, u3nq(5, u3nc(0, 30), 4, u3nc(0, 6)), u3nq(u3nc(0, 6), 9, 2, u3nq(10, u3nq(6, 4, 0, 6), 0, 1))), 9, 2, u3nc(0, 1)));
+  rs[2] = 10000000;
+  rs[3] = CON(rs[2], rs[0]);
+  rs[4] = CON(rs[1], rs[3]);
+  return _function_0x1(rs[4]);
+//
+
+}
+static u3_noun
+_function_0x1(u3_noun reg_0v0)
+{
+  u3_noun rs[2];
+
+  rs[0] = reg_0v0;
+  rs[1] = 0;
+  return _function_0x0(rs[1], rs[0]);
+//
+
+}
+static u3_noun
+_function_0x0(u3_noun reg_0v0, u3_noun reg_0v1)
 {
   u3_noun rs[6];
 
   rs[0] = reg_0v0;
   rs[1] = reg_0v1;
-_0w1:
   CEL(rs[1]);
   rs[3] = TAL(rs[1]);
   CEL(rs[3]);
@@ -53,37 +79,13 @@ _0w7:
 
 _0w8:
   rs[2] = INC(rs[0]);
-  return _function_0x2(rs[2], rs[1]);
+  return _function_0x0(rs[2], rs[1]);
 
 
 }
-static u3_noun
-_function_0x1(u3_noun reg_0v0)
-{
-  u3_noun rs[2];
 
-  rs[0] = reg_0v0;
-_0w1:
-  rs[1] = 0;
-  return _function_0x2(rs[1], rs[0]);
-//
 
-}
-static u3_noun
-_function_0x0(u3_noun reg_0v0)
-{
-  u3_noun rs[5];
-
-  rs[0] = reg_0v0;
-_0w1:
-  rs[1] = u3nq(8, u3nc(1, 0), 8, u3nq(u3nq(1, 6, u3nq(5, u3nc(0, 30), 4, u3nc(0, 6)), u3nq(u3nc(0, 6), 9, 2, u3nq(10, u3nq(6, 4, 0, 6), 0, 1))), 9, 2, u3nc(0, 1)));
-  rs[2] = 10000000;
-  rs[3] = CON(rs[2], rs[0]);
-  rs[4] = CON(rs[1], rs[3]);
-  return _function_0x1(rs[4]);
-//
-
-}
+/// end of transpiler output
 
 static double diff_in_seconds(struct timespec start, struct timespec end) {
     return (end.tv_sec - start.tv_sec) +
@@ -96,7 +98,15 @@ _test_call_transpiled(void)
   struct timespec start, end;
 
   clock_gettime(CLOCK_MONOTONIC, &start);
-  u3_noun pro = _function_0x0(u3_nul);
+
+  #if 1
+  u3_noun pro = _function_0x2(u3_nul);
+  #else
+  volatile int i;
+  for (i = 0; i + 1 != 10000000; i++) {}
+  u3_noun pro = (u3_noun)i;
+  #endif
+
   clock_gettime(CLOCK_MONOTONIC, &end);
 
   printf("Elapsed: %.6f seconds\n", diff_in_seconds(start, end));
@@ -116,7 +126,7 @@ main(int argc, char* argv[])
 
   //  GC
   //  (we leak for now)
-  // u3m_grab(u3_none);
+  u3m_grab(u3_none);
 
   fprintf(stderr, "test transpile: ok\r\n");
   return 0;
