@@ -343,6 +343,7 @@ fn buildBinary(
         "-DU3_GUARD_PAGE", // pkg_noun
         "-DU3_OS_ENDIAN_little=1", // pkg_c3
         "-DU3_OS_PROF=1", // pkg_c3
+        "-Wno-unused-label",
     });
 
     if (cfg.cpu_dbg)
@@ -711,6 +712,11 @@ fn buildBinary(
             .{
                 .name = "serial-test",
                 .file = "pkg/noun/serial_tests.c",
+                .deps = noun_test_deps,
+            },
+            .{
+                .name = "transpile-test",
+                .file = "pkg/noun/transpile_tests.c",
                 .deps = noun_test_deps,
             },
             // pkg_vere
