@@ -22,67 +22,67 @@ _setup(void)
 
 #define CON(hed, tel) u3nc(u3k(hed), u3k(tel))
 
+//  XX way faster, what means?
+// inline static c3_o
+// EQ(u3_noun a, u3_noun b)
+// {
+//   if ( a == b ) return c3y;
+//   if ( c3y == u3a_is_cat(a) || c3y == u3a_is_cat(b) ) return c3n;
+//   return u3r_sing(a, b);
+// }
+
+#define EQ u3r_sing
+
 /// transpiler output
 
-static u3_noun _function_0x2(u3_noun reg_0v0);
+static u3_noun _function_0x2(u3_noun reg_0v0, u3_noun reg_0v1);
 
 static u3_noun _function_0x1(u3_noun reg_0v0);
 
-static u3_noun _function_0x0(u3_noun reg_0v0, u3_noun reg_0v1);
+static u3_noun _function_0x0();
 
+//  |- body. XX could recursive calls like this be turned into loops?
 static u3_noun
-_function_0x2(u3_noun reg_0v0)
+_function_0x2(u3_noun reg_0v0, u3_noun reg_0v1)
 {
-  u3_noun rs[5];
-
+  u3_noun rs[4];
   rs[0] = reg_0v0;
-  rs[1] = u3nq(8, u3nc(1, 0), 8, u3nq(u3nq(1, 6, u3nq(5, u3nc(0, 30), 4, u3nc(0, 6)), u3nq(u3nc(0, 6), 9, 2, u3nq(10, u3nq(6, 4, 0, 6), 0, 1))), 9, 2, u3nc(0, 1)));
-  rs[2] = 10000000;
-  rs[3] = CON(rs[2], rs[0]);
-  rs[4] = CON(rs[1], rs[3]);
-  return _function_0x1(rs[4]);
-//
-
+  rs[1] = reg_0v1;
+  rs[3] = INC(rs[0]);
+  if ( c3y == EQ(rs[1], rs[3]) ) {   //  ?:  =(a +(b))
+    return rs[0];                          //    b
+  }
+  else {
+    rs[2] = INC(rs[0]);
+    return _function_0x2(rs[2], rs[1]);   //  $(b +(b))
+  }
 }
+
+//  +dec body
 static u3_noun
 _function_0x1(u3_noun reg_0v0)
 {
-  u3_noun rs[2];
-
+  u3_noun rs[3];
   rs[0] = reg_0v0;
-  rs[1] = 0;
-  return _function_0x0(rs[1], rs[0]);
-//
-
-}
-static u3_noun
-_function_0x0(u3_noun reg_0v0, u3_noun reg_0v1)
-{
-  u3_noun rs[6];
-
-  rs[0] = reg_0v0;
-  rs[1] = reg_0v1;
-  CEL(rs[1]);
-  rs[3] = TAL(rs[1]);
-  CEL(rs[3]);
-  rs[4] = HED(rs[3]);
-  rs[5] = INC(rs[0]);
-  if ( c3y == u3r_sing(rs[4], rs[5]) ) {
-    goto _0w7;
+  rs[2] = 0;
+  if ( c3y == EQ(rs[2], rs[0]) ) {      //  ?<  =(0 a)
+    u3m_bail(c3__exit);
   }
   else {
-    goto _0w8;
+    rs[1] = 0;
+    return _function_0x2(rs[1], rs[0]);       //  |-  ...
   }
-//
-_0w7:
-  return rs[0];
-
-_0w8:
-  rs[2] = INC(rs[0]);
-  return _function_0x0(rs[2], rs[1]);
-
-
 }
+
+//  (dec 10000000)  :: top level entry
+static u3_noun
+_function_0x0()
+{
+  u3_noun rs[1];
+  rs[0] = 10000000;
+  return _function_0x1(rs[0]);
+}
+
 
 
 /// end of transpiler output
@@ -100,7 +100,7 @@ _test_call_transpiled(void)
   clock_gettime(CLOCK_MONOTONIC, &start);
 
   #if 1
-  u3_noun pro = _function_0x2(u3_nul);
+  u3_noun pro = _function_0x0();
   #else
   volatile int i;
   for (i = 0; i + 1 != 10000000; i++) {}
