@@ -187,6 +187,14 @@ pub fn build(b: *std.Build) !void {
         });
     }
 
+    if (t.os.tag == .linux) {
+        pkg_noun.addCSourceFiles(.{
+            .root = b.path("platform/linux"),
+            .files = &.{ "setjmp.c" },
+            .flags = flags.items,
+        });
+    }
+
     for (install_headers) |h| pkg_noun.installHeader(b.path(h), h);
 
     pkg_noun.installHeader(b.path(switch (t.os.tag) {
