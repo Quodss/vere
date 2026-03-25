@@ -4,17 +4,17 @@
 // details.
 
 __attribute__((naked,returns_twice))
-int windows_setjmp(void** buf)
+int our_setjmp(void** buf)
 {
   // We store the frame pointer, instruction pointer and stack pointer into the
   // buffer. Note that we can keep using __builtin_longjmp because we store
   // exactly what it expects.
     __asm(
-          "mov %rbp, 0(%rcx)\n"
+          "mov %rbp, 0(%rdi)\n"
           "mov (%rsp), %rax\n"
-          "mov %rax,  8(%rcx)\n"
+          "mov %rax,  8(%rdi)\n"
           "lea 8(%rsp), %rax\n"
-          "mov %rax,  16(%rcx)\n"
+          "mov %rax,  16(%rdi)\n"
           "xor %eax, %eax\n"
           "ret\n"
     );

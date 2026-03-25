@@ -204,6 +204,11 @@ pub fn build(b: *std.Build) !void {
         else => "",
     }), "rsignal.h");
 
+    pkg_noun.installHeader(b.path(switch (t.os.tag) {
+        .linux => "platform/linux/setjmp.h",
+        else => "",
+    }), "setjmp.h");
+
     b.installArtifact(pkg_noun);
 }
 

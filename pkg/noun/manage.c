@@ -107,7 +107,8 @@
 //  do not manipulate signals, do not modify shared state, and always either
 //  return or longjmp.
 //
-static rsignal_jmpbuf u3_Signal;
+// static rsignal_jmpbuf u3_Signal;
+static jmp_buf u3_Signal;
 
 #ifndef U3_OS_windows
 #include "sigsegv.h"
@@ -447,7 +448,7 @@ _cm_signal_done(void)
 void
 u3m_signal(u3_noun sig_l)
 {
-  rsignal_longjmp(u3_Signal, sig_l);
+  _longjmp(u3_Signal, sig_l);
 }
 
 /* u3m_file(): load file, as atom, or bail.
@@ -1453,7 +1454,7 @@ u3m_soft_top(c3_w    mil_w,                     //  timer ms
    */
   _cm_signal_deep();
 
-  if ( 0 != (sig_l = rsignal_setjmp(u3_Signal)) ) {
+  if ( 0 != (sig_l = _setjmp(u3_Signal)) ) {
     //  reinitialize trace state
     //
     u3t_init();
