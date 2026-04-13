@@ -1032,7 +1032,8 @@ _n_bint(u3_noun* ops, u3_noun hif, u3_noun nef, c3_o los_o, c3_o tel_o)
       case c3__nara:
       case c3__hela:
       case c3__loop:
-      case c3__bout: {
+      case c3__bout:
+      case c3__pint: {
         u3_noun fen = u3_nul;
         c3_w  nef_w = _n_comp(&fen, nef, los_o, c3n);
         // add appropriate hind opcode
@@ -1932,6 +1933,19 @@ _n_hilt_fore(u3_noun hin, u3_noun bus, u3_noun* out)
     case c3__bout: {
       u3_atom now = u3i_chub(u3t_trace_time());
       *out = u3i_cell(tag, now);
+    } break;
+
+    case c3__pint: {
+      if ( 0 != u3A->roc ) {
+        u3_noun i, t, mok = u3dc("mook", 2, u3k(u3R->bug.tax));
+        t = u3t(mok);
+        while ( u3_nul != t ) {
+          u3r_cell(t, &i, &t);
+          u3t_slog(u3nc(0, u3k(i)));
+        }
+        u3z(mok);
+      }
+      *out = u3_nul;
     } break;
 
     case c3__nara : {

@@ -909,6 +909,7 @@
 #   define c3__pill   c3_s4('p','i','l','l')
 #   define c3__ping   c3_s4('p','i','n','g')
 #   define c3__pink   c3_s4('p','i','n','k')
+#   define c3__pint   c3_s4('p','i','n','t')
 #   define c3__pip    c3_s3('p','i','p')
 #   define c3__pipe   c3_s4('p','i','p','e')
 #   define c3__pith   c3_s4('p','i','t','h')
