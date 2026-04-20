@@ -25,12 +25,13 @@
 
   struct _u3nc_prog;
   typedef struct {
-    u3_noun          bell;    //  [sock formula]
-    u3p(_u3nc_prog)  pog_p;   //  called program post or [less formula] during compilation
-    c3_s             len_s;   //  number of arguments
-    c3_y*            arg_y;   //  register indices
-    u3_noun          ring;    //  ~ or [path axis]
-    u3j_harm*        ham_u;   //  jet arm, nullable
+    u3_noun          bell;                    //  [sock formula]
+    u3p(_u3nc_prog)  pog_p;                   //  called program post or [less formula] during compilation
+    c3_y             len_y;                   //  number of arguments
+    c3_y             tot_y;                   //  total number of registers
+    c3_y*            arg_y;                   //  register indices
+    u3_noun          ring;                    //  ~ or [path axis]
+    u3_weak(*        ham_u)(u3_noun*, c3_y);  //  jet arm, nullable
     c3_l             axe_l;   //  jet arm axis
   } u3nc_dire;
 
