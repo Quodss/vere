@@ -379,7 +379,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_y tot_y, c3_ys mov, c3_
       c3_y ref_y = BYTE(),
            pax_y = BYTE(),
            des_y = BYTE();
-      u3_noun x = u3m_soft_esc(u3k(*PEEK(ref_y)), u3k(*PEEK(pax_y)));  // XX check order
+      u3_noun x = u3m_soft_esc(u3k(*PEEK(ref_y)), u3k(*PEEK(pax_y)));
       if ( c3n == u3du(x) ) {
         u3m_bail(u3nc(1, *PEEK(pax_y)));
       }
@@ -565,7 +565,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_y tot_y, c3_ys mov, c3_
 
       u3nc_memo* mem_u = &pog_u->mem_u.sot_u[sot_s];
       u3_noun key = u3nc(u3k(*PEEK(sub_y)), u3k(mem_u->key));
-      u3_weak res;
+      u3_weak res = u3_none;
       switch ( mem_u->cid ) {
         case u3z_memo_ford: {
           res = u3z_find_m(mem_u->cid, 136 + c3__ford, key);

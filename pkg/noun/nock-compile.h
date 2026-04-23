@@ -26,7 +26,7 @@
   struct _u3nc_prog;
   typedef struct {
     u3_noun          bell;                    //  [sock formula]
-    u3p(_u3nc_prog)  pog_p;                   //  called program post or [less formula] during compilation
+    u3p(_u3nc_prog)  pog_p;                   //  static program
     c3_y             len_y;                   //  number of arguments
     c3_y             tot_y;                   //  total number of registers
     c3_y*            arg_y;                   //  register indices
@@ -54,6 +54,12 @@
       u3nc_dire* dat_u;               // array of call info
     } dir_u;                          // direct call data
   } u3nc_prog;
+
+      u3nc_prog*
+      u3nc_look_direct(u3_noun sub, u3_noun fol);
+
+      u3nc_prog*
+      u3nc_build_direct(u3_noun sock, u3_noun fol);
 
       u3_noun
       u3nc_nock_on(u3_noun bus, u3_noun fol);
