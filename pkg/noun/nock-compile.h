@@ -18,7 +18,6 @@
 */
 
   typedef struct {
-    c3_l    sip_l;
     u3_noun key;
     u3z_cid cid;
   } u3nc_memo;
@@ -37,7 +36,6 @@
 
   typedef struct _u3nc_prog  {
     struct {
-      c3_o      own_o;                // program owns ops_y?
       c3_w      len_w;                // length of bytecode (bytes)
       c3_y*     ops_y;                // actual array of bytes
     } byc_u;                          // bytecode

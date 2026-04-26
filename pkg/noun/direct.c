@@ -65,6 +65,8 @@ _so_huge(u3_noun cape_one,
              _so_huge(rope, r_data_one, roop, r_data_two));
 }
 
+#define nth_arg(n)  ((1 << (n + 1)) - 2)
+
 void
 u3d_prep_ka()
 {
@@ -74,14 +76,14 @@ u3d_prep_ka()
   u3_noun hoons = u3s_cue_bytes((c3_d)U3_Ska_Verb_len, U3_Ska_Verb);
   u3_noun fol, sock, soak, noir, skan, gene, line, vere;
   if ( c3n == u3r_mean(hoons,
-      2,   &fol,
-      6,   &sock,
-      14,  &soak,
-      30,  &noir,
-      62,  &skan,
-      126, &gene,
-      254, &line,
-      255, &vere,
+      nth_arg(1),     &fol,
+      nth_arg(2),     &sock,
+      nth_arg(3),     &soak,
+      nth_arg(4),     &noir,
+      nth_arg(5),     &skan,
+      nth_arg(6),     &gene,
+      nth_arg(7),     &line,
+      nth_arg(7) + 1, &vere,
       u3_nul) ) {
         u3m_bail(c3__fail);
   }
@@ -100,6 +102,8 @@ u3d_prep_ka()
   u3_noun interface = u3n_nock_on(subject, u3k(fol));
 
   u3R->dir_ka = interface;
+
+  u3z(hoons);
 }
 
 // RETAINS
@@ -165,4 +169,10 @@ u3d_search(u3_noun sub, u3_noun fol)
   pog_u = u3nc_build_direct(sock, fol);
   u3z(sock);
   return pog_u;
+}
+
+c3_y
+u3d_bell_number_args(u3_noun bell)
+{
+  c3_stub;
 }
