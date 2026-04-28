@@ -209,6 +209,27 @@ _nc_rewo(c3_y* buf, c3_w* ip_w)
   return one | (two << 8) | (tre << 16) | (qua << 24);
 }
 
+static inline void
+_nc_riby(c3_y** buf, c3_y a_y)
+{
+  **buf = a_y;
+  *buf += 1;
+}
+
+static inline void
+_nc_rish(c3_y** buf, c3_s a_s)
+{
+  _nc_riby(buf, a_s & 0xff);
+  _nc_riby(buf, a_s >> 8);
+}
+
+static inline void
+_nc_riwo(c3_y** buf, c3_w a_w)
+{
+  _nc_rish(buf, a_w & 0xffff);
+  _nc_rish(buf, a_w >> 16);
+}
+
 static void
 _nc_move(c3_ys mov, c3_ys off, c3_y num_y)
 {
@@ -580,57 +601,6 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_y tot_y, c3_ys mov, c3_
 #define c3__cal  c3_s3('c', 'a', 'l')
 #define c3__caf  c3_s3('c', 'a', 'f')
 
-
-
-static void
-_nc_nouncode_measure(u3_noun ops, 
-  c3_w* ops_w,
-  u3_post lit_p,
-  c3_w* mem_w,
-  c3_w* arg_w,
-  c3_w* dir_w);
-
-static void
-_nc_nouncode_measure_branch(u3_noun tag, u3_noun args,
-  c3_w* ops_w,
-  u3_post lit_p,
-  c3_w* mem_w,
-  c3_w* arg_w,
-  c3_w* dir_w)
-{
-  c3_y cod_y;
-  u3_noun z, o, ax_z, ax_o;
-
-  switch ( tag ) {
-    default: u3_assert(0);
-    case c3__eqq: {
-      cod_y = EQQ;
-      ax_z = 14;
-      ax_o = 15;
-    } break;
-    case c3__clq: {
-      cod_y = CLQ;
-      ax_z = 6;
-      ax_o = 7;
-    } break;
-    case c3__brn: {
-      cod_y = BRN;
-      ax_z = 6;
-      ax_o = 7;
-    } break;
-    case c3__mim: {
-      c3_stub;
-    } break;
-  }
-
-  u3_assert(c3y == u3r_mean(args, ax_z, &z, ax_o, &o, u3_nul));
-
-  *ops_w += 1 + _n_arg(cod_y);
-  _nc_nouncode_measure(z, ops_w, lit_p, mem_w, arg_w, dir_w);
-  *ops_w += 1 + _n_arg(ADV);
-  _nc_nouncode_measure(o, ops_w, lit_p, mem_w, arg_w, dir_w);
-}
-
 static inline c3_y
 _nc_map_tag_cod(u3_noun tag)
 {
@@ -674,8 +644,15 @@ _nc_table_add(u3_post har_p, u3_noun som)
   }
 }
 
+//  retains
+static c3_w
+_nc_table_get(u3_post har_p, u3_noun som)
+{
+  return u3r_word(0, u3x_good(u3h_git(har_p, som)));
+}
+
 // RETAINS
-static void
+static u3_noun
 _nc_nouncode_measure(u3_noun ops, 
   c3_w* ops_w,
   u3_post lit_p,
@@ -683,20 +660,51 @@ _nc_nouncode_measure(u3_noun ops,
   c3_w* arg_w,
   c3_w* dir_w)
 {
-  u3_noun op, tag, args;
+  u3_noun sip = u3_nul;
+  u3_noun op, tag, args, z, o;
+  c3_y ax_z, ax_o;
   while (u3_nul != ops) {
     u3_assert(c3y == u3r_cell(ops, &op, &ops));
     u3_assert(c3y == u3r_cell(op, &tag, &args));
+    *ops_w += 1 + _n_arg(_nc_map_tag_cod(tag));
     switch ( tag ) {
       default: break;
-      case c3__mim:
+      case c3__mim: {
         c3_stub;
-        // fallthrough
-      case c3__clq: 
-      case c3__eqq: 
+        goto _branch;
+      }
+      case c3__clq: {
+        ax_z = 6;
+        ax_o = 7;
+        goto _branch;
+      }
+      case c3__eqq: {
+        ax_z = 14;
+        ax_o = 15;
+        goto _branch;
+      }
       case c3__brn: {
-        _nc_nouncode_measure_branch(tag, args, ops_w, lit_p, mem_w, arg_w, dir_w);
-      } continue;
+        ax_z = 6;
+        ax_o = 7;
+        goto _branch;
+      }
+      _branch: {
+        u3_assert(c3y == u3r_mean(args, ax_z, &z, ax_o, &o, u3_nul));
+        c3_w off_1 = *ops_w;
+        u3_noun sip_z = _nc_nouncode_measure(z, ops_w, lit_p, mem_w, arg_w, dir_w);
+        *ops_w += 1 + _n_arg(ADV);
+        c3_w off_2 = *ops_w;
+        u3_noun sip_o = _nc_nouncode_measure(o, ops_w, lit_p, mem_w, arg_w, dir_w);
+        c3_w off_3 = *ops_w;
+        sip = u3kb_zing(u3nq(
+          sip_o,
+          u3nc(u3i_word(off_3 - off_2), u3_nul),
+          sip_z, u3nt(
+          u3nc(u3i_word(off_2 - off_1), u3_nul),
+          sip,
+          u3_nul
+        )));
+      } break;
 
       case c3__dom: {
         _nc_table_add(lit_p, args);
@@ -708,11 +716,13 @@ _nc_nouncode_measure(u3_noun ops,
 
       case c3__his:
       case c3__hos: {
+        _nc_table_add(lit_p, u3h(args));
         _nc_table_add(lit_p, u3t(args));
       } break;
 
       case c3__hid:
       case c3__hod: {
+        _nc_table_add(lit_p, u3h(args));
         _nc_table_add(lit_p, u3t(u3t(args)));
       } break;
 
@@ -720,33 +730,172 @@ _nc_nouncode_measure(u3_noun ops,
         c3_stub;
       } break;
 
-      case c3__jmp:
-      case c3__jmf:
-      case c3__caf:
+      case c3__jmp: {
+        dir_w += 1;
+        *arg_w += u3r_word(0, u3qb_lent(u3t(args)));
+      } break;
+
+      case c3__jmf: {
+        dir_w += 1;
+        *arg_w += u3r_word(0, u3qb_lent(u3h(u3t(args))));
+      } break;
+
+      case c3__caf: {
+        dir_w += 1;
+        *arg_w += u3r_word(0, u3qb_lent(u3h(u3t(args))));
+      } break;
+
       case c3__cal: {
         dir_w += 1;
-        *arg_w += u3d_bell_number_args(u3h(args));
+        *arg_w += u3r_word(0, u3qb_lent(u3h(u3t(args))));
       } break;
     }
-    *ops_w += 1 + _n_arg(_nc_map_tag_cod(tag));
+  }
+  return sip;
+}
+
+
+//  retains
+static void
+_nc_write_dire(u3nc_dire* dir_u, c3_y** arg_y, u3_noun bell, u3_noun regs, u3_noun ring)
+{
+  dir_u->arg_y = *arg_y;
+  dir_u->bell  = u3k(bell);
+  dir_u->len_y = u3r_word(0, u3qb_lent(regs));
+  dir_u->ring  = u3k(ring);
+  //  pog_p, tot_y, ham_u are not filled yet, need to return the bell to the
+  //  caller to add the bell to the worklist
+  //
+  u3_noun r;
+  while ( u3_nul != regs ) {
+    u3_assert(c3y == u3r_cell(regs, &r, &regs));
+    _nc_riby(arg_y, u3r_byte(0, r));
   }
 }
 
 static void
 _nc_nouncode_write(u3_noun ops,
+  u3_noun* sip,
   c3_y**      ops_y,
   u3_post     lit_p,
   u3nc_memo** mem_u,
   c3_y**      arg_y,
-  u3nc_dire** dir_u
-)
+  u3nc_dire* dir_u,
+  c3_s*      dir_s)
 {
-  u3_noun op, tag, args;
+  #define WRITE_LIT(SOM) (_nc_rish(ops_y, _nc_table_get(lit_p, SOM)))
+  #define WRITE_REG(SOM)  (_nc_riby(ops_y, u3r_byte(0, SOM)))
+  u3_noun op, tag, args, z, o, s;
+  c3_y ax_z, ax_o;
   while (u3_nul != ops) {
     u3_assert(c3y == u3r_cell(ops, &op, &ops));
     u3_assert(c3y == u3r_cell(op, &tag, &args));
+    _nc_riby(ops_y, _nc_map_tag_cod(tag));
     switch ( tag ) {
-      c3_stub;
+      default: break;
+      case c3__mim: {
+        c3_stub;
+        goto _branch;
+      }
+      case c3__clq: {
+        ax_z = 6;
+        ax_o = 7;
+        WRITE_REG(u3h(args));
+        goto _branch;
+      }
+      case c3__eqq: {
+        ax_z = 14;
+        ax_o = 15;
+        WRITE_REG(u3h(args));
+        WRITE_REG(u3h(u3t(args)));
+        goto _branch;
+      }
+      case c3__brn: {
+        ax_z = 6;
+        ax_o = 7;
+        WRITE_REG(u3h(args));
+        goto _branch;
+      }
+      _branch: {
+        u3_assert(c3y == u3r_mean(args, ax_z, &z, ax_o, &o, u3_nul));
+        u3_assert(c3y == u3r_cell(*sip, &s, sip));
+        _nc_riwo(ops_y, u3r_word(0, s));
+        _nc_nouncode_write(z, sip, ops_y, lit_p, mem_u, arg_y, dir_u, dir_s);
+        _nc_riby(ops_y, ADV);
+        u3_assert(c3y == u3r_cell(*sip, &s, sip));
+        _nc_riwo(ops_y, u3r_word(0, s));
+        _nc_nouncode_write(o, sip, ops_y, lit_p, mem_u, arg_y, dir_u, dir_s);
+      } break;
+     
+      case c3__dom: {
+        WRITE_LIT(args);
+      } break;
+
+      case c3__imm: {
+        _nc_rish(ops_y, _nc_table_get(lit_p, u3h(args)));
+        WRITE_LIT(u3h(args));
+        WRITE_REG(u3t(args));
+      } break;
+
+      case c3__his:
+      case c3__hos: {
+        WRITE_LIT(u3h(args));
+        WRITE_LIT(u3t(args));
+      } break;
+
+      case c3__hid:
+      case c3__hod: {
+        WRITE_LIT(u3h(args));
+        WRITE_REG(u3h(u3t(args)));
+        WRITE_LIT(u3t(u3t(args)));
+      } break;
+
+      case c3__mem: {
+        c3_stub;
+      } break;
+
+      case c3__jmp: {
+        _nc_rish(ops_y, *dir_s);
+        u3_noun bell, regs;
+        u3_assert(c3y == u3r_mean(2, &bell, 3, &regs, u3_nul));
+        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, u3_nul);
+        (*dir_s)++;
+      } break;
+
+      case c3__jmf: {
+        _nc_rish(ops_y, *dir_s);
+        u3_noun bell, regs, ring;
+        u3_assert(c3y == u3r_mean(2, &bell, 6, &regs, 7, &ring, u3_nul));
+        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, ring);
+        (*dir_s)++;
+      } break;
+
+      case c3__caf: {
+        _nc_rish(ops_y, *dir_s);
+        u3_noun bell, regs, ring, r;
+        u3_assert(c3y == u3r_mean(2, &bell,
+                                  6, &regs,
+                                  14, &r,
+                                  15, &ring,
+                                  u3_nul)
+        );
+        WRITE_REG(r);
+        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, ring);
+        (*dir_s)++;
+      } break;
+
+      case c3__cal: {
+        _nc_rish(ops_y, *dir_s);
+        u3_noun bell, regs, r;
+        u3_assert(c3y == u3r_mean(2, &bell,
+                                  6, &regs,
+                                  7, &r,
+                                  u3_nul)
+        );
+        WRITE_REG(r);
+        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, u3_nul);
+        (*dir_s)++;
+      } break;
     }
   }
 }
@@ -766,7 +915,7 @@ _nc_nouncode_build(u3_noun ops)
 {
   u3_post lit_p = u3h_new();
   c3_w ops_w = 0, mem_w = 0, arg_w = 0, dir_w = 0;
-  _nc_nouncode_measure(ops, &ops_w, lit_p, &mem_w, &arg_w, &dir_w);
+  u3_noun sip = _nc_nouncode_measure(ops, &ops_w, lit_p, &mem_w, &arg_w, &dir_w);
   c3_w lit_w = u3h_wyt(lit_p);
 
   //  {u3nc_prog}[ops][args][literals][memo][dire]
@@ -800,8 +949,9 @@ _nc_nouncode_build(u3_noun ops)
   for (c3_w i_w = 0; i_w < lit_w; i_w++) {
     u3_assert(u3_none != pog_u->lit_u.non[i_w]);
   }
-
-  _nc_nouncode_write(ops, &ops_y, lit_p, &mem_u, &arg_y, &dir_u);
+  c3_s dir_s = 0;
+  _nc_nouncode_write(ops, &sip, &ops_y, lit_p, &mem_u, &arg_y, dir_u, &dir_s);
+  u3z(sip);
   u3h_free(lit_p);
   return pog_u;
 }

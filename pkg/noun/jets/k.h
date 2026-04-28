@@ -23,6 +23,7 @@
     u3_noun u3kb_lent(u3_noun a);
     u3_noun u3kb_weld(u3_noun a, u3_noun b);
     u3_noun u3kb_flop(u3_noun a);
+    u3_noun u3kb_zing(u3_noun a);
 
 /* u3kc: tier 3 functions
 */

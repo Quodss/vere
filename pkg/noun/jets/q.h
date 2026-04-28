@@ -45,6 +45,7 @@
     u3_noun u3qb_sort(u3_noun, u3_noun);
     u3_noun u3qb_turn(u3_noun, u3_noun);
     u3_noun u3qb_weld(u3_noun, u3_noun);
+    u3_noun u3qb_zing(u3_noun);
 
   /** Tier 3.
   **/

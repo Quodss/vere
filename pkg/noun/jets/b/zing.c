@@ -6,6 +6,14 @@
 #include "noun.h"
 
 u3_noun
+u3kb_zing(u3_noun a)
+{
+  u3_noun pro = u3qb_zing(a);
+  u3z(a);
+  return pro;
+}
+
+u3_noun
 u3qb_zing(u3_noun a)
 {
   u3_noun  pro;
