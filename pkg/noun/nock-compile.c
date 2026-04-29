@@ -1022,15 +1022,13 @@ _cb_fresh_rewrite(u3_noun kev)
   u3nc_prog* pog_u = _nc_to_prog(u3t(kev));
   u3nc_dire*    dir_u = pog_u->dir_u.dat_u;
   c3_w          len_w = pog_u->dir_u.len_w;
-  u3_noun       less_fol;
   u3_weak       gop = u3_none;
   u3a_road*     rod_u;
 
   for (c3_w i_w = 0; i_w < len_w; i_w++) {
-    less_fol = dir_u[i_w].bell;
     rod_u = u3R;
     while ( 1 ) {
-      if ( u3_none != (gop = u3h_git(rod_u->byc_direct_p, less_fol)) ) {
+      if ( u3_none != (gop = u3h_git(rod_u->byc_direct_p, dir_u[i_w].bell)) ) {
         //  uncompress loom offset
         //
         dir_u[i_w].pog_p = gop << u3a_vits;
