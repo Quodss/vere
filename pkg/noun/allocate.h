@@ -151,8 +151,8 @@ STATIC_ASSERT( u3a_vits <= u3a_min_log,
         /* ska-related things
         ** XX move to appropriate places with an actual migration
         */
-        u3p(u3h_root) byc_dar_p;              //  [less fol]->post of bytecode
-        u3p(u3h_root) byc_lar_p;              //  fol->(list [less post]) of bytecode
+        u3p(u3h_root) byc_direct_p;           //  [less fol]->post of bytecode (direct programs)
+        u3p(u3h_root) byc_entry_p;            //  fol->(list [less post]) of bytecode (entry point programs)
         u3_noun       dir_ka;                 //  ~ | ska interface core
         c3_w fut_w[25];                       //  futureproof buffer
 

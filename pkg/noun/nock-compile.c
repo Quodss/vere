@@ -171,7 +171,6 @@ typedef struct __attribute__((__packed__)) {
   u3nc_prog*  pog_u;
   c3_w        ip_w;
   c3_y        tar_y;
-  c3_y        tot_y;
 } nc_burnframe;
 
 /* _n_peek(): pointer to noun in the stack slot
@@ -294,7 +293,7 @@ _nc_is_last_frame(c3_ys mov, c3_ys off, u3p(void) empty, c3_y tot_y)
 
 static u3_noun
 // len_y - number of input args, tot_y - total number of regs
-_nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_y tot_y, c3_ys mov, c3_ys off)
+_nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
 {
 # define X(opcode, name, indirect_jump) indirect_jump
   static void* lab[] = { OPCODES };
@@ -309,7 +308,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_y tot_y, c3_ys mov, c3_
   (void)empty;
 
   empty = u3R->cap_p;
-  _nc_push_args(mov, off, tot_y, len_y, args);
+  _nc_push_args(mov, off, pog_u->tot_y, len_y, args);
 
 #ifdef VERBOSE_BYTECODE
   #define BURN() fprintf(stderr, "%s ", opcode_names[pog[ip_w]]); goto *lab[pog[ip_w++]]
@@ -326,10 +325,10 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_y tot_y, c3_ys mov, c3_
 #define TAIL(som)  ((c3n == u3du(som)) ? 0 : u3t(som))
 
 #define POP_REGS() do {                               \
-  for ( c3_y i_y = 0; i_y < tot_y; i_y++ ) {          \
+  for ( c3_y i_y = 0; i_y < pog_u->tot_y; i_y++ ) {   \
         if ( u3_none != *PEEK(i_y) ) u3z(*PEEK(i_y)); \
       }                                               \
-      u3R->cap_p -= (mov * tot_y);                    \
+      u3R->cap_p -= (mov * pog_u->tot_y);             \
 } while (0)
 
   BURN();
@@ -458,14 +457,12 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_y tot_y, c3_ys mov, c3_
       fam->ip_w   = ip_w;
       fam->pog_u  = pog_u;
       fam->tar_y  = des_y;
-      fam->tot_y  = tot_y;
 
       pog_u = u3to(u3nc_prog, dir_u->pog_p);
       pog   = pog_u->byc_u.ops_y;
       ip_w  = 0;
-      tot_y = dir_u->tot_y;
 
-      _nc_push_args(mov, off, dir_u->tot_y, dir_u->len_y, args);
+      _nc_push_args(mov, off, pog_u->tot_y, dir_u->len_y, args);
       BURN();
     }
 
@@ -533,9 +530,8 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_y tot_y, c3_ys mov, c3_
       pog_u = u3to(u3nc_prog, dir_u->pog_p);
       pog   = pog_u->byc_u.ops_y;
       ip_w  = 0;
-      tot_y = dir_u->tot_y;
 
-      _nc_push_args(mov, off, dir_u->tot_y, dir_u->len_y, args);
+      _nc_push_args(mov, off, pog_u->tot_y, dir_u->len_y, args);
       BURN();
     }
 
@@ -561,7 +557,6 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_y tot_y, c3_ys mov, c3_
       pog_u = fam->pog_u;
       pog   = pog_u->byc_u.ops_y;
       ip_w  = fam->ip_w;
-      tot_y = fam->tot_y;
       _nc_put(PEEK(fam->tar_y), pro);
       BURN();
     }
@@ -574,6 +569,21 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_y tot_y, c3_ys mov, c3_
       c3_stub;
     }
   }
+}
+
+static u3_noun
+_nc_burn_out(u3nc_prog* pog_u, u3_noun* args, c3_y len_y)
+{
+  c3_ys mov, off;
+  if ( c3y == u3a_is_north(u3R) ) {
+    mov = -1;
+    off = 0;
+  }
+  else {
+    mov = 1;
+    off = -1;
+  }
+  return _nc_burn(pog_u, args, len_y, mov, off);
 }
 
 #define c3__clq  c3_s3('c', 'l', 'q')
@@ -696,14 +706,14 @@ _nc_nouncode_measure(u3_noun ops,
         c3_w off_2 = *ops_w;
         u3_noun sip_o = _nc_nouncode_measure(o, ops_w, lit_p, mem_w, arg_w, dir_w);
         c3_w off_3 = *ops_w;
-        sip = u3kb_zing(u3nq(
+        sip = u3kb_zing(u3nl(
           sip_o,
           u3nc(u3i_word(off_3 - off_2), u3_nul),
-          sip_z, u3nt(
+          sip_z,
           u3nc(u3i_word(off_2 - off_1), u3_nul),
           sip,
-          u3_nul
-        )));
+          u3_none
+        ));
       } break;
 
       case c3__dom: {
@@ -954,4 +964,16 @@ _nc_nouncode_build(u3_noun ops)
   u3z(sip);
   u3h_free(lit_p);
   return pog_u;
+}
+
+u3nc_prog*
+u3nc_look_entry_direct(u3_noun sub, u3_noun fol)
+{
+  c3_stub;
+}
+
+u3_noun
+u3nc_nock_on(u3_noun bus, u3_noun fol)
+{
+  return _nc_burn_out(u3d_search(bus, fol), &bus, 1);
 }

@@ -163,10 +163,10 @@ u3d_search(u3_noun sub, u3_noun fol)
 {
   u3d_prep_ka();
 
-  u3nc_prog* pog_u = u3nc_look_direct(sub, fol);
+  u3nc_prog* pog_u = u3nc_look_entry_direct(sub, fol);
   if ( pog_u ) return pog_u;
   u3_noun sock = _d_compile(sub, fol);
-  pog_u = u3nc_build_direct(sock, fol);
+  pog_u = u3nc_build_entry_direct(sock, fol);
   u3z(sock);
   return pog_u;
 }

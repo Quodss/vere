@@ -27,7 +27,7 @@
     u3_noun          bell;                    //  [sock formula]
     u3p(_u3nc_prog)  pog_p;                   //  static program
     c3_y             len_y;                   //  number of arguments
-    c3_y             tot_y;                   //  total number of registers
+    // c3_y             tot_y;                   //  total number of registers
     c3_y*            arg_y;                   //  register indices
     u3_noun          ring;                    //  ~ or [path axis]
     u3_weak(*        ham_u)(u3_noun*, c3_y);  //  jet arm, nullable
@@ -35,6 +35,7 @@
   } u3nc_dire;
 
   typedef struct _u3nc_prog  {
+    c3_y tot_y;                       // total number of stack slots used
     struct {
       c3_w      len_w;                // length of bytecode (bytes)
       c3_y*     ops_y;                // actual array of bytes
@@ -53,11 +54,14 @@
     } dir_u;                          // direct call data
   } u3nc_prog;
 
+      //  looks up static nock entry point (one argument, subject)
       u3nc_prog*
-      u3nc_look_direct(u3_noun sub, u3_noun fol);
+      u3nc_look_entry_direct(u3_noun sub, u3_noun fol);
 
+      //  use the bell to build a entry point bytecode program as well as
+      //  programs for all callees
       u3nc_prog*
-      u3nc_build_direct(u3_noun sock, u3_noun fol);
+      u3nc_build_entry_direct(u3_noun sock, u3_noun fol);
 
       u3_noun
       u3nc_nock_on(u3_noun bus, u3_noun fol);
