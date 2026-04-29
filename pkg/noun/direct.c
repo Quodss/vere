@@ -173,3 +173,9 @@ u3d_bell_number_args(u3_noun bell)
 {
   c3_stub;
 }
+
+u3_noun
+u3d_bell_ops(u3_noun bell, c3_t entry_t)
+{
+  c3_stub;
+}
