@@ -76,15 +76,14 @@ u3d_prep_ka()
   u3_noun hoons = u3s_cue_bytes((c3_d)U3_Ska_Verb_len, U3_Ska_Verb);
   u3_noun fol, sock, soak, noir, skan, gene, line, vere;
   if ( c3n == u3r_mean(hoons,
-      nth_arg(1),     &fol,
-      nth_arg(2),     &sock,
-      nth_arg(3),     &soak,
-      nth_arg(4),     &noir,
-      nth_arg(5),     &skan,
-      nth_arg(6),     &gene,
-      nth_arg(7),     &line,
-      nth_arg(7) + 1, &vere,
-      u3_nul) ) {
+      {nth_arg(1),     &fol },
+      {nth_arg(2),     &sock},
+      {nth_arg(3),     &soak},
+      {nth_arg(4),     &noir},
+      {nth_arg(5),     &skan},
+      {nth_arg(6),     &gene},
+      {nth_arg(7),     &line},
+      {nth_arg(7) + 1, &vere}) ) {
         u3m_bail(c3__fail);
   }
 
@@ -117,9 +116,7 @@ u3d_match_sock(u3_noun cape, u3_noun data, u3_noun list)
   u3_noun i, cape_i, data_i;
   while ( u3_nul != list ) {
     u3x_cell(list, &i, &list);
-    u3x_mean(i, 4, &cape_i,
-                5, &data_i,
-                0);
+    u3x_mean(i, {4, &cape_i}, {5, &data_i});
     if ( c3n == _so_huge(cape_i, data_i, cape, data) ) continue;
     //  first match or better match
     //

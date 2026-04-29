@@ -699,7 +699,7 @@ _nc_nouncode_measure(u3_noun ops,
         goto _branch;
       }
       _branch: {
-        u3_assert(c3y == u3r_mean(args, ax_z, &z, ax_o, &o, u3_nul));
+        u3_assert(c3y == u3r_mean(args, {ax_z, &z}, {ax_o, &o}));
         c3_w off_1 = *ops_w;
         u3_noun sip_z = _nc_nouncode_measure(z, ops_w, lit_p, mem_w, arg_w, dir_w);
         *ops_w += 1 + _n_arg(ADV);
@@ -711,8 +711,7 @@ _nc_nouncode_measure(u3_noun ops,
           u3nc(u3i_word(off_3 - off_2), u3_nul),
           sip_z,
           u3nc(u3i_word(off_2 - off_1), u3_nul),
-          sip,
-          u3_none
+          sip
         ));
       } break;
 
@@ -827,7 +826,7 @@ _nc_nouncode_write(u3_noun ops,
         goto _branch;
       }
       _branch: {
-        u3_assert(c3y == u3r_mean(args, ax_z, &z, ax_o, &o, u3_nul));
+        u3_assert(c3y == u3r_mean(args, {ax_z, &z}, {ax_o, &o}));
         u3_assert(c3y == u3r_cell(*sip, &s, sip));
         _nc_riwo(ops_y, u3r_word(0, s));
         _nc_nouncode_write(z, sip, ops_y, lit_p, mem_u, arg_y, dir_u, dir_s);
@@ -867,7 +866,7 @@ _nc_nouncode_write(u3_noun ops,
       case c3__jmp: {
         _nc_rish(ops_y, *dir_s);
         u3_noun bell, regs;
-        u3_assert(c3y == u3r_mean(2, &bell, 3, &regs, u3_nul));
+        u3_assert(c3y == u3r_mean(args, {2, &bell}, {3, &regs}));
         _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, u3_nul);
         (*dir_s)++;
       } break;
@@ -875,7 +874,7 @@ _nc_nouncode_write(u3_noun ops,
       case c3__jmf: {
         _nc_rish(ops_y, *dir_s);
         u3_noun bell, regs, ring;
-        u3_assert(c3y == u3r_mean(2, &bell, 6, &regs, 7, &ring, u3_nul));
+        u3_assert(c3y == u3r_mean(args, {2, &bell}, {6, &regs}, {7, &ring}));
         _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, ring);
         (*dir_s)++;
       } break;
@@ -883,11 +882,11 @@ _nc_nouncode_write(u3_noun ops,
       case c3__caf: {
         _nc_rish(ops_y, *dir_s);
         u3_noun bell, regs, ring, r;
-        u3_assert(c3y == u3r_mean(2, &bell,
-                                  6, &regs,
-                                  14, &r,
-                                  15, &ring,
-                                  u3_nul)
+        u3_assert(c3y == u3r_mean(args,
+                                  {2, &bell},
+                                  {6, &regs},
+                                  {14, &r},
+                                  {15, &ring})
         );
         WRITE_REG(r);
         _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, ring);
@@ -897,10 +896,10 @@ _nc_nouncode_write(u3_noun ops,
       case c3__cal: {
         _nc_rish(ops_y, *dir_s);
         u3_noun bell, regs, r;
-        u3_assert(c3y == u3r_mean(2, &bell,
-                                  6, &regs,
-                                  7, &r,
-                                  u3_nul)
+        u3_assert(c3y == u3r_mean(args,
+                                  {2, &bell},
+                                  {6, &regs},
+                                  {7, &r})
         );
         WRITE_REG(r);
         _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, u3_nul);
