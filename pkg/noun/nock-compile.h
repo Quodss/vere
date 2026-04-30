@@ -30,7 +30,7 @@
     // c3_y             tot_y;                   //  total number of registers
     c3_y*            arg_y;                   //  register indices
     u3_noun          ring;                    //  ~ or [path axis]
-    u3_weak(*        ham_u)(u3_noun*, c3_y);  //  jet arm, nullable
+    u3_weak(*        ham_u)(u3_noun*);        //  jet arm, nullable
     c3_l             axe_l;   //  jet arm axis
   } u3nc_dire;
 

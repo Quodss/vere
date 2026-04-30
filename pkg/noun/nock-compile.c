@@ -110,6 +110,24 @@
 enum { OPCODES };
 #undef X
 
+# define X(opcode, name, indirect_jump) name
+static c3_c* opcode_names[] = { OPCODES };
+# undef X
+
+static inline c3_w
+_nc_of_prog(u3nc_prog *pog_u)
+{
+  u3_post pog_p = u3of(u3nc_prog, pog_u);
+  return pog_p >> u3a_vits;
+}
+
+static inline u3nc_prog*
+_nc_to_prog(c3_w pog_w)
+{
+  u3_post pog_p = pog_w << u3a_vits;
+  return u3to(u3nc_prog, pog_p);
+}
+
 static_assert(LAST < 256);
 
 /* _n_arg(): return the size (in bytes) of an opcode's argument
@@ -285,10 +303,30 @@ _nc_push_args(c3_ys mov, c3_ys off, c3_y tot_y, c3_y len_y, u3_noun* args)
   }
 }
 
-static c3_t
-_nc_is_last_frame(c3_ys mov, c3_ys off, u3p(void) empty, c3_y tot_y)
+u3nc_prog*
+_n_bite_direct(u3_noun sock, u3_noun fol, c3_t entry_t);
+
+static u3nc_prog*
+_n_find_direct(u3_noun sock_fol)
 {
-  return empty == (u3R->cap_p - (mov * tot_y));
+  u3a_road* rod_u = u3R;
+  u3_weak pog;
+  while ( 1 ) {
+    if ( u3_none != (pog = u3h_git(rod_u->byc_direct_p, sock_fol)) ) {
+      return _nc_to_prog(pog);
+    }
+    if ( !rod_u->par_p ) break;
+    rod_u = u3to(u3a_road, rod_u->par_p);
+  }
+  u3nc_prog* pog_u = _n_bite_direct(u3h(sock_fol), u3t(sock_fol), false);
+  u3h_put(u3R->byc_direct_p, sock_fol, _nc_of_prog(pog_u));
+  return pog_u;
+}
+
+static void
+_nc_set_pogp_dire(u3nc_dire* dir_u)
+{
+  dir_u->pog_p = u3of(u3nc_prog, _n_find_direct(dir_u->bell));
 }
 
 static u3_noun
@@ -442,7 +480,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
         args[i_s] = u3k(*PEEK(i_s));
       }
       if ( dir_u->ham_u ) {
-        u3_weak res = dir_u->ham_u(args, dir_u->len_y);
+        u3_weak res = dir_u->ham_u(args);
         if ( u3_none != res ) {
           _nc_put(PEEK(des_y), res);
           for (c3_y i_y = 0; i_y < dir_u->len_y; i_y++) {
@@ -457,7 +495,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
       fam->ip_w   = ip_w;
       fam->pog_u  = pog_u;
       fam->tar_y  = des_y;
-
+      if ( !dir_u->pog_p ) _nc_set_pogp_dire(dir_u);
       pog_u = u3to(u3nc_prog, dir_u->pog_p);
       pog   = pog_u->byc_u.ops_y;
       ip_w  = 0;
@@ -516,7 +554,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
       }
       
       if ( dir_u->ham_u ) {
-        pro = dir_u->ham_u(args, dir_u->len_y);
+        pro = dir_u->ham_u(args);
         if ( u3_none != pro ) {
           for (c3_y i_y = 0; i_y < dir_u->len_y; i_y++) {
             u3z(args[i_y]);
@@ -527,6 +565,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
 
       POP_REGS();
       
+      if ( !dir_u->pog_p ) _nc_set_pogp_dire(dir_u);
       pog_u = u3to(u3nc_prog, dir_u->pog_p);
       pog   = pog_u->byc_u.ops_y;
       ip_w  = 0;
@@ -585,31 +624,6 @@ _nc_burn_out(u3nc_prog* pog_u, u3_noun* args, c3_y len_y)
   }
   return _nc_burn(pog_u, args, len_y, mov, off);
 }
-
-#define c3__clq  c3_s3('c', 'l', 'q')
-#define c3__eqq  c3_s3('e', 'q', 'q')
-#define c3__brn  c3_s3('b', 'r', 'n')
-#define c3__mim  c3_s3('m', 'i', 'm')
-#define c3__jmp  c3_s3('j', 'm', 'p')
-#define c3__jmf  c3_s3('j', 'm', 'f')
-#define c3__lnt  c3_s3('l', 'n', 't')
-#define c3__don  c3_s3('d', 'o', 'n')
-#define c3__dom  c3_s3('d', 'o', 'm')
-#define c3__bom  c3_s3('b', 'o', 'm')
-#define c3__imm  c3_s3('i', 'm', 'm')
-#define c3__mov  c3_s3('m', 'o', 'v')
-#define c3__hed  c3_s3('h', 'e', 'd')
-#define c3__tal  c3_s3('t', 'a', 'l')
-#define c3__cel  c3_s3('c', 'e', 'l')
-#define c3__his  c3_s3('h', 'i', 's')
-#define c3__hos  c3_s3('h', 'o', 's')
-#define c3__hid  c3_s3('h', 'i', 'd')
-#define c3__hod  c3_s3('h', 'o', 'd')
-#define c3__spy  c3_s3('s', 'p', 'y')
-#define c3__mem  c3_s3('m', 'e', 'm')
-#define c3__lnk  c3_s3('l', 'n', 'k')
-#define c3__cal  c3_s3('c', 'a', 'l')
-#define c3__caf  c3_s3('c', 'a', 'f')
 
 static inline c3_y
 _nc_map_tag_cod(u3_noun tag)
@@ -766,16 +780,14 @@ _nc_nouncode_measure(u3_noun ops,
 
 //  retains
 static void
-_nc_write_dire(u3nc_dire* dir_u, c3_y** arg_y, u3_noun bell, u3_noun regs, u3_noun ring, u3_noun* queu)
+_nc_write_dire(u3nc_dire* dir_u, c3_y** arg_y, u3_noun bell, u3_noun regs, u3_noun ring)
 {
-  *queu = u3nc(u3k(bell), *queu);
   dir_u->arg_y = *arg_y;
   dir_u->bell  = u3k(bell);
   dir_u->len_y = u3r_word(0, u3qb_lent(regs));
   dir_u->ring  = u3k(ring);
-  //  pog_p, is not filled yet, need to return the bell to the
-  //  caller to add the bell to the worklist
-  //  XX ham_u
+  dir_u->pog_p = 0;
+  dir_u->ham_u = NULL;  //  XX jet matching
   u3_noun r;
   while ( u3_nul != regs ) {
     u3_assert(c3y == u3r_cell(regs, &r, &regs));
@@ -791,8 +803,7 @@ _nc_nouncode_write(u3_noun ops,
   u3nc_memo** mem_u,
   c3_y**      arg_y,
   u3nc_dire* dir_u,
-  c3_s*      dir_s,
-  u3_noun*   queu)
+  c3_s*      dir_s)
 {
   #define WRITE_LIT(SOM) (_nc_rish(ops_y, _nc_table_get(lit_p, SOM)))
   #define WRITE_REG(SOM)  (_nc_riby(ops_y, u3r_byte(0, SOM)))
@@ -831,11 +842,11 @@ _nc_nouncode_write(u3_noun ops,
         u3_assert(c3y == u3r_mean(args, {ax_z, &z}, {ax_o, &o}));
         u3_assert(c3y == u3r_cell(*sip, &s, sip));
         _nc_riwo(ops_y, u3r_word(0, s));
-        _nc_nouncode_write(z, sip, ops_y, lit_p, mem_u, arg_y, dir_u, dir_s, queu);
+        _nc_nouncode_write(z, sip, ops_y, lit_p, mem_u, arg_y, dir_u, dir_s);
         _nc_riby(ops_y, ADV);
         u3_assert(c3y == u3r_cell(*sip, &s, sip));
         _nc_riwo(ops_y, u3r_word(0, s));
-        _nc_nouncode_write(o, sip, ops_y, lit_p, mem_u, arg_y, dir_u, dir_s, queu);
+        _nc_nouncode_write(o, sip, ops_y, lit_p, mem_u, arg_y, dir_u, dir_s);
       } break;
      
       case c3__dom: {
@@ -869,7 +880,7 @@ _nc_nouncode_write(u3_noun ops,
         _nc_rish(ops_y, *dir_s);
         u3_noun bell, regs;
         u3_assert(c3y == u3r_mean(args, {2, &bell}, {3, &regs}));
-        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, u3_nul, queu);
+        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, u3_nul);
         (*dir_s)++;
       } break;
 
@@ -877,7 +888,7 @@ _nc_nouncode_write(u3_noun ops,
         _nc_rish(ops_y, *dir_s);
         u3_noun bell, regs, ring;
         u3_assert(c3y == u3r_mean(args, {2, &bell}, {6, &regs}, {7, &ring}));
-        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, ring, queu);
+        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, ring);
         (*dir_s)++;
       } break;
 
@@ -891,7 +902,7 @@ _nc_nouncode_write(u3_noun ops,
                                   {15, &ring})
         );
         WRITE_REG(r);
-        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, ring, queu);
+        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, ring);
         (*dir_s)++;
       } break;
 
@@ -904,7 +915,7 @@ _nc_nouncode_write(u3_noun ops,
                                   {7, &r})
         );
         WRITE_REG(r);
-        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, u3_nul, queu);
+        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, u3_nul);
         (*dir_s)++;
       } break;
     }
@@ -923,7 +934,7 @@ _nc_cb_copy(u3_noun kev, void* arr_u)
 
 //  retains
 static u3nc_prog*
-_nc_nouncode_build(u3_noun ops, u3_noun* queu)
+_nc_nouncode_build(u3_noun ops)
 {
   u3_post lit_p = u3h_new();
   c3_w ops_w = 0, mem_w = 0, arg_w = 0, dir_w = 0;
@@ -962,52 +973,19 @@ _nc_nouncode_build(u3_noun ops, u3_noun* queu)
     u3_assert(u3_none != pog_u->lit_u.non[i_w]);
   }
   c3_s dir_s = 0;
-  _nc_nouncode_write(ops, &sip, &ops_y, lit_p, &mem_u, &arg_y, dir_u, &dir_s, queu);
+  _nc_nouncode_write(ops, &sip, &ops_y, lit_p, &mem_u, &arg_y, dir_u, &dir_s);
   u3z(sip);
   u3h_free(lit_p);
   return pog_u;
 }
 
-static inline c3_w
-_nc_of_prog(u3nc_prog *pog_u)
-{
-  u3_post pog_p = u3of(u3nc_prog, pog_u);
-  return pog_p >> u3a_vits;
-}
-
-static inline u3nc_prog*
-_nc_to_prog(c3_w pog_w)
-{
-  u3_post pog_p = pog_w << u3a_vits;
-  return u3to(u3nc_prog, pog_p);
-}
-
 u3nc_prog*
-_n_bite_direct(u3_noun sock, u3_noun fol, u3_noun* queu, c3_t entry_t)
+_n_bite_direct(u3_noun sock, u3_noun fol, c3_t entry_t)
 {
   u3_noun ops = u3d_bell_ops(u3nc(u3k(sock), u3k(fol)), entry_t);
-  u3nc_prog* out_u = _nc_nouncode_build(ops, queu);
+  u3nc_prog* out_u = _nc_nouncode_build(ops);
   u3z(ops);
   return out_u;
-}
-
-static c3_o
-_n_find_direct(u3_noun sock_fol, u3_noun* queu, u3nc_prog** out_u)
-{
-  u3a_road* rod_u = u3R;
-  u3_weak pog;
-  while ( 1 ) {
-    if ( u3_none != (pog = u3h_git(rod_u->byc_direct_p, sock_fol)) ) {
-      *out_u = _nc_to_prog(pog);
-      return c3n;
-    }
-    if ( !rod_u->par_p ) break;
-    rod_u = u3to(u3a_road, rod_u->par_p);
-  }
-  *out_u = _n_bite_direct(u3h(sock_fol), u3t(sock_fol), queu, false);
-  pog = _nc_of_prog(*out_u);
-  u3h_put(u3R->byc_direct_p, sock_fol, pog);
-  return c3y;
 }
 
 static u3_noun
@@ -1016,59 +994,12 @@ _cb_jib_cons(u3_weak list, void* ptr_v)
   return u3nc(*(u3_noun*)ptr_v, ( u3_none == list ) ? u3_nul : list);
 }
 
-static void
-_cb_fresh_rewrite(u3_noun kev)
-{
-  u3nc_prog* pog_u = _nc_to_prog(u3t(kev));
-  u3nc_dire*    dir_u = pog_u->dir_u.dat_u;
-  c3_w          len_w = pog_u->dir_u.len_w;
-  u3_weak       gop = u3_none;
-  u3a_road*     rod_u;
-
-  for (c3_w i_w = 0; i_w < len_w; i_w++) {
-    rod_u = u3R;
-    while ( 1 ) {
-      if ( u3_none != (gop = u3h_git(rod_u->byc_direct_p, dir_u[i_w].bell)) ) {
-        //  uncompress loom offset
-        //
-        dir_u[i_w].pog_p = gop << u3a_vits;
-        return;
-      }
-      u3_assert(rod_u->par_p);
-      rod_u = u3to(u3a_road, rod_u->par_p);
-    }
-  }
-}
-
 u3nc_prog*
 u3nc_build_entry_direct(u3_noun sock, u3_noun fol)
 {
-  u3_noun sock_fol = u3nc(u3k(sock), u3k(fol));
-  u3_post fresh_p = u3h_new();
-  u3_noun queu = u3_nul;
-  u3nc_prog* out_u = _n_bite_direct(sock, fol, &queu, true);
-  u3_noun pog = _nc_of_prog(out_u);
-  u3_noun i_larp = u3nc(u3k(sock), pog);
+  u3nc_prog* out_u = _n_bite_direct(sock, fol, true);
+  u3_noun i_larp = u3nc(u3k(sock), _nc_of_prog(out_u));
   u3h_jib(u3R->byc_entry_p, fol, _cb_jib_cons, &i_larp);
-  u3h_put(fresh_p, sock_fol, pog);
-  u3z(sock_fol);
-
-  u3nc_prog* pog_u;
-  u3_noun t;
-  while ( u3_nul != queu ) {
-    u3_assert(c3y == u3r_cell(queu, &sock_fol, &t));
-    u3k(sock_fol); u3k(t); u3z(queu); queu = t;
-
-    if ( u3_none == u3h_git(fresh_p, sock_fol)
-          && c3y == _n_find_direct(sock_fol, &queu, &pog_u) ) {
-      u3h_put(fresh_p, sock_fol, _nc_of_prog(pog_u));
-    }
-    u3z(sock_fol);
-  }
-
-  u3h_walk(fresh_p, _cb_fresh_rewrite);
-  u3h_free(fresh_p);
-
   return out_u;
 }
 

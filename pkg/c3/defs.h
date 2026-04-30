@@ -11,8 +11,8 @@
 
   /** Loobeans - inverse booleans to match nock.
   **/
-#     define c3y      0
-#     define c3n      1
+#     define c3y      (c3_y)0
+#     define c3n      (c3_y)1
 
 #     define _(x)        (c3y == (x))
 #     define __(x)       ((x) ? c3y : c3n)
