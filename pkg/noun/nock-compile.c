@@ -131,9 +131,9 @@ typedef struct __attribute__((__packed__)) {
  *            off: 0 north, -1 south
  */
 static inline u3_noun*
-_nc_peek(c3_ys mov, c3_ys off, c3_y sot_y)
+_nc_peek(c3_ys mov, c3_ys off, c3_w sot_w)
 {
-  return u3to(u3_noun, (u3R->cap_p - mov * sot_y) + off);
+  return u3to(u3_noun, (u3R->cap_p - mov * sot_w) + off);
 }
 
 static inline void
@@ -142,24 +142,6 @@ _nc_put(u3_noun* sot_u, u3_noun som)
   u3_noun old = *sot_u;
   if ( u3_none != old ) u3z(old);
   *sot_u = som;
-}
-
-static inline c3_s
-_nc_resh(c3_y* buf, c3_w* ip_w)
-{
-  c3_y les = buf[(*ip_w)++];
-  c3_y mos = buf[(*ip_w)++];
-  return les | (mos << 8);
-}
-
-static inline c3_w
-_nc_rewo(c3_y* buf, c3_w* ip_w)
-{
-  c3_y one = buf[(*ip_w)++],
-       two = buf[(*ip_w)++],
-       tre = buf[(*ip_w)++],
-       qua = buf[(*ip_w)++];
-  return one | (two << 8) | (tre << 16) | (qua << 24);
 }
 
 static void
@@ -244,6 +226,21 @@ _nc_set_pogp_dire(u3nc_dire* dir_u)
   dir_u->pog_p = u3of(u3nc_prog, _n_find_direct(dir_u->bell));
 }
 
+static c3_d
+_vle_read(c3_y* buf_y, c3_w* ip_w)
+{
+  c3_y byt_y;
+  c3_d out_d = 0;
+  for (c3_d i_d = 0; i_d < 9; i_d++) {
+    byt_y = buf_y[(*ip_w)++];
+    out_d |= ((byt_y & 0x7f) << (i_d * 7));
+    if ( byt_y < 0x80 ) {
+      return out_d;
+    }
+  }
+  u3_assert(!"out of range");
+}
+
 static u3_noun
 // len_y - number of input args, tot_y - total number of regs
 _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
@@ -269,9 +266,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
   #define BURN() goto *lab[pog[ip_w++]]
 #endif
 
-#define BYTE()  ( pog[ip_w++] )
-#define SHOT()  ( _nc_resh(pog, &ip_w) )
-#define WORD()  ( _nc_rewo(pog, &ip_w) )
+#define VAL()   (_vle_read(pog, &ip_w))
 #define PEEK(R) (_nc_peek(mov, off, R))
 
 #define HEAD(som)  ((c3n == u3du(som)) ? 0 : u3h(som))
@@ -287,96 +282,96 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
   BURN();
   {
     do_imm: {
-      c3_s i_s = SHOT();
-      c3_y d_y = BYTE();
-      _nc_put(_nc_peek(mov, off, d_y), u3k(pog_u->lit_u.non[i_s]));
+      c3_w i_w = VAL();
+      c3_w d_w = VAL();
+      _nc_put(_nc_peek(mov, off, d_w), u3k(pog_u->lit_u.non[i_w]));
       BURN();
     }
 
     do_mov: {
-      c3_y s_y = BYTE(), d_y = BYTE();
-      _nc_put(PEEK(d_y), u3k(*PEEK(s_y)));
+      c3_w s_w = VAL(), d_w = VAL();
+      _nc_put(PEEK(d_w), u3k(*PEEK(s_w)));
       BURN();
     }
 
     do_inc: {
-      c3_y s_y = BYTE(), d_y = BYTE();
-      _nc_put(PEEK(d_y), u3i_vint(u3k(*PEEK(s_y))));
+      c3_w s_w = VAL(), d_w = VAL();
+      _nc_put(PEEK(d_w), u3i_vint(u3k(*PEEK(s_w))));
       BURN();
     }
 
     do_con: {
-      c3_y h_y = BYTE(),
-           t_y = BYTE(),
-           d_y = BYTE();
-      _nc_put(PEEK(d_y), u3nc(u3k(*PEEK(h_y)), u3k(*PEEK(h_y))));
+      c3_w h_w = VAL(),
+           t_w = VAL(),
+           d_w = VAL();
+      _nc_put(PEEK(d_w), u3nc(u3k(*PEEK(h_w)), u3k(*PEEK(h_w))));
       BURN();
     }
 
     do_hed: {
-      c3_y s_y = BYTE(), d_y = BYTE();
-      if ( c3n == u3du(*PEEK(s_y)) )
-      _nc_put(PEEK(d_y), u3k(HEAD(*PEEK(s_y))));
+      c3_w s_w = VAL(), d_w = VAL();
+      if ( c3n == u3du(*PEEK(s_w)) )
+      _nc_put(PEEK(d_w), u3k(HEAD(*PEEK(s_w))));
       BURN();
     }
 
     do_tal: {
-      c3_y s_y = BYTE(), d_y = BYTE();
-      _nc_put(PEEK(d_y), u3k(TAIL(*PEEK(s_y))));
+      c3_w s_w = VAL(), d_w = VAL();
+      _nc_put(PEEK(d_w), u3k(TAIL(*PEEK(s_w))));
       BURN();
     }
 
     do_cel: {
-      if ( c3n == u3du(*PEEK(BYTE())) ) {
+      if ( c3n == u3du(*PEEK(VAL())) ) {
         u3m_bail(c3__exit);
       }
       BURN();
     }
 
     do_his: {
-      c3_s hin_s = SHOT(), fol_s = SHOT();
-      static_prologue(pog_u->lit_u.non[hin_s], pog_u->lit_u.non[fol_s]);
+      c3_w hin_w = VAL(), fol_w = VAL();
+      static_prologue(pog_u->lit_u.non[hin_w], pog_u->lit_u.non[fol_w]);
       BURN();
     }
 
     do_hos: {
-      c3_s hin_s = SHOT(), fol_s = SHOT();
-      static_epilogue(pog_u->lit_u.non[hin_s], pog_u->lit_u.non[fol_s]);
+      c3_w hin_w = VAL(), fol_w = VAL();
+      static_epilogue(pog_u->lit_u.non[hin_w], pog_u->lit_u.non[fol_w]);
       BURN();
     }
 
     do_hid: {
-      c3_s hin_s = SHOT();
-      c3_y clu_y = BYTE();
-      c3_s fol_s = SHOT();
-      dynamic_prologue(pog_u->lit_u.non[hin_s], pog_u->lit_u.non[fol_s],
-        *PEEK(clu_y));
+      c3_w hin_w = VAL();
+      c3_w clu_w = VAL();
+      c3_w fol_w = VAL();
+      dynamic_prologue(pog_u->lit_u.non[hin_w], pog_u->lit_u.non[fol_w],
+        *PEEK(clu_w));
       BURN();
     }
 
     do_hod: {
-      c3_s hin_s = SHOT();
-      c3_y clu_y = BYTE();
-      c3_s fol_s = SHOT();
-      dynamic_epilogue(pog_u->lit_u.non[hin_s], pog_u->lit_u.non[fol_s],
-        *PEEK(clu_y));
+      c3_w hin_w = VAL();
+      c3_w clu_w = VAL();
+      c3_w fol_w = VAL();
+      dynamic_epilogue(pog_u->lit_u.non[hin_w], pog_u->lit_u.non[fol_w],
+        *PEEK(clu_w));
       BURN();
     }
 
     do_spy: {
-      c3_y ref_y = BYTE(),
-           pax_y = BYTE(),
-           des_y = BYTE();
-      u3_noun x = u3m_soft_esc(u3k(*PEEK(ref_y)), u3k(*PEEK(pax_y)));
+      c3_w ref_w = VAL(),
+           pax_w = VAL(),
+           des_w = VAL();
+      u3_noun x = u3m_soft_esc(u3k(*PEEK(ref_w)), u3k(*PEEK(pax_w)));
       if ( c3n == u3du(x) ) {
-        u3m_bail(u3nc(1, *PEEK(pax_y)));
+        u3m_bail(u3nc(1, *PEEK(pax_w)));
       }
       else if ( c3n == u3du(u3t(x)) ) {
-        u3t_push(u3nt(c3__hunk, *PEEK(ref_y), *PEEK(pax_y)));
+        u3t_push(u3nt(c3__hunk, *PEEK(ref_w), *PEEK(pax_w)));
         u3m_bail(c3__exit);
       }
       else {
-        _nc_put(PEEK(des_y), u3k(u3t(u3t(x))));
+        _nc_put(PEEK(des_w), u3k(u3t(u3t(x))));
         u3z(x);
         BURN();
       }
@@ -387,9 +382,9 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
     }
 
     do_cal: {
-      c3_s dir_s = SHOT();
-      c3_y des_y = BYTE();
-      u3nc_dire* dir_u = &pog_u->dir_u.dat_u[dir_s];
+      c3_s dir_w = VAL();
+      c3_w des_w = VAL();
+      u3nc_dire* dir_u = &pog_u->dir_u.dat_u[dir_w];
       c3_w len_w = dir_u->len_w;
       u3_noun args[len_w];
       for (c3_w i_w = 0; i_w < len_w; i_w++) {
@@ -398,7 +393,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
       if ( dir_u->ham_u ) {
         u3_weak res = dir_u->ham_u(args);
         if ( u3_none != res ) {
-          _nc_put(PEEK(des_y), res);
+          _nc_put(PEEK(des_w), res);
           for (c3_w i_w = 0; i_w < len_w; i_w++) {
             u3z(args[i_w]);
           }
@@ -410,7 +405,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
 
       fam->ip_w   = ip_w;
       fam->pog_u  = pog_u;
-      fam->tar_y  = des_y;
+      fam->tar_y  = des_w;
       if ( !dir_u->pog_p ) _nc_set_pogp_dire(dir_u);
       pog_u = u3to(u3nc_prog, dir_u->pog_p);
       pog   = pog_u->byc_u.ops_y;
@@ -421,49 +416,49 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
     }
 
     do_lnk: {
-      c3_y sub_y = BYTE(),
-           fol_y = BYTE(),
-           des_y = BYTE();
-      _nc_put(PEEK(des_y), u3n_nock_on(u3k(*PEEK(sub_y)), u3k(*PEEK(fol_y))));
+      c3_w sub_w = VAL(),
+           fol_w = VAL(),
+           des_w = VAL();
+      _nc_put(PEEK(des_w), u3n_nock_on(u3k(*PEEK(sub_w)), u3k(*PEEK(fol_w))));
       BURN();
     }
 
     do_clq: {
-      c3_y som_y = BYTE();
-      c3_w sip_w = WORD();
-      ip_w += ( c3y == u3a_is_cell(*PEEK(som_y)) ) ? 0 : sip_w;
+      c3_w som_w = VAL();
+      c3_w sip_w = VAL();
+      ip_w += ( c3y == u3a_is_cell(*PEEK(som_w)) ) ? 0 : sip_w;
       BURN();
     }
 
     do_eqq: {
-      c3_y one_y = BYTE(), two_y = BYTE();
-      c3_w sip_w = WORD();
-      ip_w += ( c3y == u3r_sing(*PEEK(one_y), *PEEK(two_y)) ) ? 0 : sip_w;
+      c3_w one_w = VAL(), two_w = VAL();
+      c3_w sip_w = VAL();
+      ip_w += ( c3y == u3r_sing(*PEEK(one_w), *PEEK(two_w)) ) ? 0 : sip_w;
       BURN();
     }
 
     do_brn: {
-      c3_y som_y = BYTE();
-      c3_w sip_w = WORD();
-      ip_w += ( c3y == u3x_loob(*PEEK(som_y)) ) ? 0 : sip_w;
+      c3_w som_w = VAL();
+      c3_w sip_w = VAL();
+      ip_w += ( c3y == u3x_loob(*PEEK(som_w)) ) ? 0 : sip_w;
       BURN();
     }
 
     do_adv: {
-      ip_w += WORD();
+      ip_w += VAL();
       BURN();
     }
 
     do_lnt: {
-      c3_y sub_y = BYTE(),
-           fol_y = BYTE();
-      pro = u3n_nock_on(*PEEK(sub_y), *PEEK(fol_y));
+      c3_w sub_w = VAL(),
+           fol_w = VAL();
+      pro = u3n_nock_on(*PEEK(sub_w), *PEEK(fol_w));
       goto done_out;
     }
 
     do_jmp: {
-      c3_s dir_s = SHOT();
-      u3nc_dire* dir_u = &pog_u->dir_u.dat_u[dir_s];
+      c3_w dir_w = VAL();
+      u3nc_dire* dir_u = &pog_u->dir_u.dat_u[dir_w];
       c3_w len_w = dir_u->len_w;
       u3_noun args[len_w];  // XX allocate the array on the road?
       for (c3_w i_w = 0; i_w < len_w; i_w++) {
@@ -492,12 +487,12 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
     }
 
     do_don: {
-      pro = u3k(*PEEK(BYTE()));
+      pro = u3k(*PEEK(VAL()));
       goto done_out;
     }
 
     do_dom: {
-      pro = u3k(pog_u->lit_u.non[SHOT()]);
+      pro = u3k(pog_u->lit_u.non[VAL()]);
       goto done_out;
     }
     
@@ -594,21 +589,6 @@ static c3_w
 _nc_table_get(u3_post har_p, u3_noun som)
 {
   return u3r_word(0, u3x_good(u3h_git(har_p, som)));
-}
-
-static c3_d
-_vle_read(c3_y** buf_y)
-{
-  c3_y byt_y;
-  c3_d out_d = 0;
-  for (c3_d i_d = 0; i_d < 9; i_d++) {
-    byt_y = *(*buf_y)++;
-    out_d |= ((byt_y & 0x7f) << (i_d * 7));
-    if ( byt_y < 0x80 ) {
-      return out_d;
-    }
-  }
-  u3_assert(!"out of range");
 }
 
 static void
