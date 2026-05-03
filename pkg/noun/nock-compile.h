@@ -35,7 +35,7 @@
   } u3nc_dire;
 
   typedef struct _u3nc_prog  {
-    c3_y tot_y;                       // total number of stack slots used
+    c3_w tot_w;                       // total number of stack slots used
     struct {
       c3_w      len_w;                // length of bytecode (bytes)
       c3_y*     ops_y;                // actual array of bytes

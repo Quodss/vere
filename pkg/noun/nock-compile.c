@@ -67,6 +67,7 @@
 */
 
 // All opcodes use VLE immediate arguments (capped at 9 bytes for u64 encoding)
+// XX opcode versions with fixed-size immargs?
 #define OPCODES                                                                 \
   /* instructions in a block */                                                 \
   X(IMM, "imm", &&do_imm), /* [2]: index to literal array -> reg */      \
@@ -85,7 +86,7 @@
   X(CAL, "cal", &&do_cal), /* [2]:  dir -> d */                          \
   X(LNK, "lnk", &&do_lnk), /* [3], Nock(u, f) -> d */                       \
   X(CLQ, "clq", &&do_clq), /* [2]: ?^ (arg, jump) */                                 \
-  X(EQQ, "eqq", &&do_eqq), /* [3]: .= */                              \
+  X(EQQ, "eqq", &&do_eqq), /* [3]: ?= */                              \
   X(BRN, "brn", &&do_brn), /* [2]: ?: */                                 \
   X(ADV, "adv", &&do_adv), /* [1]: unconditional jmp */                        \
   X(LNT, "lnt", &&do_lnt), /* [2], Nock(u, f) */                            \
@@ -258,7 +259,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
   (void)empty;
 
   empty = u3R->cap_p;
-  _nc_push_args(mov, off, pog_u->tot_y, len_y, args);
+  _nc_push_args(mov, off, pog_u->tot_w, len_y, args);
 
 #ifdef VERBOSE_BYTECODE
   #define BURN() fprintf(stderr, "%s ", opcode_names[pog[ip_w]]); goto *lab[pog[ip_w++]]
@@ -273,10 +274,10 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
 #define TAIL(som)  ((c3n == u3du(som)) ? c3__boom : u3t(som))
 
 #define POP_REGS() do {                               \
-  for ( c3_y i_y = 0; i_y < pog_u->tot_y; i_y++ ) {   \
+  for ( c3_y i_y = 0; i_y < pog_u->tot_w; i_y++ ) {   \
         if ( u3_none != *PEEK(i_y) ) u3z(*PEEK(i_y)); \
       }                                               \
-      u3R->cap_p -= (mov * pog_u->tot_y);             \
+      u3R->cap_p -= (mov * pog_u->tot_w);             \
 } while (0)
 
   BURN();
@@ -411,7 +412,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
       pog   = pog_u->byc_u.ops_y;
       ip_w  = 0;
 
-      _nc_push_args(mov, off, pog_u->tot_y, len_w, args);
+      _nc_push_args(mov, off, pog_u->tot_w, len_w, args);
       BURN();
     }
 
@@ -482,7 +483,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
       pog   = pog_u->byc_u.ops_y;
       ip_w  = 0;
 
-      _nc_push_args(mov, off, pog_u->tot_y, len_w, args);
+      _nc_push_args(mov, off, pog_u->tot_w, len_w, args);
       BURN();
     }
 
@@ -571,6 +572,16 @@ _nc_map_tag_cod(u3_noun tag)
   }
 }
 
+static c3_w
+_r_word(u3_noun a)
+{
+  c3_w out_w;
+  if ( c3y == u3r_safe_word(a, &out_w) ) {
+    return out_w;
+  }
+  u3m_bail(c3__fail);
+}
+
 //  RETAINS
 static c3_w
 _nc_table_add(u3_post har_p, u3_noun som)
@@ -581,14 +592,16 @@ _nc_table_add(u3_post har_p, u3_noun som)
     u3h_put(har_p, som, u3i_word(new_w));
     return new_w;
   }
-  return u3r_word(0, out);
+  return _r_word(out);
 }
 
 //  retains
 static c3_w
 _nc_table_get(u3_post har_p, u3_noun som)
 {
-  return u3r_word(0, u3x_good(u3h_git(har_p, som)));
+  u3_weak got = u3h_git(har_p, som);
+  u3_assert(u3_none != got);
+  return _r_word(got);
 }
 
 static void
@@ -701,22 +714,22 @@ _nc_nouncode_measure(u3_noun ops,
       } break;
       
       case c3__jmf: {
-        *arg_w += u3r_word(0, u3qb_lent(u3h(u3t(args))));
+        *arg_w += _r_word(u3qb_lent(u3h(u3t(args))));
         goto _callsite;
       } break;
       
       case c3__jmp: {
-        *arg_w += u3r_word(0, u3qb_lent(u3t(args)));
+        *arg_w += _r_word(u3qb_lent(u3t(args)));
         goto _callsite;
       } break;
 
       case c3__caf: {
-        *arg_w += u3r_word(0, u3qb_lent(u3h(u3t(args))));
+        *arg_w += _r_word(u3qb_lent(u3h(u3t(args))));
         goto _callsite;
       } break;
 
       case c3__cal: {
-        *arg_w += u3r_word(0, u3qb_lent(u3h(u3t(args))));
+        *arg_w += _r_word(u3qb_lent(u3h(u3t(args))));
         goto _callsite;
       } break;
 
@@ -797,14 +810,14 @@ _nc_write_dire(u3nc_dire* dir_u, c3_w** arg_w, u3_noun bell, u3_noun regs, u3_no
 {
   dir_u->arg_w = *arg_w;
   dir_u->bell  = u3k(bell);
-  dir_u->len_w = u3r_word(0, u3qb_lent(regs));
+  dir_u->len_w = _r_word(u3qb_lent(regs));
   dir_u->ring  = u3k(ring);
   dir_u->pog_p = 0;
   dir_u->ham_u = NULL;  //  XX jet matching
   u3_noun r;
   while ( u3_nul != regs ) {
     u3_assert(c3y == u3r_cell(regs, &r, &regs));
-    *(*arg_w)++ = u3r_word(0, r);
+    *(*arg_w)++ = _r_word(r);
   }
 }
 
@@ -819,7 +832,7 @@ _nc_nouncode_write(u3_noun ops,
   c3_w*      dir_w)
 {
   #define WRITE_LIT(SOM)  (_vle_write(ops_y, _nc_table_get(lit_p, SOM)))
-  #define WRITE_REG(SOM)  (_vle_write(ops_y, u3r_word(0, _r_atom(SOM))))
+  #define WRITE_REG(SOM)  (_vle_write(ops_y, _r_word(_r_atom(SOM))))
   u3_noun op, tag, args, z, o, s;
   c3_y ax_z, ax_o;
   while (u3_nul != ops) {
@@ -854,11 +867,11 @@ _nc_nouncode_write(u3_noun ops,
       _branch: {
         u3_assert(c3y == u3r_mean(args, {ax_z, &z}, {ax_o, &o}));
         u3_assert(c3y == u3r_cell(*sip, &s, sip));
-        _vle_write(ops_y, u3r_word(0, s));
+        _vle_write(ops_y, _r_word(s));
         _nc_nouncode_write(z, sip, ops_y, lit_p, mem_u, arg_w, dir_u, dir_w);
         *(*ops_y)++ = ADV;
         u3_assert(c3y == u3r_cell(*sip, &s, sip));
-        _vle_write(ops_y, u3r_word(0, s));
+        _vle_write(ops_y, _r_word(s));
         _nc_nouncode_write(o, sip, ops_y, lit_p, mem_u, arg_w, dir_u, dir_w);
       } break;
      
@@ -981,7 +994,7 @@ _nc_cb_copy(u3_noun kev, void* arr_u)
 
 //  retains
 static u3nc_prog*
-_nc_nouncode_build(u3_noun ops)
+_nc_nouncode_build(u3_noun ops, c3_w tot_w)
 {
   u3_post lit_p = u3h_new();
   c3_w ops_w = 0, mem_w = 0, arg_w = 0, dir_w = 0;
@@ -994,13 +1007,14 @@ _nc_nouncode_build(u3_noun ops)
   //  byte offsets of various buffers:
   //
   c3_w pos_w = siz_w;  //  ops
-  c3_w rog_w = siz_w = c3_align(siz_w + ops_w, sizeof(c3_w), C3_ALGHI);  // args
-  c3_w non_w = siz_w = c3_align((siz_w + arg_w * sizeof(c3_w)), sizeof(u3_noun), C3_ALGHI);  //  literals
-  c3_w mom_w = siz_w = c3_align((siz_w + sizeof(u3_noun) * lit_w), sizeof(u3nc_memo), C3_ALGHI);  //  memo slots
-  c3_w dor_w = siz_w = c3_align((siz_w + sizeof(u3nc_memo) * mem_w), sizeof(u3nc_dire), C3_ALGHI);  // callsite slots
+  c3_w rog_w = siz_w = c3_align(siz_w + ops_w,                     sizeof(c3_w),      C3_ALGHI);  // args
+  c3_w non_w = siz_w = c3_align(siz_w + arg_w * sizeof(c3_w),      sizeof(u3_noun),   C3_ALGHI);  //  literals
+  c3_w mom_w = siz_w = c3_align(siz_w + lit_w * sizeof(u3_noun),   sizeof(u3nc_memo), C3_ALGHI);  //  memo slots
+  c3_w dor_w = siz_w = c3_align(siz_w + mem_w * sizeof(u3nc_memo), sizeof(u3nc_dire), C3_ALGHI);  // callsite slots
   siz_w += sizeof(u3nc_dire) * dir_w;
 
   u3nc_prog* pog_u = u3a_malloc(siz_w);
+  pog_u->tot_w = tot_w;
   pog_u->byc_u.len_w = ops_w;
   c3_y* ops_y = pog_u->byc_u.ops_y = (c3_y*)pog_u + pos_w;
   pog_u->lit_u.len_w = lit_w;
@@ -1030,9 +1044,9 @@ _nc_nouncode_build(u3_noun ops)
 u3nc_prog*
 _n_bite_direct(u3_noun sock, u3_noun fol, c3_t entry_t)
 {
-  u3_noun ops = u3d_bell_ops(u3nc(u3k(sock), u3k(fol)), entry_t);
-  u3nc_prog* out_u = _nc_nouncode_build(ops);
-  u3z(ops);
+  u3_noun ops_tot = u3d_bell_ops_tot(u3nc(u3k(sock), u3k(fol)), entry_t);
+  u3nc_prog* out_u = _nc_nouncode_build(u3h(ops_tot), _r_word(u3t(ops_tot)));
+  u3z(ops_tot);
   return out_u;
 }
 

@@ -19,10 +19,7 @@ u3d_search(u3_noun sub, u3_noun fol);
 u3_weak
 u3d_match_sock(u3_noun cape, u3_noun data, u3_noun list);
 
-c3_y
-u3d_bell_number_args(u3_noun bell);
-
 u3_noun
-u3d_bell_ops(u3_noun bell, c3_t entry_t);
+u3d_bell_ops_tot(u3_noun bell, c3_t entry_t);
 
 #endif /* ifndef U3_DIRECT_H */

@@ -146,10 +146,11 @@ _d_compile(u3_noun sub, u3_noun fol)
   {
       u3m_bail(c3__fail);
   }
-  u3R->dir_ka = u3k(u3t(u3t(pro)));
-  u3_noun out = u3k(u3h(u3t(pro)));
+  u3_noun dir_ka_new = u3dc("slot", 3, u3k(u3t(pro)));
+  u3_noun sock = u3k(u3h(u3t(u3t(pro))));
+  u3R->dir_ka = dir_ka_new;
   u3z(pro);
-  return out;
+  return sock;
 }
 
 //  RETAINS arguments
@@ -168,14 +169,22 @@ u3d_search(u3_noun sub, u3_noun fol)
   return pog_u;
 }
 
-c3_y
-u3d_bell_number_args(u3_noun bell)
-{
-  c3_stub;
-}
-
 u3_noun
-u3d_bell_ops(u3_noun bell, c3_t entry_t)
+u3d_bell_ops_tot(u3_noun bell, c3_t entry_t)
 {
-  c3_stub;
+  u3_noun limb = u3nc(c3__limb, u3i_string("straighten")),
+          gate = u3dc("slap", u3k(u3R->dir_ka), limb),
+          samp = u3nc(u3k(bell), __(entry_t)),
+          slum = u3v_wish("slum"),
+          gul  = u3nt(u3nc(1, 0), u3nc(0, 0), 0),  // |~(^ ~)
+          pro  = u3n_slam_et(gul, slum, u3nc(u3k(u3t(gate)), samp));
+  u3z(gate);
+  u3_assert(_(u3du(pro)));
+  if ( 0 != u3h(pro) )
+  {
+      u3m_bail(c3__fail);
+  }
+  u3_noun out = u3k(u3t(pro));
+  u3z(pro);
+  return out;
 }
