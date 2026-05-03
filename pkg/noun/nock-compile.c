@@ -66,43 +66,34 @@
 ::        else goto o
 */
 
-// Several opcodes "overflow" (from byte to short index) to their successor, so
-// order can matter here.
-// Note that we use an X macro (https://en.wikipedia.org/wiki/X_Macro) to unify
-// the opcode's enum name, string representation, and computed goto into a
-// single structure.
+// All opcodes use VLE immediate arguments (capped at 9 bytes for u64 encoding)
 #define OPCODES                                                                 \
   /* instructions in a block */                                                 \
-  X(IMM, "imm", &&do_imm), /* c3_s, c3_y: index to literal array -> reg */      \
-  X(MOV, "mov", &&do_mov), /* c3_y[2], from -> to */                            \
-  X(INC, "inc", &&do_inc), /* c3_y[2], arg -> prod */                           \
-  X(CON, "con", &&do_con), /* c3_y[3], (hed, tel) -> prod */                    \
-  X(HED, "hed", &&do_hed), /* c3_y[2], arg -> prod */                           \
-  X(TAL, "tal", &&do_tal), /* c3_y[2], arg -> prod */                           \
-  X(CEL, "cel", &&do_cel), /* c3_y */                                           \
-  X(HIS, "his", &&do_his), /* c3_s[2], hint, formula */                         \
-  /*X(HYS, "hys", &&do_hys), */                                                 \
-  X(HOS, "hos", &&do_hos), /* c3_s[2], hint, formula */                         \
-  X(HID, "hid", &&do_hid), /* c3_s, c3_y, c3_s: hint, clue, formula */          \
-  /*X(HYD, "hyd", &&do_hyd), */                                                 \
-  X(HOD, "hod", &&do_hod), /* c3_s, c3_y, c3_s: hint, clue, formula */          \
-  X(SPY, "spy", &&do_spy), /* c3_y[3], (ref, pax) -> out */                     \
-  X(MEM, "mem", &&do_mem), /* c3_y, c3_s, c3_y: [sub sot(fol and cid) res] -> memo */\
-  X(CAL, "cal", &&do_cal), /* c3_s, c3_y:  dir -> d */                          \
-  X(LNK, "lnk", &&do_lnk), /* c3_y[3], Nock(u, f) -> d */                       \
-  /*  X(CAF, "caf", &&do_caf), same as cal? */                                  \
-  /* control-flow instructions */                                               \
-  X(CLQ, "clq", &&do_clq), /* c3_y, c3_w: ?^ */                                 \
-  X(EQQ, "eqq", &&do_eqq), /* c3_y[2], c3_w: .= */                              \
-  X(BRN, "brn", &&do_brn), /* c3_y, c3_w: ?: */                                 \
-  X(ADV, "adv", &&do_adv), /* c3_w: unconditional jmp */                        \
-  X(LNT, "lnt", &&do_lnt), /* c3_y[2], Nock(u, f) */                            \
-  X(JMP, "jmp", &&do_jmp), /* c3_s: dir */                                      \
-  /* X(JMF, "jmf", &&do_jmf), same as jmp? */                                   \
-  X(DON, "don", &&do_don), /* c3_y: return */                                   \
-  X(DOM, "dom", &&do_dom), /* c3_s: lit */                                      \
+  X(IMM, "imm", &&do_imm), /* [2]: index to literal array -> reg */      \
+  X(MOV, "mov", &&do_mov), /* [2], from -> to */                            \
+  X(INC, "inc", &&do_inc), /* [2], arg -> prod */                           \
+  X(CON, "con", &&do_con), /* [3], (hed, tel) -> prod */                    \
+  X(HED, "hed", &&do_hed), /* [2], arg -> prod */                           \
+  X(TAL, "tal", &&do_tal), /* [2], arg -> prod */                           \
+  X(CEL, "cel", &&do_cel), /* [1] */                                           \
+  X(HIS, "his", &&do_his), /* [2], hint, formula */                         \
+  X(HOS, "hos", &&do_hos), /* [2], hint, formula */                         \
+  X(HID, "hid", &&do_hid), /* [3]: hint, clue, formula */          \
+  X(HOD, "hod", &&do_hod), /* [3]: hint, clue, formula */          \
+  X(SPY, "spy", &&do_spy), /* [3], (ref, pax) -> out */                     \
+  X(MEM, "mem", &&do_mem), /* [3]: [sub sot(fol and cid) res] -> memo */\
+  X(CAL, "cal", &&do_cal), /* [2]:  dir -> d */                          \
+  X(LNK, "lnk", &&do_lnk), /* [3], Nock(u, f) -> d */                       \
+  X(CLQ, "clq", &&do_clq), /* [2]: ?^ (arg, jump) */                                 \
+  X(EQQ, "eqq", &&do_eqq), /* [3]: .= */                              \
+  X(BRN, "brn", &&do_brn), /* [2]: ?: */                                 \
+  X(ADV, "adv", &&do_adv), /* [1]: unconditional jmp */                        \
+  X(LNT, "lnt", &&do_lnt), /* [2], Nock(u, f) */                            \
+  X(JMP, "jmp", &&do_jmp), /* [1]: dir */                                      \
+  X(DON, "don", &&do_don), /* [1]: return */                                   \
+  X(DOM, "dom", &&do_dom), /* [1]: lit */                                      \
   X(BOM, "bom", &&do_bom),                                                      \
-  X(MIM, "mim", &&do_mim), /* c3_s, c3_y, c3_y, c3_w: check [sot sub], write to reg if available, else branch */\
+  X(MIM, "mim", &&do_mim), /* [4]: check [sot sub], write to reg if available, else branch */\
   X(LAST, NULL, NULL),
 
 // Opcodes. Define X to select the enum name from OPCODES.
@@ -129,61 +120,6 @@ _nc_to_prog(c3_w pog_w)
 }
 
 static_assert(LAST < 256);
-
-/* _n_arg(): return the size (in bytes) of an opcode's argument
- */
-static inline c3_y
-_n_arg(c3_y cod_y)
-{
-  switch ( cod_y ) {
-    case IMM: return sizeof(c3_s) + sizeof(c3_y);
-
-    case MOV: return sizeof(c3_y[2]);
-
-    case INC: return sizeof(c3_y[2]);
-
-    case CON: return sizeof(c3_y[3]);
-
-    case HED:
-    case TAL: return sizeof(c3_y[2]);
-
-    case CEL: return sizeof(c3_y);
-
-    case HIS: return sizeof(c3_s[2]);
-
-    case HOS: return sizeof(c3_s[2]);
-
-    case HID: 
-    case HOD: return sizeof(c3_s[2]) + sizeof(c3_y);
-
-    case SPY: return sizeof(c3_y[3]);
-
-    case MEM: return sizeof(c3_s) + sizeof(c3_y[2]);
-
-    case CLQ: return sizeof(c3_y) + sizeof(c3_w);
-
-    case EQQ: return sizeof(c3_y[2]) + sizeof(c3_w);
-
-    case BRN: return sizeof(c3_y) + sizeof(c3_w);
-
-    case ADV: return sizeof(c3_w);
-
-    case LNK: return sizeof(c3_y[3]);
-
-    case CAL: return sizeof(c3_s) + sizeof(c3_y);
-
-    case LNT: return sizeof(c3_y[2]);
-
-    case JMP: return sizeof(c3_s);
-    case DON: return sizeof(c3_y);
-    case DOM: return sizeof(c3_s);
-    case BOM: return 0;
-    case MIM: return sizeof(c3_s) + sizeof(c3_y[2]) + sizeof(c3_w);
-
-    default:
-      u3_assert( 0 );
-  }
-}
 
 typedef struct __attribute__((__packed__)) {
   u3nc_prog*  pog_u;
@@ -224,27 +160,6 @@ _nc_rewo(c3_y* buf, c3_w* ip_w)
        tre = buf[(*ip_w)++],
        qua = buf[(*ip_w)++];
   return one | (two << 8) | (tre << 16) | (qua << 24);
-}
-
-static inline void
-_nc_riby(c3_y** buf, c3_y a_y)
-{
-  **buf = a_y;
-  *buf += 1;
-}
-
-static inline void
-_nc_rish(c3_y** buf, c3_s a_s)
-{
-  _nc_riby(buf, a_s & 0xff);
-  _nc_riby(buf, a_s >> 8);
-}
-
-static inline void
-_nc_riwo(c3_y** buf, c3_w a_w)
-{
-  _nc_rish(buf, a_w & 0xffff);
-  _nc_rish(buf, a_w >> 16);
 }
 
 static void
@@ -475,16 +390,17 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
       c3_s dir_s = SHOT();
       c3_y des_y = BYTE();
       u3nc_dire* dir_u = &pog_u->dir_u.dat_u[dir_s];
-      u3_noun args[dir_u->len_y];
-      for (c3_s i_s = 0; i_s < dir_u->len_y; i_s++) {
-        args[i_s] = u3k(*PEEK(i_s));
+      c3_w len_w = dir_u->len_w;
+      u3_noun args[len_w];
+      for (c3_w i_w = 0; i_w < len_w; i_w++) {
+        args[i_w] = u3k(*PEEK(i_w));
       }
       if ( dir_u->ham_u ) {
         u3_weak res = dir_u->ham_u(args);
         if ( u3_none != res ) {
           _nc_put(PEEK(des_y), res);
-          for (c3_y i_y = 0; i_y < dir_u->len_y; i_y++) {
-            u3z(args[i_y]);
+          for (c3_w i_w = 0; i_w < len_w; i_w++) {
+            u3z(args[i_w]);
           }
           BURN();
         }
@@ -500,7 +416,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
       pog   = pog_u->byc_u.ops_y;
       ip_w  = 0;
 
-      _nc_push_args(mov, off, pog_u->tot_y, dir_u->len_y, args);
+      _nc_push_args(mov, off, pog_u->tot_y, len_w, args);
       BURN();
     }
 
@@ -548,15 +464,16 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
     do_jmp: {
       c3_s dir_s = SHOT();
       u3nc_dire* dir_u = &pog_u->dir_u.dat_u[dir_s];
-      u3_noun args[dir_u->len_y];
-      for (c3_s i_s = 0; i_s < dir_u->len_y; i_s++) {
-        args[i_s] = u3k(*PEEK(i_s));
+      c3_w len_w = dir_u->len_w;
+      u3_noun args[len_w];  // XX allocate the array on the road?
+      for (c3_w i_w = 0; i_w < len_w; i_w++) {
+        args[i_w] = u3k(*PEEK(i_w));
       }
       
       if ( dir_u->ham_u ) {
         pro = dir_u->ham_u(args);
         if ( u3_none != pro ) {
-          for (c3_y i_y = 0; i_y < dir_u->len_y; i_y++) {
+          for (c3_y i_y = 0; i_y < len_w; i_y++) {
             u3z(args[i_y]);
           }
           goto done_out;
@@ -570,7 +487,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
       pog   = pog_u->byc_u.ops_y;
       ip_w  = 0;
 
-      _nc_push_args(mov, off, pog_u->tot_y, dir_u->len_y, args);
+      _nc_push_args(mov, off, pog_u->tot_y, len_w, args);
       BURN();
     }
 
@@ -660,12 +577,16 @@ _nc_map_tag_cod(u3_noun tag)
 }
 
 //  RETAINS
-static void
+static c3_w
 _nc_table_add(u3_post har_p, u3_noun som)
 {
-  if ( u3_none == u3h_git(har_p, som) ) {
-    u3h_put(har_p, som, u3i_word(u3h_wyt(har_p)));
+  u3_weak out;
+  if ( u3_none == (out = u3h_git(har_p, som)) ) {
+    c3_w new_w = u3h_wyt(har_p);
+    u3h_put(har_p, som, u3i_word(new_w));
+    return new_w;
   }
+  return u3r_word(0, out);
 }
 
 //  retains
@@ -675,7 +596,62 @@ _nc_table_get(u3_post har_p, u3_noun som)
   return u3r_word(0, u3x_good(u3h_git(har_p, som)));
 }
 
-// RETAINS
+static c3_d
+_vle_read(c3_y** buf_y)
+{
+  c3_y byt_y;
+  c3_d out_d = 0;
+  for (c3_d i_d = 0; i_d < 9; i_d++) {
+    byt_y = *(*buf_y)++;
+    out_d |= ((byt_y & 0x7f) << (i_d * 7));
+    if ( byt_y < 0x80 ) {
+      return out_d;
+    }
+  }
+  u3_assert(!"out of range");
+}
+
+static void
+_vle_write(c3_y** buf_y, c3_d val_d)
+{
+  if ( c3_likely(val_d < 0xf0) ) {
+    *(*buf_y)++ = val_d;
+    return;
+  }
+
+  do {
+    *(*buf_y)++ = 0x80 | (val_d & 0x7f);
+    val_d >>= 7;
+  } while ( val_d > 0x7f );
+
+  *(*buf_y)++ = val_d;
+}
+
+static c3_w
+_vle_measure(c3_d val_d)
+{
+  return (c3_bits_chub(val_d) + 6) / 7;
+}
+
+static c3_w
+_vle_measure_atom(u3_atom a)
+{
+  c3_d val_d;
+  if ( u3r_chub_fit(&val_d, a) ) {
+    return _vle_measure(val_d);
+  }
+  u3m_bail(c3__fail);
+}
+
+inline static u3_atom
+_r_atom(u3_noun som)
+{
+  if ( _(u3ud(som)) ) return som;
+  u3m_bail(c3__fail);
+}
+
+
+//  RETAINS
 static u3_noun
 _nc_nouncode_measure(u3_noun ops, 
   c3_w* ops_w,
@@ -687,111 +663,168 @@ _nc_nouncode_measure(u3_noun ops,
   u3_noun sip = u3_nul;
   u3_noun op, tag, args, z, o;
   c3_y ax_z, ax_o;
+  #define MEASURE_REG(SOM)  (*ops_w += _vle_measure_atom(_r_atom(SOM)))
+  #define MEASURE_LIT(SOM) (*ops_w += _vle_measure(_nc_table_add(lit_p, SOM)))
   while (u3_nul != ops) {
     u3_assert(c3y == u3r_cell(ops, &op, &ops));
     u3_assert(c3y == u3r_cell(op, &tag, &args));
-    *ops_w += 1 + _n_arg(_nc_map_tag_cod(tag));
+    *ops_w += 1;
     switch ( tag ) {
-      default: break;
-      case c3__mim: {
-        c3_stub;
-        goto _branch;
-      }
+      default: u3_assert(0);
       case c3__clq: {
         ax_z = 6;
         ax_o = 7;
+        MEASURE_REG(u3h(args));
         goto _branch;
-      }
+      } break;
+      
       case c3__eqq: {
         ax_z = 14;
         ax_o = 15;
+        MEASURE_REG(u3h(args));
+        MEASURE_REG(u3h(u3t(args)));
         goto _branch;
-      }
+      } break;
+      
       case c3__brn: {
         ax_z = 6;
         ax_o = 7;
+        MEASURE_REG(u3h(args));
         goto _branch;
-      }
+      } break;
+      
+      case c3__mim: {
+        c3_stub;
+        goto _branch;
+      } break;
+
       _branch: {
+        //  [branch-instruction][args][delta1][y-branch][ADV][delta2][n-branch]
+        //                           ^ we are here
+        //  delta1 = len(y-branch) + 1 + len(delta2)
+        //  delta2 = len(n-branch)
+        //
         u3_assert(c3y == u3r_mean(args, {ax_z, &z}, {ax_o, &o}));
-        c3_w off_1 = *ops_w;
-        u3_noun sip_z = _nc_nouncode_measure(z, ops_w, lit_p, mem_w, arg_w, dir_w);
-        *ops_w += 1 + _n_arg(ADV);
-        c3_w off_2 = *ops_w;
-        u3_noun sip_o = _nc_nouncode_measure(o, ops_w, lit_p, mem_w, arg_w, dir_w);
-        c3_w off_3 = *ops_w;
+        c3_w y_ops_w = 0, n_ops_w = 0;
+        u3_noun sip_z = _nc_nouncode_measure(z, &y_ops_w, lit_p, mem_w, arg_w, dir_w);
+        u3_noun sip_o = _nc_nouncode_measure(o, &n_ops_w, lit_p, mem_w, arg_w, dir_w);
+        c3_w delta2_w = n_ops_w;
+        c3_w delta1_w = y_ops_w + 1 + _vle_measure(delta2_w);
+        *ops_w += _vle_measure(delta1_w) + delta1_w + delta2_w;
         sip = u3kb_zing(u3nl(
           sip_o,
-          u3nc(u3i_word(off_3 - off_2), u3_nul),
+          u3nc(u3i_word(delta2_w), u3_nul),
           sip_z,
-          u3nc(u3i_word(off_2 - off_1), u3_nul),
+          u3nc(u3i_word(delta1_w), u3_nul),
           sip
         ));
       } break;
-
-      case c3__dom: {
-        _nc_table_add(lit_p, args);
-      } break;
-
-      case c3__imm: {
-        _nc_table_add(lit_p, u3h(args));
-      } break;
-
-      case c3__his:
-      case c3__hos: {
-        _nc_table_add(lit_p, u3h(args));
-        _nc_table_add(lit_p, u3t(args));
-      } break;
-
-      case c3__hid:
-      case c3__hod: {
-        _nc_table_add(lit_p, u3h(args));
-        _nc_table_add(lit_p, u3t(u3t(args)));
-      } break;
-
-      case c3__mem: {
-        c3_stub;
-      } break;
-
-      case c3__jmp: {
-        dir_w += 1;
-        *arg_w += u3r_word(0, u3qb_lent(u3t(args)));
-      } break;
-
+      
       case c3__jmf: {
-        dir_w += 1;
         *arg_w += u3r_word(0, u3qb_lent(u3h(u3t(args))));
+        goto _callsite;
+      } break;
+      
+      case c3__jmp: {
+        *arg_w += u3r_word(0, u3qb_lent(u3t(args)));
+        goto _callsite;
       } break;
 
       case c3__caf: {
-        dir_w += 1;
         *arg_w += u3r_word(0, u3qb_lent(u3h(u3t(args))));
+        goto _callsite;
       } break;
 
       case c3__cal: {
-        dir_w += 1;
         *arg_w += u3r_word(0, u3qb_lent(u3h(u3t(args))));
+        goto _callsite;
+      } break;
+
+      _callsite: {
+        *ops_w += _vle_measure(*dir_w);
+        *dir_w += 1;
+      } break;
+      
+      case c3__lnt: {
+        MEASURE_REG(u3h(args));
+        MEASURE_REG(u3t(args));
+      } break;
+      
+      case c3__don: {
+        MEASURE_REG(args);
+      } break;
+      
+      case c3__dom: {
+        MEASURE_LIT(args);
+      } break;
+      
+      case c3__bom: {
+
+      } break;
+      
+      case c3__imm: {
+        MEASURE_LIT(u3h(args));
+        MEASURE_REG(u3t(args));
+      } break;
+      
+      case c3__mov:
+      case c3__inc:
+      case c3__hed:
+      case c3__tal: {
+        MEASURE_REG(u3h(args));
+        MEASURE_REG(u3t(args));
+      } break;
+      
+      case c3__cel: {
+        MEASURE_REG(args);
+      } break;
+      
+      case c3__his:
+      case c3__hos: {
+        MEASURE_LIT(u3h(args));
+        MEASURE_LIT(u3t(args));
+      } break;
+      
+      case c3__hid:
+      case c3__hod: {
+        MEASURE_LIT(u3h(args));
+        MEASURE_REG(u3h(u3t(args)));
+        MEASURE_LIT(u3t(u3t(args)));
+      } break;
+      
+      case c3__mem: {
+        c3_stub;
+      } break;
+      
+      case c3__spy:
+      case c3__lnk:
+      case c3__con: {
+        MEASURE_REG(u3h(args));
+        MEASURE_REG(u3h(u3t(args)));
+        MEASURE_REG(u3t(u3t(args)));
       } break;
     }
   }
+  #undef MEASURE_REG
+  #undef MEASURE_LIT
   return sip;
 }
 
 
 //  retains
 static void
-_nc_write_dire(u3nc_dire* dir_u, c3_y** arg_y, u3_noun bell, u3_noun regs, u3_noun ring)
+_nc_write_dire(u3nc_dire* dir_u, c3_w** arg_w, u3_noun bell, u3_noun regs, u3_noun ring)
 {
-  dir_u->arg_y = *arg_y;
+  dir_u->arg_w = *arg_w;
   dir_u->bell  = u3k(bell);
-  dir_u->len_y = u3r_word(0, u3qb_lent(regs));
+  dir_u->len_w = u3r_word(0, u3qb_lent(regs));
   dir_u->ring  = u3k(ring);
   dir_u->pog_p = 0;
   dir_u->ham_u = NULL;  //  XX jet matching
   u3_noun r;
   while ( u3_nul != regs ) {
     u3_assert(c3y == u3r_cell(regs, &r, &regs));
-    _nc_riby(arg_y, u3r_byte(0, r));
+    *(*arg_w)++ = u3r_word(0, r);
   }
 }
 
@@ -801,18 +834,18 @@ _nc_nouncode_write(u3_noun ops,
   c3_y**      ops_y,
   u3_post     lit_p,
   u3nc_memo** mem_u,
-  c3_y**      arg_y,
+  c3_w**      arg_w,
   u3nc_dire* dir_u,
-  c3_s*      dir_s)
+  c3_w*      dir_w)
 {
-  #define WRITE_LIT(SOM) (_nc_rish(ops_y, _nc_table_get(lit_p, SOM)))
-  #define WRITE_REG(SOM)  (_nc_riby(ops_y, u3r_byte(0, SOM)))
+  #define WRITE_LIT(SOM)  (_vle_write(ops_y, _nc_table_get(lit_p, SOM)))
+  #define WRITE_REG(SOM)  (_vle_write(ops_y, u3r_word(0, _r_atom(SOM))))
   u3_noun op, tag, args, z, o, s;
   c3_y ax_z, ax_o;
   while (u3_nul != ops) {
     u3_assert(c3y == u3r_cell(ops, &op, &ops));
     u3_assert(c3y == u3r_cell(op, &tag, &args));
-    _nc_riby(ops_y, _nc_map_tag_cod(tag));
+    *(*ops_y)++ = _nc_map_tag_cod(tag);
     switch ( tag ) {
       default: break;
       case c3__mim: {
@@ -841,12 +874,12 @@ _nc_nouncode_write(u3_noun ops,
       _branch: {
         u3_assert(c3y == u3r_mean(args, {ax_z, &z}, {ax_o, &o}));
         u3_assert(c3y == u3r_cell(*sip, &s, sip));
-        _nc_riwo(ops_y, u3r_word(0, s));
-        _nc_nouncode_write(z, sip, ops_y, lit_p, mem_u, arg_y, dir_u, dir_s);
-        _nc_riby(ops_y, ADV);
+        _vle_write(ops_y, u3r_word(0, s));
+        _nc_nouncode_write(z, sip, ops_y, lit_p, mem_u, arg_w, dir_u, dir_w);
+        *(*ops_y)++ = ADV;
         u3_assert(c3y == u3r_cell(*sip, &s, sip));
-        _nc_riwo(ops_y, u3r_word(0, s));
-        _nc_nouncode_write(o, sip, ops_y, lit_p, mem_u, arg_y, dir_u, dir_s);
+        _vle_write(ops_y, u3r_word(0, s));
+        _nc_nouncode_write(o, sip, ops_y, lit_p, mem_u, arg_w, dir_u, dir_w);
       } break;
      
       case c3__dom: {
@@ -854,7 +887,6 @@ _nc_nouncode_write(u3_noun ops,
       } break;
 
       case c3__imm: {
-        _nc_rish(ops_y, _nc_table_get(lit_p, u3h(args)));
         WRITE_LIT(u3h(args));
         WRITE_REG(u3t(args));
       } break;
@@ -877,23 +909,23 @@ _nc_nouncode_write(u3_noun ops,
       } break;
 
       case c3__jmp: {
-        _nc_rish(ops_y, *dir_s);
+        _vle_write(ops_y, *dir_w);
         u3_noun bell, regs;
         u3_assert(c3y == u3r_mean(args, {2, &bell}, {3, &regs}));
-        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, u3_nul);
-        (*dir_s)++;
+        _nc_write_dire(dir_u + *dir_w, arg_w, bell, regs, u3_nul);
+        (*dir_w)++;
       } break;
 
       case c3__jmf: {
-        _nc_rish(ops_y, *dir_s);
+        _vle_write(ops_y, *dir_w);
         u3_noun bell, regs, ring;
         u3_assert(c3y == u3r_mean(args, {2, &bell}, {6, &regs}, {7, &ring}));
-        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, ring);
-        (*dir_s)++;
+        _nc_write_dire(dir_u + *dir_w, arg_w, bell, regs, ring);
+        (*dir_w)++;
       } break;
 
       case c3__caf: {
-        _nc_rish(ops_y, *dir_s);
+        _vle_write(ops_y, *dir_w);
         u3_noun bell, regs, ring, r;
         u3_assert(c3y == u3r_mean(args,
                                   {2, &bell},
@@ -902,12 +934,12 @@ _nc_nouncode_write(u3_noun ops,
                                   {15, &ring})
         );
         WRITE_REG(r);
-        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, ring);
-        (*dir_s)++;
+        _nc_write_dire(dir_u + *dir_w, arg_w, bell, regs, ring);
+        (*dir_w)++;
       } break;
 
       case c3__cal: {
-        _nc_rish(ops_y, *dir_s);
+        _vle_write(ops_y, *dir_w);
         u3_noun bell, regs, r;
         u3_assert(c3y == u3r_mean(args,
                                   {2, &bell},
@@ -915,11 +947,46 @@ _nc_nouncode_write(u3_noun ops,
                                   {7, &r})
         );
         WRITE_REG(r);
-        _nc_write_dire(dir_u + *dir_s, arg_y, bell, regs, u3_nul);
-        (*dir_s)++;
+        _nc_write_dire(dir_u + *dir_w, arg_w, bell, regs, u3_nul);
+        (*dir_w)++;
+      } break;
+
+      case c3__lnt: {
+        WRITE_REG(u3h(args));
+        WRITE_REG(u3t(args));
+      } break;
+
+      case c3__don: {
+        WRITE_REG(args);
+      } break;
+
+      case c3__bom: {
+
+      } break;
+
+      case c3__mov:
+      case c3__inc:
+      case c3__hed:
+      case c3__tal: {
+        WRITE_REG(u3h(args));
+        WRITE_REG(u3t(args));
+      } break;
+
+      case c3__cel: {
+        WRITE_REG(args);
+      } break;
+
+      case c3__spy:
+      case c3__lnk:
+      case c3__con: {
+        WRITE_REG(u3h(args));
+        WRITE_REG(u3h(u3t(args)));
+        WRITE_REG(u3t(u3t(args)));
       } break;
     }
   }
+  #undef WRITE_REG
+  #undef WRITE_LIT
 }
 
 static void
@@ -947,8 +1014,8 @@ _nc_nouncode_build(u3_noun ops)
   //  byte offsets of various buffers:
   //
   c3_w pos_w = siz_w;  //  ops
-  c3_w rog_w = siz_w = siz_w + ops_w;  // args
-  c3_w non_w = siz_w = c3_align((siz_w + arg_w), sizeof(u3_noun), C3_ALGHI);  //  literals
+  c3_w rog_w = siz_w = c3_align(siz_w + ops_w, sizeof(c3_w), C3_ALGHI);  // args
+  c3_w non_w = siz_w = c3_align((siz_w + arg_w * sizeof(c3_w)), sizeof(u3_noun), C3_ALGHI);  //  literals
   c3_w mom_w = siz_w = c3_align((siz_w + sizeof(u3_noun) * lit_w), sizeof(u3nc_memo), C3_ALGHI);  //  memo slots
   c3_w dor_w = siz_w = c3_align((siz_w + sizeof(u3nc_memo) * mem_w), sizeof(u3nc_dire), C3_ALGHI);  // callsite slots
   siz_w += sizeof(u3nc_dire) * dir_w;
@@ -963,7 +1030,7 @@ _nc_nouncode_build(u3_noun ops)
   pog_u->dir_u.len_w = dir_w;
   u3nc_dire* dir_u = pog_u->dir_u.dat_u = (u3nc_dire*)((c3_y*)pog_u + dor_w);
 
-  c3_y* arg_y = (c3_y*)pog_u + rog_w;
+  c3_w* rag_w = (c3_w*)((c3_y*)pog_u + rog_w);
 
   for (c3_w i_w = 0; i_w < lit_w; i_w++) {
     pog_u->lit_u.non[i_w] = u3_none;
@@ -972,8 +1039,9 @@ _nc_nouncode_build(u3_noun ops)
   for (c3_w i_w = 0; i_w < lit_w; i_w++) {
     u3_assert(u3_none != pog_u->lit_u.non[i_w]);
   }
-  c3_s dir_s = 0;
-  _nc_nouncode_write(ops, &sip, &ops_y, lit_p, &mem_u, &arg_y, dir_u, &dir_s);
+
+  dir_w = 0;
+  _nc_nouncode_write(ops, &sip, &ops_y, lit_p, &mem_u, &rag_w, dir_u, &dir_w);
   u3z(sip);
   u3h_free(lit_p);
   return pog_u;
