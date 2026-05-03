@@ -119,6 +119,7 @@
 #   define c3__bong   c3_s4('b','o','n','g')
 #   define c3__book   c3_s4('b','o','o','k')
 #   define c3__bool   c3_s4('b','o','o','l')
+#   define c3__boom   c3_s4('b','o','o','m')
 #   define c3__boot   c3_s4('b','o','o','t')
 #   define c3__born   c3_s4('b','o','r','n')
 #   define c3__both   c3_s4('b','o','t','h')

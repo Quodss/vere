@@ -269,8 +269,8 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
 #define VAL()   (_vle_read(pog, &ip_w))
 #define PEEK(R) (_nc_peek(mov, off, R))
 
-#define HEAD(som)  ((c3n == u3du(som)) ? 0 : u3h(som))
-#define TAIL(som)  ((c3n == u3du(som)) ? 0 : u3t(som))
+#define HEAD(som)  ((c3n == u3du(som)) ? c3__boom : u3h(som))
+#define TAIL(som)  ((c3n == u3du(som)) ? c3__boom : u3t(som))
 
 #define POP_REGS() do {                               \
   for ( c3_y i_y = 0; i_y < pog_u->tot_y; i_y++ ) {   \
