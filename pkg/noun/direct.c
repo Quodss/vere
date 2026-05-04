@@ -137,9 +137,8 @@ _d_compile(u3_noun sub, u3_noun fol)
   u3_noun limb = u3nc(c3__limb, u3i_string("compile")),
           comp = u3dc("slap", u3R->dir_ka, limb),
           samp = u3nt(u3nt(c3__cell, c3__noun, c3__noun), u3k(sub), u3k(fol)),
-          slam = u3v_wish("slam"),
           gul  = u3nt(u3nc(1, 0), u3nc(0, 0), 0),  // |~(^ ~)
-          pro  = u3n_slam_et(gul, slam, u3nc(comp, samp));
+          pro  = u3n_slam_et(gul, u3v_wish("slam"), u3nc(comp, samp));
   
   u3_assert(_(u3du(pro)));
   if ( 0 != u3h(pro) )
@@ -175,9 +174,8 @@ u3d_bell_ops_tot(u3_noun bell, c3_t entry_t)
   u3_noun limb = u3nc(c3__limb, u3i_string("straighten")),
           gate = u3dc("slap", u3k(u3R->dir_ka), limb),
           samp = u3nc(u3k(bell), __(entry_t)),
-          slum = u3v_wish("slum"),
           gul  = u3nt(u3nc(1, 0), u3nc(0, 0), 0),  // |~(^ ~)
-          pro  = u3n_slam_et(gul, slum, u3nc(u3k(u3t(gate)), samp));
+          pro  = u3n_slam_et(gul, u3v_wish("slum"), u3nc(u3k(u3t(gate)), samp));
   u3z(gate);
   u3_assert(_(u3du(pro)));
   if ( 0 != u3h(pro) )
