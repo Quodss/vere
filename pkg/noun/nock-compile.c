@@ -193,17 +193,18 @@ dynamic_epilogue(u3_noun hint, u3_noun formula, u3_noun clue)
 }
 
 static void
-_nc_push_args(c3_ys mov, c3_ys off, c3_y tot_y, c3_y len_y, u3_noun* args)
+_nc_push_args(c3_ys mov, c3_ys off, c3_w tot_w, c3_w len_w, u3_noun* args)
 {
-  _nc_move(mov, off, tot_y);
-  for ( c3_y i_y = 0; i_y < tot_y; i_y++) {
-    *_nc_peek(mov, off, i_y) = ( i_y < len_y ) ? args[i_y] : u3_none;
+  _nc_move(mov, off, tot_w);
+  for ( c3_y i_y = 0; i_y < tot_w; i_y++) {
+    *_nc_peek(mov, off, i_y) = ( i_y < len_w ) ? args[i_y] : u3_none;
   }
 }
 
 u3nc_prog*
 _n_bite_direct(u3_noun sock, u3_noun fol, c3_t entry_t);
 
+//  RETAINS
 static u3nc_prog*
 _n_find_direct(u3_noun sock_fol)
 {
@@ -242,9 +243,9 @@ _vle_read(c3_y* buf_y, c3_w* ip_w)
   u3_assert(!"out of range");
 }
 
+// len_w - number of input args
 static u3_noun
-// len_y - number of input args, tot_y - total number of regs
-_nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
+_nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
 {
 # define X(opcode, name, indirect_jump) indirect_jump
   static void* lab[] = { OPCODES };
@@ -259,7 +260,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
   (void)empty;
 
   empty = u3R->cap_p;
-  _nc_push_args(mov, off, pog_u->tot_w, len_y, args);
+  _nc_push_args(mov, off, pog_u->tot_w, len_w, args);
 
 #ifdef VERBOSE_BYTECODE
   #define BURN() fprintf(stderr, "%s ", opcode_names[pog[ip_w]]); goto *lab[pog[ip_w++]]
@@ -524,7 +525,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_y len_y, c3_ys mov, c3_ys off)
 }
 
 static u3_noun
-_nc_burn_out(u3nc_prog* pog_u, u3_noun* args, c3_y len_y)
+_nc_burn_out(u3nc_prog* pog_u, u3_noun* args, c3_w len_w)
 {
   c3_ys mov, off;
   if ( c3y == u3a_is_north(u3R) ) {
@@ -535,7 +536,7 @@ _nc_burn_out(u3nc_prog* pog_u, u3_noun* args, c3_y len_y)
     mov = 1;
     off = -1;
   }
-  return _nc_burn(pog_u, args, len_y, mov, off);
+  return _nc_burn(pog_u, args, len_w, mov, off);
 }
 
 static inline c3_y
@@ -572,6 +573,7 @@ _nc_map_tag_cod(u3_noun tag)
   }
 }
 
+//  RETAINS
 static c3_w
 _r_word(u3_noun a)
 {
@@ -595,7 +597,7 @@ _nc_table_add(u3_post har_p, u3_noun som)
   return _r_word(out);
 }
 
-//  retains
+//  RETAINS
 static c3_w
 _nc_table_get(u3_post har_p, u3_noun som)
 {
@@ -620,12 +622,14 @@ _vle_write(c3_y** buf_y, c3_d val_d)
   *(*buf_y)++ = val_d;
 }
 
+//  RETAINS
 static c3_w
 _vle_measure(c3_d val_d)
 {
   return (c3_bits_chub(val_d) + 6) / 7;
 }
 
+//  RETAINS
 static c3_w
 _vle_measure_atom(u3_atom a)
 {
@@ -636,6 +640,7 @@ _vle_measure_atom(u3_atom a)
   u3m_bail(c3__fail);
 }
 
+//  RETAINS
 inline static u3_atom
 _r_atom(u3_noun som)
 {
@@ -644,7 +649,7 @@ _r_atom(u3_noun som)
 }
 
 
-//  RETAINS
+//  RETAINS arguments
 static u3_noun
 _nc_nouncode_measure(u3_noun ops, 
   c3_w* ops_w,
@@ -804,7 +809,7 @@ _nc_nouncode_measure(u3_noun ops,
 }
 
 
-//  retains
+//  RETAINS
 static void
 _nc_write_dire(u3nc_dire* dir_u, c3_w** arg_w, u3_noun bell, u3_noun regs, u3_noun ring)
 {
@@ -821,6 +826,7 @@ _nc_write_dire(u3nc_dire* dir_u, c3_w** arg_w, u3_noun bell, u3_noun regs, u3_no
   }
 }
 
+//  RETAINS
 static void
 _nc_nouncode_write(u3_noun ops,
   u3_noun* sip,
@@ -992,7 +998,7 @@ _nc_cb_copy(u3_noun kev, void* arr_u)
   non_u[idx] = u3k(non);
 }
 
-//  retains
+//  RETAINS
 static u3nc_prog*
 _nc_nouncode_build(u3_noun ops, c3_w tot_w)
 {
@@ -1041,6 +1047,7 @@ _nc_nouncode_build(u3_noun ops, c3_w tot_w)
   return pog_u;
 }
 
+//  RETAINS
 u3nc_prog*
 _n_bite_direct(u3_noun sock, u3_noun fol, c3_t entry_t)
 {
@@ -1056,6 +1063,7 @@ _cb_jib_cons(u3_weak list, void* ptr_v)
   return u3nc(*(u3_noun*)ptr_v, ( u3_none == list ) ? u3_nul : list);
 }
 
+//  RETAINS
 u3nc_prog*
 u3nc_build_entry_direct(u3_noun sock, u3_noun fol)
 {
@@ -1065,6 +1073,7 @@ u3nc_build_entry_direct(u3_noun sock, u3_noun fol)
   return out_u;
 }
 
+//  RETAINS
 u3nc_prog*
 u3nc_look_entry_direct(u3_noun sub, u3_noun fol)
 {
@@ -1083,5 +1092,7 @@ u3nc_look_entry_direct(u3_noun sub, u3_noun fol)
 u3_noun
 u3nc_nock_on(u3_noun bus, u3_noun fol)
 {
-  return _nc_burn_out(u3d_search(bus, fol), &bus, 1);
+  u3_noun pro = _nc_burn_out(u3d_search(bus, fol), &bus, 1);
+  u3z(fol);
+  return pro;
 }

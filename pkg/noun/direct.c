@@ -168,6 +168,7 @@ u3d_search(u3_noun sub, u3_noun fol)
   return pog_u;
 }
 
+//  RETAINS
 u3_noun
 u3d_bell_ops_tot(u3_noun bell, c3_t entry_t)
 {
