@@ -73,6 +73,7 @@ u3d_prep_ka()
   if ( u3R->dir_ka ) {
     return;
   }
+  fprintf(stderr, "prep_ka\r\n");
   u3_noun hoons = u3s_cue_bytes((c3_d)U3_Ska_Verb_len, U3_Ska_Verb);
   u3_noun fol, sock, soak, noir, skan, gene, line, vere;
   if ( c3n == u3r_mean(hoons,
@@ -93,8 +94,9 @@ u3d_prep_ka()
     u3k(noir), u3nq(
     u3k(skan),
     u3k(gene),
-    u3k(line), u3nc(
+    u3k(line), u3nt(
     u3k(vere),
+    u3v_wish("!>(..zuse)"),
     u3v_wish("..zuse")
   )));
 
