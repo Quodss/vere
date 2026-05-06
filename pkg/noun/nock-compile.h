@@ -27,7 +27,6 @@
     u3_noun          bell;                    //  [sock formula]
     u3p(_u3nc_prog)  pog_p;                   //  static program
     c3_w             len_w;                   //  number of arguments
-    // c3_y             tot_y;                   //  total number of registers
     c3_w*            arg_w;                   //  register indices
     u3_noun          ring;                    //  ~ or [path axis]
     u3_weak(*        ham_u)(u3_noun*);        //  jet arm, nullable
@@ -40,6 +39,10 @@
       c3_w      len_w;                // length of bytecode (bytes)
       c3_y*     ops_y;                // actual array of bytes
     } byc_u;                          // bytecode
+    struct {
+      c3_w      len_w;
+      c3_w*     dat_w;                //  array of argument slots for dire
+    } arg_u;                          //  elems of dire have slices of that
     struct {
       c3_w      len_w;                // number of literals
       u3_noun*  non;                  // array of literals
@@ -111,11 +114,6 @@
      */
       void
       u3nc_rewrite_compact(void);
-
-    /* u3nc_free(): free bytecode cache.
-     */
-      void
-      u3nc_free(void);
 
     /* u3nc_ream(): refresh after restoring from checkpoint.
     */

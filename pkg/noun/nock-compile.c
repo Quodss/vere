@@ -998,17 +998,10 @@ _nc_cb_copy(u3_noun kev, void* arr_u)
   non_u[idx] = u3k(non);
 }
 
-//  RETAINS
 static u3nc_prog*
-_nc_nouncode_build(u3_noun ops, c3_w tot_w)
+_nc_prog_new(c3_w ops_w, c3_w arg_w, c3_w lit_w, c3_w mem_w, c3_w dir_w, c3_w tot_w)
 {
-  u3_post lit_p = u3h_new();
-  c3_w ops_w = 0, mem_w = 0, arg_w = 0, dir_w = 0;
-  u3_noun sip = _nc_nouncode_measure(ops, &ops_w, lit_p, &mem_w, &arg_w, &dir_w);
-  c3_w lit_w = u3h_wyt(lit_p);
-
   //  {u3nc_prog}[ops][args][literals][memo][dire]
-
   c3_w siz_w = sizeof(u3nc_prog);
   //  byte offsets of various buffers:
   //
@@ -1022,15 +1015,29 @@ _nc_nouncode_build(u3_noun ops, c3_w tot_w)
   u3nc_prog* pog_u = u3a_malloc(siz_w);
   pog_u->tot_w = tot_w;
   pog_u->byc_u.len_w = ops_w;
-  c3_y* ops_y = pog_u->byc_u.ops_y = (c3_y*)pog_u + pos_w;
+  pog_u->arg_u.len_w = arg_w;
   pog_u->lit_u.len_w = lit_w;
-  pog_u->lit_u.non = (u3_noun*)((c3_y*)pog_u + non_w);
   pog_u->mem_u.len_w = mem_w;
-  u3nc_memo* mem_u = pog_u->mem_u.sot_u = (u3nc_memo*)((c3_y*)pog_u + mom_w);
   pog_u->dir_u.len_w = dir_w;
-  u3nc_dire* dir_u = pog_u->dir_u.dat_u = (u3nc_dire*)((c3_y*)pog_u + dor_w);
+  pog_u->byc_u.ops_y =              (c3_y*)pog_u + pos_w;
+  pog_u->arg_u.dat_w =      (c3_w*)((c3_y*)pog_u + rog_w);
+  pog_u->lit_u.non   =   (u3_noun*)((c3_y*)pog_u + non_w);
+  pog_u->mem_u.sot_u = (u3nc_memo*)((c3_y*)pog_u + mom_w);
+  pog_u->dir_u.dat_u = (u3nc_dire*)((c3_y*)pog_u + dor_w);
 
-  c3_w* rag_w = (c3_w*)((c3_y*)pog_u + rog_w);
+  return pog_u;
+}
+
+//  RETAINS
+static u3nc_prog*
+_nc_nouncode_build(u3_noun ops, c3_w tot_w)
+{
+  u3_post lit_p = u3h_new();
+  c3_w ops_w = 0, mem_w = 0, arg_w = 0, dir_w = 0;
+  u3_noun sip = _nc_nouncode_measure(ops, &ops_w, lit_p, &mem_w, &arg_w, &dir_w);
+  c3_w lit_w = u3h_wyt(lit_p);
+  
+  u3nc_prog* pog_u = _nc_prog_new(ops_w, arg_w, lit_w, mem_w, dir_w, tot_w);
 
   for (c3_w i_w = 0; i_w < lit_w; i_w++) {
     pog_u->lit_u.non[i_w] = u3_none;
@@ -1041,7 +1048,9 @@ _nc_nouncode_build(u3_noun ops, c3_w tot_w)
   }
 
   dir_w = 0;
-  _nc_nouncode_write(ops, &sip, &ops_y, lit_p, &mem_u, &rag_w, dir_u, &dir_w);
+  _nc_nouncode_write(ops, &sip, &pog_u->byc_u.ops_y, lit_p, &pog_u->mem_u.sot_u,
+    &pog_u->arg_u.dat_w, pog_u->dir_u.dat_u, &dir_w);
+
   u3z(sip);
   u3h_free(lit_p);
   return pog_u;
@@ -1095,4 +1104,216 @@ u3nc_nock_on(u3_noun bus, u3_noun fol)
   u3_noun pro = _nc_burn_out(u3d_search(bus, fol), &bus, 1);
   u3z(fol);
   return pro;
+}
+
+static u3p(u3nc_prog)
+_nc_take_prog_cb(c3_w pog_w)
+{
+  u3nc_prog* pog_u = _nc_to_prog(pog_w);
+  u3nc_prog* gop_u = _nc_prog_new(pog_u->byc_u.len_w,
+    pog_u->arg_u.len_w,
+    pog_u->lit_u.len_w,
+    pog_u->mem_u.len_w,
+    pog_u->dir_u.len_w,
+    pog_u->tot_w);
+
+  memcpy(gop_u->byc_u.ops_y, pog_u->byc_u.ops_y, pog_u->byc_u.len_w);
+  memcpy(gop_u->arg_u.dat_w,
+    pog_u->arg_u.dat_w,
+    pog_u->arg_u.len_w * sizeof(*pog_u->arg_u.dat_w));
+  
+  c3_w l_w = pog_u->lit_u.len_w;
+  for (c3_w i_w = 0; i_w < l_w; i_w++) {
+    gop_u->lit_u.non[i_w] = u3a_take(pog_u->lit_u.non[i_w]);
+  }
+
+  l_w = pog_u->mem_u.len_w;
+  for (c3_w i_w = 0; i_w < l_w; i_w++) {
+    gop_u->mem_u.sot_u[i_w].cid = pog_u->mem_u.sot_u[i_w].cid;
+    gop_u->mem_u.sot_u[i_w].key = u3a_take(pog_u->mem_u.sot_u[i_w].key);
+  }
+
+  l_w = pog_u->dir_u.len_w;
+  for (c3_w i_w = 0; i_w < l_w; i_w++) {
+    gop_u->dir_u.dat_u[i_w].bell = u3a_take(pog_u->dir_u.dat_u[i_w].bell);
+    gop_u->dir_u.dat_u[i_w].ring = u3a_take(pog_u->dir_u.dat_u[i_w].ring);
+    gop_u->dir_u.dat_u[i_w].pog_p = 0;
+    gop_u->dir_u.dat_u[i_w].len_w = pog_u->dir_u.dat_u[i_w].len_w;
+    gop_u->dir_u.dat_u[i_w].arg_w = gop_u->arg_u.dat_w +
+      (pog_u->dir_u.dat_u[i_w].arg_w - pog_u->arg_u.dat_w);
+    gop_u->dir_u.dat_u[i_w].ham_u = pog_u->dir_u.dat_u[i_w].ham_u;
+    gop_u->dir_u.dat_u[i_w].axe_l = pog_u->dir_u.dat_u[i_w].axe_l;
+  }
+
+  return _nc_of_prog(gop_u);
+}
+
+u3p(u3h_root)
+u3nc_take(u3p(u3h_root) har_p)
+{
+  return u3h_take_with(har_p, _nc_take_prog_cb);
+}
+
+static void
+_nc_prog_free(u3nc_prog* pog_u)
+{
+  c3_w i_w, l_w = pog_u->lit_u.len_w;
+  for (i_w = 0; i_w < l_w; i_w++) {
+    u3z(pog_u->lit_u.non[i_w]);
+  }
+  
+  l_w = pog_u->mem_u.len_w;
+  for (i_w = 0; i_w < l_w; i_w++) {
+    u3z(pog_u->mem_u.sot_u[i_w].key);
+  }
+
+  l_w = pog_u->dir_u.len_w;
+  for (i_w = 0; i_w < l_w; i_w++) {
+   u3z(pog_u->dir_u.dat_u[i_w].bell);
+   u3z(pog_u->dir_u.dat_u[i_w].ring);
+  }
+
+  u3a_free(pog_u);
+}
+
+static void
+_nc_merge_cb(u3_noun kev, void* wit)
+{
+  u3p(u3h_root) dar_p = *(u3p(u3h_root)*)wit;
+  u3_weak         got;
+  u3_noun         key;
+  c3_w          pog_w;
+  u3x_cell(kev, &key, &pog_w);
+
+  got   = u3h_git(dar_p, key);
+
+  if ( u3_none != got ) {
+    u3nc_prog* sep_u = _nc_to_prog(got);
+    _nc_prog_free(sep_u);
+  }
+
+  u3h_put(dar_p, key, pog_w);
+}
+
+void
+u3nc_reap(u3p(u3h_root) dar_p)
+{
+  if ( !u3h_wyt(dar_p) ) return;
+
+  u3h_walk_with(dar_p, _nc_merge_cb, &u3R->byc_direct_p);
+
+  u3h_free(dar_p);
+}
+
+static c3_w
+_nc_prog_mark(u3nc_prog* pog_u)
+{
+  c3_w i_w, tot_w = u3a_mark_mptr(pog_u);
+  c3_w l_w = pog_u->lit_u.len_w;
+  for (c3_w i_w = 0; i_w < l_w; i_w++) {
+    tot_w += u3a_mark_noun(pog_u->lit_u.non[i_w]);
+  }
+
+  l_w = pog_u->mem_u.len_w;
+  for (c3_w i_w = 0; i_w < l_w; i_w++) {
+    tot_w += u3a_mark_noun(pog_u->mem_u.sot_u[i_w].key);
+  }
+
+  l_w = pog_u->dir_u.len_w;
+  for (c3_w i_w = 0; i_w < l_w; i_w++) {
+    tot_w += u3a_take(pog_u->dir_u.dat_u[i_w].bell);
+    tot_w += u3a_take(pog_u->dir_u.dat_u[i_w].ring);
+  }
+
+  return tot_w;
+}
+
+static void
+_nc_entry_mark(u3_noun kev, void* ptr_v)
+{
+  u3_noun i, t = u3t(kev);
+  c3_w* tot_w = ptr_v;
+  while ( u3_nul != t ) {
+    u3_assert(c3y == u3r_cell(t, &i, &t));
+    *tot_w += _nc_prog_mark(_nc_to_prog(i));
+  }
+}
+
+static void
+_nc_direct_mark(u3_noun kev, void* ptr_v)
+{
+  c3_w* tot_w = ptr_v;
+  *tot_w = _nc_prog_mark(_nc_to_prog(u3t(kev)));
+}
+
+u3m_quac*
+u3nc_mark()
+{
+  c3_w tot_w = 0;
+  u3m_quac** qua_u = c3_malloc(sizeof(*qua_u) * 6);
+  
+  qua_u[0] = c3_calloc(sizeof(*qua_u[0]));
+  qua_u[0]->nam_c = strdup("nock-compile entry programs");
+  u3h_walk_with(u3R->byc_entry_p, _nc_entry_mark, &qua_u[0]->siz_w);
+  qua_u[0]->siz_w *= 4;
+  tot_w += qua_u[0]->siz_w;
+
+  qua_u[1] = c3_calloc(sizeof(*qua_u[1]));
+  qua_u[1]->nam_c = strdup("nock-compile entry table");
+  qua_u[1]->siz_w = u3h_mark(u3R->byc_entry_p) * sizeof(c3_w);
+  tot_w += qua_u[1]->siz_w;
+
+  qua_u[2] = c3_calloc(sizeof(*qua_u[2]));
+  qua_u[2]->nam_c = strdup("nock-compile direct programs");
+  u3h_walk_with(u3R->byc_direct_p, _nc_direct_mark, &qua_u[2]->siz_w);
+  qua_u[2]->siz_w *= 4;
+  tot_w += qua_u[2]->siz_w;
+
+  qua_u[3] = c3_calloc(sizeof(*qua_u[3]));
+  qua_u[3]->nam_c = strdup("nock-compile direct table");
+  qua_u[3]->siz_w = u3h_mark(u3R->byc_direct_p) * sizeof(c3_w);
+  tot_w += qua_u[3]->siz_w;
+
+  qua_u[4] = c3_calloc(sizeof(*qua_u[4]));
+  qua_u[4]->nam_c = strdup("+ka SKA core");
+  qua_u[4]->siz_w = u3a_mark_noun(u3R->dir_ka) * 4;
+  tot_w += qua_u[4]->siz_w;
+
+  qua_u[5] = NULL;
+
+  u3m_quac* tot_u = c3_malloc(sizeof(*tot_u));
+  tot_u->nam_c = strdup("compiled nock stuff");
+  tot_u->siz_w = tot_w;
+  tot_u->qua_u = qua_u;
+
+  return tot_u;
+}
+
+static void
+_nc_free_entry(u3_noun kev)
+{
+  u3_noun i, t = u3t(kev);
+  while ( u3_nul != t ) {
+    u3_assert(c3y == u3r_cell(t, &i, &t));
+    _nc_prog_free(_nc_to_prog(i));
+  }
+}
+
+static void
+_nc_free_direct(u3_noun kev)
+{
+  _nc_prog_free(_nc_to_prog(u3t(kev)));
+}
+
+void
+u3nc_reclaim(void)
+{
+  u3h_walk(u3R->byc_entry_p, _nc_free_entry);
+  u3h_walk(u3R->byc_direct_p, _nc_free_direct);
+
+  u3h_free(u3R->byc_entry_p);
+  u3h_free(u3R->byc_direct_p);
+
+  u3R->byc_entry_p = u3h_new();
+  u3R->byc_direct_p = u3h_new();
 }
