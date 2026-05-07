@@ -88,6 +88,33 @@ u3d_prep_ka()
         u3m_bail(c3__fail);
   }
 
+  u3_assert(c3y == u3a_is_cell(sock));
+  u3_assert(c3y == u3a_is_cell(soak));
+  u3_assert(c3y == u3a_is_cell(noir));
+  u3_assert(c3y == u3a_is_cell(skan));
+  u3_assert(c3y == u3a_is_cell(gene));
+  u3_assert(c3y == u3a_is_cell(line));
+  u3_assert(c3y == u3a_is_cell(vere));
+
+  u3_assert(c3__sock == u3h(sock));
+  u3_assert(c3__soak == u3h(soak));
+  u3_assert(c3__noir == u3h(noir));
+  u3_assert(c3__skan == u3h(skan));
+  u3_assert(c3__gene == u3h(gene));
+  u3_assert(c3__line == u3h(line));
+  u3_assert(c3__vere == u3h(vere));
+
+  sock = u3t(sock);
+  soak = u3t(soak);
+  noir = u3t(noir);
+  skan = u3t(skan);
+  gene = u3t(gene);
+  line = u3t(line);
+  vere = u3t(vere);
+
+
+  u3_noun zuse = u3v_wish("..zuse");
+  u3_noun vase = u3v_wish("!>(..zuse)");
   u3_noun subject = u3nq(
     u3k(sock),
     u3k(soak),
@@ -96,8 +123,8 @@ u3d_prep_ka()
     u3k(gene),
     u3k(line), u3nt(
     u3k(vere),
-    u3v_wish("!>(..zuse)"),
-    u3v_wish("..zuse")
+    vase,
+    zuse
   )));
 
   u3_noun interface = u3n_nock_on(subject, u3k(fol));

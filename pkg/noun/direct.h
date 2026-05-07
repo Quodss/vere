@@ -22,4 +22,7 @@ u3d_match_sock(u3_noun cape, u3_noun data, u3_noun list);
 u3_noun
 u3d_bell_ops_tot(u3_noun bell, c3_t entry_t);
 
+void
+u3d_prep_ka();
+
 #endif /* ifndef U3_DIRECT_H */
