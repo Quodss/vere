@@ -67,6 +67,12 @@ _so_huge(u3_noun cape_one,
 
 #define nth_arg(n)  ((1 << (n + 1)) - 2)
 
+static u3_noun
+_face(u3_noun vase, u3_noun face)
+{
+  return u3i_edit(vase, 2, u3nt(c3__face, face, u3k(u3h(vase))));
+}
+
 void
 u3d_prep_ka()
 {
@@ -112,24 +118,19 @@ u3d_prep_ka()
   line = u3t(line);
   vere = u3t(vere);
 
-
-  u3_noun zuse = u3v_wish("..zuse");
-  u3_noun vase = u3v_wish("!>(..zuse)");
-  u3_noun subject = u3nq(
+  u3_noun sub1 = u3nq(
     u3k(sock),
     u3k(soak),
     u3k(noir), u3nq(
     u3k(skan),
     u3k(gene),
-    u3k(line), u3nt(
-    u3k(vere),
-    vase,
-    zuse
-  )));
+    u3k(line),
+    u3k(vere)
+  ));
+  u3_noun sub = u3nt(sub1, u3v_wish("!>(..zuse)"), u3v_wish("..zuse"));
+  u3_noun vere_vase = u3n_nock_on(sub, u3k(fol));
 
-  u3_noun interface = u3n_nock_on(subject, u3k(fol));
-
-  u3R->dir_ka = interface;
+  u3R->dir_ka = vere_vase;
 
   u3z(hoons);
 }

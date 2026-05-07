@@ -2713,7 +2713,10 @@ u3m_boot_lite(size_t len_i)
 
   /* Initialize the jet system.
   */
-  u3j_boot(c3y);
+  {
+    c3_w len_w = u3j_boot(c3y);
+    u3l_log("boot: installed %"PRIc3_w" jets", len_w);
+  }
 
   /* Basic initialization.
   */
