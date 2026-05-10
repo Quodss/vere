@@ -80,59 +80,10 @@ u3d_prep_ka()
     return;
   }
   fprintf(stderr, "prep_ka\r\n");
-  u3_noun hoons = u3s_cue_bytes((c3_d)U3_Ska_Verb_len, U3_Ska_Verb);
-  u3_noun fol, sock, soak, noir, skan, gene, line, vere;
-  if ( c3n == u3r_mean(hoons,
-      nth_arg(1),     &fol ,
-      nth_arg(2),     &sock,
-      nth_arg(3),     &soak,
-      nth_arg(4),     &noir,
-      nth_arg(5),     &skan,
-      nth_arg(6),     &gene,
-      nth_arg(7),     &line,
-      nth_arg(7) + 1, &vere, u3_nul) ) {
-        u3m_bail(c3__fail);
-  }
-
-  u3_assert(c3y == u3a_is_cell(sock));
-  u3_assert(c3y == u3a_is_cell(soak));
-  u3_assert(c3y == u3a_is_cell(noir));
-  u3_assert(c3y == u3a_is_cell(skan));
-  u3_assert(c3y == u3a_is_cell(gene));
-  u3_assert(c3y == u3a_is_cell(line));
-  u3_assert(c3y == u3a_is_cell(vere));
-
-  u3_assert(c3__sock == u3h(sock));
-  u3_assert(c3__soak == u3h(soak));
-  u3_assert(c3__noir == u3h(noir));
-  u3_assert(c3__skan == u3h(skan));
-  u3_assert(c3__gene == u3h(gene));
-  u3_assert(c3__line == u3h(line));
-  u3_assert(c3__vere == u3h(vere));
-
-  sock = u3t(sock);
-  soak = u3t(soak);
-  noir = u3t(noir);
-  skan = u3t(skan);
-  gene = u3t(gene);
-  line = u3t(line);
-  vere = u3t(vere);
-
-  u3_noun sub1 = u3nq(
-    u3k(sock),
-    u3k(soak),
-    u3k(noir), u3nq(
-    u3k(skan),
-    u3k(gene),
-    u3k(line),
-    u3k(vere)
-  ));
-  u3_noun sub = u3nt(sub1, u3v_wish("!>(..zuse)"), u3v_wish("..zuse"));
-  u3_noun vere_vase = u3n_nock_on(sub, u3k(fol));
-
-  u3R->dir_ka = vere_vase;
-
-  u3z(hoons);
+  u3R->dir_ka = u3n_nock_on(
+    u3s_cue_bytes((c3_d)U3_Ska_Verb_len, U3_Ska_Verb),
+    u3nt(2, u3nc(0, 3), u3nc(0, 2))
+  );
 }
 
 // RETAINS
