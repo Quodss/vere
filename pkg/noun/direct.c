@@ -153,7 +153,7 @@ u3d_search(u3_noun sub, u3_noun fol)
 u3_noun
 u3d_bell_ops_tot(u3_noun bell, c3_t entry_t)
 {
-  u3_noun limb = u3nc(c3__limb, u3i_string("straighten")),
+  u3_noun limb = u3nc(c3__limb, u3i_string("vere-straighten")),
           gate = u3dc("slap", u3k(u3R->dir_ka), limb),
           samp = u3nc(u3k(bell), __(entry_t)),
           gul  = u3nt(u3nc(1, 0), u3nc(0, 0), 0),  // |~(^ ~)

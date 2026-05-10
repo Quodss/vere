@@ -648,6 +648,20 @@ _r_atom(u3_noun som)
   u3m_bail(c3__fail);
 }
 
+//  in entry-point programs reg 0 is for the entire subject
+//  in the directly-called programs reg 0 is not used
+
+static u3_atom
+_reg_atom(u3_noun som, c3_t entry_t)
+{
+  if ( c3n == u3a_is_cat(som) ) {
+    return u3m_bail(c3__fail);
+  }
+  if ( entry_t ) return som;
+  u3_assert(som);
+  return som - 1;
+}
+
 
 //  RETAINS arguments
 static u3_noun
@@ -656,12 +670,13 @@ _nc_nouncode_measure(u3_noun ops,
   u3_post lit_p,
   c3_w* mem_w,
   c3_w* arg_w,
-  c3_w* dir_w)
+  c3_w* dir_w,
+  c3_t entry_t)
 {
   u3_noun sip = u3_nul;
   u3_noun op, tag, args, z, o;
   c3_y ax_z, ax_o;
-  #define MEASURE_REG(SOM)  (*ops_w += _vle_measure_atom(_r_atom(SOM)))
+  #define MEASURE_REG(SOM)  (*ops_w += _vle_measure_atom(_reg_atom(SOM, entry_t)))
   #define MEASURE_LIT(SOM) (*ops_w += _vle_measure(_nc_table_add(lit_p, SOM)))
   while (u3_nul != ops) {
     u3_assert(c3y == u3r_cell(ops, &op, &ops));
@@ -704,8 +719,8 @@ _nc_nouncode_measure(u3_noun ops,
         //
         u3_assert(c3y == u3r_mean(args, ax_z, &z, ax_o, &o, u3_nul));
         c3_w y_ops_w = 0, n_ops_w = 0;
-        u3_noun sip_z = _nc_nouncode_measure(z, &y_ops_w, lit_p, mem_w, arg_w, dir_w);
-        u3_noun sip_o = _nc_nouncode_measure(o, &n_ops_w, lit_p, mem_w, arg_w, dir_w);
+        u3_noun sip_z = _nc_nouncode_measure(z, &y_ops_w, lit_p, mem_w, arg_w, dir_w, entry_t);
+        u3_noun sip_o = _nc_nouncode_measure(o, &n_ops_w, lit_p, mem_w, arg_w, dir_w, entry_t);
         c3_w delta2_w = n_ops_w;
         c3_w delta1_w = y_ops_w + 1 + _vle_measure(delta2_w);
         *ops_w += _vle_measure(delta1_w) + delta1_w + delta2_w;
@@ -836,10 +851,11 @@ _nc_nouncode_write(u3_noun ops,
   u3nc_memo** mem_u,
   c3_w**      arg_w,
   u3nc_dire* dir_u,
-  c3_w*      dir_w)
+  c3_w*      dir_w,
+  c3_t       entry_t)
 {
   #define WRITE_LIT(SOM)  (_vle_write(ops_y, _nc_table_get(lit_p, SOM)))
-  #define WRITE_REG(SOM)  (_vle_write(ops_y, _r_word(_r_atom(SOM))))
+  #define WRITE_REG(SOM)  (_vle_write(ops_y, _r_word(_reg_atom(SOM, entry_t))))
   u3_noun op, tag, args, z, o, s;
   c3_y ax_z, ax_o;
   while (u3_nul != ops) {
@@ -875,11 +891,11 @@ _nc_nouncode_write(u3_noun ops,
         u3_assert(c3y == u3r_mean(args, ax_z, &z, ax_o, &o, u3_nul));
         u3_assert(c3y == u3r_cell(*sip, &s, sip));
         _vle_write(ops_y, _r_word(s));
-        _nc_nouncode_write(z, sip, ops_y, lit_p, mem_u, arg_w, dir_u, dir_w);
+        _nc_nouncode_write(z, sip, ops_y, lit_p, mem_u, arg_w, dir_u, dir_w, entry_t);
         *(*ops_y)++ = ADV;
         u3_assert(c3y == u3r_cell(*sip, &s, sip));
         _vle_write(ops_y, _r_word(s));
-        _nc_nouncode_write(o, sip, ops_y, lit_p, mem_u, arg_w, dir_u, dir_w);
+        _nc_nouncode_write(o, sip, ops_y, lit_p, mem_u, arg_w, dir_u, dir_w, entry_t);
       } break;
      
       case c3__dom: {
@@ -1031,11 +1047,11 @@ _nc_prog_new(c3_w ops_w, c3_w arg_w, c3_w lit_w, c3_w mem_w, c3_w dir_w, c3_w to
 
 //  RETAINS
 static u3nc_prog*
-_nc_nouncode_build(u3_noun ops, c3_w tot_w)
+_nc_nouncode_build(u3_noun ops, c3_w tot_w, c3_t entry_t)
 {
   u3_post lit_p = u3h_new();
   c3_w ops_w = 0, mem_w = 0, arg_w = 0, dir_w = 0;
-  u3_noun sip = _nc_nouncode_measure(ops, &ops_w, lit_p, &mem_w, &arg_w, &dir_w);
+  u3_noun sip = _nc_nouncode_measure(ops, &ops_w, lit_p, &mem_w, &arg_w, &dir_w, entry_t);
   c3_w lit_w = u3h_wyt(lit_p);
   
   u3nc_prog* pog_u = _nc_prog_new(ops_w, arg_w, lit_w, mem_w, dir_w, tot_w);
@@ -1048,9 +1064,16 @@ _nc_nouncode_build(u3_noun ops, c3_w tot_w)
     u3_assert(u3_none != pog_u->lit_u.non[i_w]);
   }
 
-  dir_w = 0;
-  _nc_nouncode_write(ops, &sip, &pog_u->byc_u.ops_y, lit_p, &pog_u->mem_u.sot_u,
-    &pog_u->arg_u.dat_w, pog_u->dir_u.dat_u, &dir_w);
+  {
+    u3_noun sip_mut = sip;
+    c3_y* ops_mut_y = pog_u->byc_u.ops_y;
+    u3nc_memo* sot_mut_u = pog_u->mem_u.sot_u;
+    c3_w* arg_mut_w = pog_u->arg_u.dat_w;
+    c3_w dir_mut_w = 0;
+
+    _nc_nouncode_write(ops, &sip_mut, &ops_mut_y, lit_p, &sot_mut_u,
+      &arg_mut_w, pog_u->dir_u.dat_u, &dir_mut_w, entry_t);
+  }
 
   u3z(sip);
   u3h_free(lit_p);
@@ -1062,7 +1085,9 @@ u3nc_prog*
 _n_bite_direct(u3_noun sock, u3_noun fol, c3_t entry_t)
 {
   u3_noun ops_tot = u3d_bell_ops_tot(u3nc(u3k(sock), u3k(fol)), entry_t);
-  u3nc_prog* out_u = _nc_nouncode_build(u3h(ops_tot), _r_word(u3t(ops_tot)));
+  u3nc_prog* out_u = _nc_nouncode_build(u3h(ops_tot),
+  _r_word(u3t(ops_tot)) + ( entry_t ) ? 1 : 0,
+  entry_t);
   u3z(ops_tot);
   return out_u;
 }

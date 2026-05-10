@@ -1,6 +1,7 @@
 /// @file
 
 #include "noun.h"
+#include "vere.h"
 #include "direct.h"
 #include "ivory.h"
 #include "nock-compile.h"
@@ -27,16 +28,41 @@ _setup(void)
   }
 }
 
+static u3_noun
+_nc_nock_on(u3_noun sub_fol)
+{
+  u3_noun sub = u3k(u3h(sub_fol));
+  u3_noun fol = u3k(u3t(sub_fol));
+  u3z(sub_fol);
+  return u3nc_nock_on(sub, fol);
+}
+
+static c3_t
+_do_or_error(u3_funk fun_f, u3_noun arg, c3_c* where, u3_noun* out)
+{
+  u3_noun res = u3m_soft(0, fun_f, arg);
+  u3_assert(c3y == u3du(res));
+  if (0 == u3h(res)) {
+    *out = u3k(u3t(res));
+    u3z(res);
+    return 1;
+  }
+  u3_pier_punt_goof(where, res);
+  return 0;
+}
+
+
 static c3_t
 _test_1()
 {
-  // u3_noun sub = 42, fol = u3nt(4, 0, 1);
-  // u3_noun pro = u3nc_nock_on(sub, fol);
-  // c3_t out = _(u3r_sing(pro, 43));
-  // u3z(pro);
-  // return out;
-  u3d_prep_ka();
-  return 1;
+  u3_noun sub = 42, fol = u3nt(4, 0, 1);
+  u3_noun pro;
+  if ( !_do_or_error(_nc_nock_on, u3nc(sub, fol), "test 1", &pro) ) {
+    return 0;
+  }
+  c3_t out = _(u3r_sing(pro, 43));
+  u3z(pro);
+  return out;
 }
 
 /* main(): run all test cases.
