@@ -1199,10 +1199,9 @@ _nc_merge_cb(u3_noun kev, void* wit)
 void
 u3nc_reap(u3p(u3h_root) dar_p)
 {
-  if ( !u3h_wyt(dar_p) ) return;
-
-  u3h_walk_with(dar_p, _nc_merge_cb, &u3R->byc_direct_p);
-
+  if ( u3h_wyt(dar_p) ) {
+    u3h_walk_with(dar_p, _nc_merge_cb, &u3R->byc_direct_p);
+  }
   u3h_free(dar_p);
 }
 

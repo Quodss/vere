@@ -46,10 +46,10 @@ main(int argc, char* argv[])
 {
   _setup();
 
-  // if ( !_test_1() ) {
-  //   fprintf(stderr, "test 1: failed\r\n");
-  //   exit(1);
-  // }
+  if ( !_test_1() ) {
+    fprintf(stderr, "test 1: failed\r\n");
+    exit(1);
+  }
   
   //  GC
   //
