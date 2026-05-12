@@ -388,7 +388,10 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
       c3_w des_w = VAL();
       u3nc_dire* dir_u = &pog_u->dir_u.dat_u[dir_w];
       c3_w len_w = dir_u->len_w;
-      u3_noun* args = u3a_malloc(len_w * sizeof(c3_w));
+      u3_noun _args[64], *args = _args;
+      if (len_w > 64) {
+        args = u3a_malloc(len_w * sizeof(*args));
+      }
       for (c3_w i_w = 0; i_w < len_w; i_w++) {
         args[i_w] = u3k(*PEEK(dir_u->arg_w[i_w]));
       }
@@ -399,7 +402,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
           for (c3_w i_w = 0; i_w < len_w; i_w++) {
             u3z(args[i_w]);
           }
-          u3a_free(args);
+          if (len_w > 64) u3a_free(args);
           BURN();
         }
       }
@@ -415,7 +418,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
       ip_w  = 0;
 
       _nc_push_args(mov, off, pog_u->tot_w, len_w, args);
-      u3a_free(args);
+      if (len_w > 64) u3a_free(args);
       BURN();
     }
 
@@ -464,7 +467,10 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
       c3_w dir_w = VAL();
       u3nc_dire* dir_u = &pog_u->dir_u.dat_u[dir_w];
       c3_w len_w = dir_u->len_w;
-      u3_noun* args = u3a_malloc(len_w * sizeof(c3_w));
+      u3_noun _args[64], *args = _args;
+      if (len_w > 64) {
+        args = u3a_malloc(len_w * sizeof(*args));  // XX overflow
+      }
       for (c3_w i_w = 0; i_w < len_w; i_w++) {
         args[i_w] = u3k(*PEEK(dir_u->arg_w[i_w]));
       }
@@ -475,7 +481,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
           for (c3_w i_w = 0; i_w < len_w; i_w++) {
             u3z(args[i_w]);
           }
-          u3a_free(args);
+          if (len_w > 64) u3a_free(args);
           goto done_out;
         }
       }
@@ -488,7 +494,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
       ip_w  = 0;
 
       _nc_push_args(mov, off, pog_u->tot_w, len_w, args);
-      u3a_free(args);
+      if (len_w > 64) u3a_free(args);
       BURN();
     }
 
