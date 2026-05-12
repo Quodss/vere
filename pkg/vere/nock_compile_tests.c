@@ -53,15 +53,14 @@ _do_or_error(u3_funk fun_f, u3_noun arg, c3_c* where, u3_noun* out)
 
 
 static c3_t
-_test_1()
+_test_eq(u3_noun sub, u3_noun fol, u3_noun target)
 {
-  u3_noun sub = 42, fol = u3nt(4, 0, 1);
   u3_noun pro;
   if ( !_do_or_error(_nc_nock_on, u3nc(sub, fol), "test 1", &pro) ) {
     return 0;
   }
-  c3_t out = _(u3r_sing(pro, 43));
-  u3z(pro);
+  c3_t out = _(u3r_sing(pro, target));
+  u3z(pro), u3z(target);
   return out;
 }
 
@@ -72,9 +71,17 @@ main(int argc, char* argv[])
 {
   _setup();
 
-  if ( !_test_1() ) {
-    fprintf(stderr, "test 1: failed\r\n");
+  if ( !_test_eq(42, u3nt(4, 0, 1), 43) ) {
+    fprintf(stderr, "test failed: %s:%d\r\n", __FILE__, __LINE__);
     exit(1);
+  }
+  {
+    u3_noun dec = u3nq(8, u3nc(1, 0), 8, u3nq(u3nq(1, 6, u3nq(5, u3nc(0, 7), 4, u3nc(0, 6)), u3nq(u3nc(0, 6), 9, 2, u3nq(u3nc(0, 2), u3nt(4, 0, 6), 0, 7))), 9, 2, u3nc(0, 1)));
+    
+    if ( !_test_eq(42, dec, 41) ) {
+      fprintf(stderr, "test failed: %s:%d\r\n", __FILE__, __LINE__);
+      exit(1);
+    }
   }
   
   //  GC

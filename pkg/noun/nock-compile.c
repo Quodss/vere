@@ -388,9 +388,9 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
       c3_w des_w = VAL();
       u3nc_dire* dir_u = &pog_u->dir_u.dat_u[dir_w];
       c3_w len_w = dir_u->len_w;
-      u3_noun args[len_w];
+      u3_noun* args = u3a_malloc(len_w * sizeof(c3_w));
       for (c3_w i_w = 0; i_w < len_w; i_w++) {
-        args[i_w] = u3k(*PEEK(i_w));
+        args[i_w] = u3k(*PEEK(dir_u->arg_w[i_w]));
       }
       if ( dir_u->ham_u ) {
         u3_weak res = dir_u->ham_u(args);
@@ -399,6 +399,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
           for (c3_w i_w = 0; i_w < len_w; i_w++) {
             u3z(args[i_w]);
           }
+          u3a_free(args);
           BURN();
         }
       }
@@ -414,6 +415,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
       ip_w  = 0;
 
       _nc_push_args(mov, off, pog_u->tot_w, len_w, args);
+      u3a_free(args);
       BURN();
     }
 
@@ -462,17 +464,18 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
       c3_w dir_w = VAL();
       u3nc_dire* dir_u = &pog_u->dir_u.dat_u[dir_w];
       c3_w len_w = dir_u->len_w;
-      u3_noun args[len_w];  // XX allocate the array on the road?
+      u3_noun* args = u3a_malloc(len_w * sizeof(c3_w));
       for (c3_w i_w = 0; i_w < len_w; i_w++) {
-        args[i_w] = u3k(*PEEK(i_w));
+        args[i_w] = u3k(*PEEK(dir_u->arg_w[i_w]));
       }
       
       if ( dir_u->ham_u ) {
         pro = dir_u->ham_u(args);
         if ( u3_none != pro ) {
-          for (c3_y i_y = 0; i_y < len_w; i_y++) {
-            u3z(args[i_y]);
+          for (c3_w i_w = 0; i_w < len_w; i_w++) {
+            u3z(args[i_w]);
           }
+          u3a_free(args);
           goto done_out;
         }
       }
@@ -485,6 +488,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
       ip_w  = 0;
 
       _nc_push_args(mov, off, pog_u->tot_w, len_w, args);
+      u3a_free(args);
       BURN();
     }
 
@@ -626,7 +630,7 @@ _vle_write(c3_y** buf_y, c3_d val_d)
 static c3_w
 _vle_measure(c3_d val_d)
 {
-  return (c3_bits_dabl(val_d) + 6) / 7;
+  return val_d ? (c3_bits_dabl(val_d) + 6) / 7 : 1;
 }
 
 //  RETAINS
@@ -724,14 +728,12 @@ _nc_nouncode_measure(u3_noun ops,
         c3_w delta2_w = n_ops_w;
         c3_w delta1_w = y_ops_w + 1 + _vle_measure(delta2_w);
         *ops_w += _vle_measure(delta1_w) + delta1_w + delta2_w;
-        sip = u3kb_zing(u3nl(
-          sip_o,
-          u3nc(u3i_word(delta2_w), u3_nul),
-          sip_z,
-          u3nc(u3i_word(delta1_w), u3_nul),
-          sip,
-          u3_none
-        ));
+        {  // XX performance?
+          sip = u3nc(u3i_word(delta1_w), sip);
+          sip = u3kb_weld(sip_z, sip);
+          sip = u3nc(u3i_word(delta2_w), sip);
+          sip = u3kb_weld(sip_o, sip);
+        }
       } break;
       
       case c3__jmf: {
@@ -821,7 +823,7 @@ _nc_nouncode_measure(u3_noun ops,
   }
   #undef MEASURE_REG
   #undef MEASURE_LIT
-  return sip;
+  return u3kb_flop(sip);
 }
 
 
@@ -861,7 +863,11 @@ _nc_nouncode_write(u3_noun ops,
   while (u3_nul != ops) {
     u3_assert(c3y == u3r_cell(ops, &op, &ops));
     u3_assert(c3y == u3r_cell(op, &tag, &args));
-    *(*ops_y)++ = _nc_map_tag_cod(tag);
+    {
+      c3_y t = _nc_map_tag_cod(tag);
+      *(*ops_y)++ = t;
+      // fprintf(stderr, "%d %s\r\n", t, (t < LAST) ? opcode_names[t] : "???");
+    }
     switch ( tag ) {
       default: break;
       case c3__mim: {
@@ -893,6 +899,7 @@ _nc_nouncode_write(u3_noun ops,
         _vle_write(ops_y, _r_word(s));
         _nc_nouncode_write(z, sip, ops_y, lit_p, mem_u, arg_w, dir_u, dir_w, entry_t);
         *(*ops_y)++ = ADV;
+        // fprintf(stderr, "%d %s\r\n", ADV, "adv");
         u3_assert(c3y == u3r_cell(*sip, &s, sip));
         _vle_write(ops_y, _r_word(s));
         _nc_nouncode_write(o, sip, ops_y, lit_p, mem_u, arg_w, dir_u, dir_w, entry_t);
@@ -1073,6 +1080,15 @@ _nc_nouncode_build(u3_noun ops, c3_w tot_w, c3_t entry_t)
 
     _nc_nouncode_write(ops, &sip_mut, &ops_mut_y, lit_p, &sot_mut_u,
       &arg_mut_w, pog_u->dir_u.dat_u, &dir_mut_w, entry_t);
+
+    c3_w dif_w = ops_mut_y - pog_u->byc_u.ops_y;
+    if ( dif_w != ops_w ) {
+      fprintf(stderr, "ops write mismatch: %d measured vs %d written\r\n", ops_w, dif_w);
+      u3_assert(0);
+    }
+    else {
+      // fprintf(stderr, "ops: %d measured vs %d written\r\n", ops_w, dif_w);
+    }
   }
 
   u3z(sip);
