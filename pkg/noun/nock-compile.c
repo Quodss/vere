@@ -1030,10 +1030,10 @@ _nc_prog_new(c3_w ops_w, c3_w arg_w, c3_w lit_w, c3_w mem_w, c3_w dir_w, c3_w to
   //  byte offsets of various buffers:
   //
   c3_w pos_w = siz_w;  //  ops
-  c3_w rog_w = siz_w = c3_align(siz_w + ops_w,                     sizeof(c3_w),      C3_ALGHI);  // args
-  c3_w non_w = siz_w = c3_align(siz_w + arg_w * sizeof(c3_w),      sizeof(u3_noun),   C3_ALGHI);  //  literals
-  c3_w mom_w = siz_w = c3_align(siz_w + lit_w * sizeof(u3_noun),   sizeof(u3nc_memo), C3_ALGHI);  //  memo slots
-  c3_w dor_w = siz_w = c3_align(siz_w + mem_w * sizeof(u3nc_memo), sizeof(u3nc_dire), C3_ALGHI);  // callsite slots
+  c3_w rog_w = siz_w = c3_align_w(siz_w + ops_w,                     sizeof(c3_w),      C3_ALGHI);  // args
+  c3_w non_w = siz_w = c3_align_w(siz_w + arg_w * sizeof(c3_w),      sizeof(u3_noun),   C3_ALGHI);  //  literals
+  c3_w mom_w = siz_w = c3_align_w(siz_w + lit_w * sizeof(u3_noun),   sizeof(u3nc_memo), C3_ALGHI);  //  memo slots
+  c3_w dor_w = siz_w = c3_align_w(siz_w + mem_w * sizeof(u3nc_memo), sizeof(u3nc_dire), C3_ALGHI);  // callsite slots
   siz_w += sizeof(u3nc_dire) * dir_w;
 
   u3nc_prog* pog_u = u3a_malloc(siz_w);
