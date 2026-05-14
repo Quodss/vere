@@ -422,6 +422,7 @@ const install_headers = [_][]const u8{
     "jets/k.h",
     "jets/q.h",
     "jets/w.h",
+    "jets/u.h",
     "jets/136/w.h",
     "log.h",
     "manage.h",

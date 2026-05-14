@@ -114,3 +114,9 @@ u3ka_add(u3_noun a,
   u3z(a); u3z(b);
   return c;
 }
+
+u3_noun
+u3ua_add(u3_noun* args)
+{
+  return u3qa_add(args[0], args[1]);
+}

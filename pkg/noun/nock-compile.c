@@ -10,6 +10,7 @@
 #include "jets.h"
 #include "jets/k.h"
 #include "jets/q.h"
+#include "jets/u.h"
 #include "manage.h"
 #include "options.h"
 #include "retrieve.h"
@@ -68,6 +69,10 @@
 
 // All opcodes use VLE immediate arguments (capped at 9 bytes for u64 encoding)
 // XX opcode versions with fixed-size immargs?
+// XX CAL/JMP versions with total jets?
+// XX CAL/JMP versions with transferring total jets?
+// XX CAL/JMP versions with total jet drivers of known arity?
+//
 #define OPCODES                                                                 \
   /* instructions in a block */                                                 \
   X(IMM, "imm", &&do_imm), /* [2]: index to literal array -> reg */      \
@@ -96,6 +101,24 @@
   X(BOM, "bom", &&do_bom),                                                      \
   X(MIM, "mim", &&do_mim), /* [4]: check [sot sub], write to reg if available, else branch */\
   X(LAST, NULL, NULL),
+
+
+#define HARM_RING(axe, ...) \
+  { sizeof((const c3_c*[]){__VA_ARGS__}) / sizeof(const c3_c*), \
+    (const c3_c*[]){__VA_ARGS__}, \
+    (axe) }
+
+#define HARM_ARGS(...) \
+  sizeof((const c3_l[]){__VA_ARGS__}) / sizeof(const c3_l), \
+  (const c3_l[]){__VA_ARGS__}
+
+static const u3nc_harm u3nc_Cod_u[] = {
+  { HARM_RING(2, "dec", "one", "k135"), u3ua_dec, HARM_ARGS(6) },
+  { HARM_RING(2, "add", "one", "k135"), u3ua_add, HARM_ARGS(12, 13) },
+};
+
+static const c3_w u3nc_Cod_len_w = c3_array_len(u3nc_Cod_u);
+
 
 // Opcodes. Define X to select the enum name from OPCODES.
 #define X(opcode, name, indirect_jump) opcode
@@ -198,6 +221,16 @@ _nc_push_args(c3_ys mov, c3_ys off, c3_w tot_w, c3_w len_w, u3_noun* args)
   _nc_move(mov, off, tot_w);
   for ( c3_y i_y = 0; i_y < tot_w; i_y++) {
     *_nc_peek(mov, off, i_y) = ( i_y < len_w ) ? args[i_y] : u3_none;
+  }
+}
+
+//  RETAINS
+static void
+_nc_push_args_retain(c3_ys mov, c3_ys off, c3_w tot_w, c3_w len_w, u3_noun* args)
+{
+  _nc_move(mov, off, tot_w);
+  for ( c3_y i_y = 0; i_y < tot_w; i_y++) {
+    *_nc_peek(mov, off, i_y) = ( i_y < len_w ) ? u3k(args[i_y]) : u3_none;
   }
 }
 
@@ -393,15 +426,12 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
         args = u3a_malloc(len_w * sizeof(*args));
       }
       for (c3_w i_w = 0; i_w < len_w; i_w++) {
-        args[i_w] = u3k(*PEEK(dir_u->arg_w[i_w]));
+        args[i_w] = *PEEK(dir_u->arg_w[i_w]);
       }
       if ( dir_u->ham_u ) {
         u3_weak res = dir_u->ham_u(args);
         if ( u3_none != res ) {
           _nc_put(PEEK(des_w), res);
-          for (c3_w i_w = 0; i_w < len_w; i_w++) {
-            u3z(args[i_w]);
-          }
           if (len_w > 64) u3a_free(args);
           BURN();
         }
@@ -417,7 +447,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
       pog   = pog_u->byc_u.ops_y;
       ip_w  = 0;
 
-      _nc_push_args(mov, off, pog_u->tot_w, len_w, args);
+      _nc_push_args_retain(mov, off, pog_u->tot_w, len_w, args);
       if (len_w > 64) u3a_free(args);
       BURN();
     }
@@ -472,20 +502,20 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
         args = u3a_malloc(len_w * sizeof(*args));  // XX overflow
       }
       for (c3_w i_w = 0; i_w < len_w; i_w++) {
-        args[i_w] = u3k(*PEEK(dir_u->arg_w[i_w]));
+        args[i_w] = *PEEK(dir_u->arg_w[i_w]);
       }
       
       if ( dir_u->ham_u ) {
         pro = dir_u->ham_u(args);
         if ( u3_none != pro ) {
-          for (c3_w i_w = 0; i_w < len_w; i_w++) {
-            u3z(args[i_w]);
-          }
           if (len_w > 64) u3a_free(args);
           goto done_out;
         }
       }
 
+      for (c3_w i_w = 0; i_w < len_w; i_w++) {
+        u3k(args[i_w]);
+      }
       POP_REGS();
       
       if ( !dir_u->pog_p ) _nc_set_pogp_dire(dir_u);
@@ -832,6 +862,38 @@ _nc_nouncode_measure(u3_noun ops,
   return u3kb_flop(sip);
 }
 
+static c3_t
+_nc_path_sing(u3_noun path, const c3_c** pax_u, c3_w len_w)
+{
+  u3_noun i;
+  while ( !(u3_nul == path && 0 == len_w) ) {
+    if (u3_nul == path || 0 == len_w) return false;
+    u3_assert(c3y == u3r_cell(path, &i, &path));
+    if ( c3n == u3r_sing_c(pax_u[0], i) ) return false;
+    pax_u++; len_w--;
+  }
+  return true;
+}
+
+//  XX linear search, make a map instead
+//
+static u3nc_driver
+_nc_match_ring(u3_noun ring)
+{
+  if ( u3_nul == ring ) return NULL;
+  u3_noun path, axis;
+  u3_assert(c3y == u3r_cell(ring, &path, &axis));
+  if (c3n == u3a_is_cat(axis)) u3m_bail(c3__fail);
+
+  for (c3_w i_w = 0; i_w < c3_array_len(u3nc_Cod_u); i_w++) {
+    const u3nc_harm* ham_u = u3nc_Cod_u + i_w;
+    if ( ham_u->rin.axe_l == axis
+      && _nc_path_sing(path, ham_u->rin.pax_u, ham_u->rin.len_w) ) {
+      return ham_u->ham_u;
+    }
+  }
+  return NULL;
+}
 
 //  RETAINS
 static void
@@ -842,7 +904,7 @@ _nc_write_dire(u3nc_dire* dir_u, c3_w** arg_w, u3_noun bell, u3_noun regs, u3_no
   dir_u->len_w = _r_word(u3qb_lent(regs));
   dir_u->ring  = u3k(ring);
   dir_u->pog_p = 0;
-  dir_u->ham_u = NULL;  //  XX jet matching
+  dir_u->ham_u = _nc_match_ring(ring);
   u3_noun r;
   while ( u3_nul != regs ) {
     u3_assert(c3y == u3r_cell(regs, &r, &regs));

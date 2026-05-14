@@ -16,11 +16,12 @@
   +$  sock  $~(|+~ (pair cape *))         ::  mask + data
   --
 */
-
   typedef struct {
     u3_noun key;
     u3z_cid cid;
   } u3nc_memo;
+
+  typedef u3_weak(*   u3nc_driver   )(u3_noun*);
 
   struct _u3nc_prog;
   typedef struct {
@@ -29,8 +30,8 @@
     c3_w             len_w;                   //  number of arguments
     c3_w*            arg_w;                   //  register indices
     u3_noun          ring;                    //  ~ or [path axis]
-    u3_weak(*        ham_u)(u3_noun*);        //  jet arm, nullable
-    c3_l             axe_l;   //  jet arm axis
+    u3nc_driver      ham_u;                   //  jet arm, nullable
+    c3_l             axe_l;                   //  jet arm axis
   } u3nc_dire;
 
   typedef struct _u3nc_prog  {
@@ -56,6 +57,21 @@
       u3nc_dire* dat_u;               // array of call info
     } dir_u;                          // direct call data
   } u3nc_prog;
+
+    typedef struct _u3nc_harm {
+      struct {
+        c3_w          len_w;            //  number of path segments
+        const c3_c**  pax_u;            //  path array
+        c3_l          axe_l;            //  axis in the core
+      } rin;                          //  [path axis] cold state identifier
+
+      u3nc_driver     ham_u;              //  jet driver
+      c3_w            arg_w;              //  number of arguments
+      const c3_l*     loc_l;              //  location of arguments, tree order
+    } u3nc_harm;
+
+      extern const u3nc_harm u3nc_Cod_u[];
+      extern const c3_w      u3nc_Cod_len_w;
 
       //  looks up static nock entry point (one argument, subject)
       u3nc_prog*
