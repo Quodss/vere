@@ -487,12 +487,12 @@ u3i_mp(mpz_t a_mp)
 /* u3i_vint(): increment [a].
 */
 u3_atom
-u3i_vint(u3_noun a)
+u3i_vint_imp(u3_noun a)
 {
   u3_assert(u3_none != a);
 
-  if ( c3_likely(_(u3a_is_cat(a))) ) {
-    return ( c3_unlikely(a == 0x7fffffff) ) ? u3i_word(a + 1) : (a + 1);
+  if ( c3_unlikely(_(u3a_is_cat(a))) ) {
+    return ( a == 0x7fffffff ) ? u3i_word(a + 1) : (a + 1);
   }
   else if ( c3_unlikely(_(u3a_is_cell(a))) ) {
     return u3m_bail(c3__exit);

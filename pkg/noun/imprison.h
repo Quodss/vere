@@ -109,8 +109,11 @@
         /* u3i_vint(): increment [a].
         */
           u3_atom
-          u3i_vint(u3_noun a);
-
+          u3i_vint_imp(u3_noun a);
+          #define u3i_vint(a) ({                                                \
+            u3_noun __a = a;                                                    \
+            (__a < 0x7fffffff) ? (__a + 1) : u3i_vint_imp(__a);                 \
+          })
         /* u3i_cell(): Produce the cell `[a b]`.
         */
           u3_noun
