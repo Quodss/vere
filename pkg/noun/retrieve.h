@@ -210,7 +210,15 @@
       **   Unifies noun pointers on inner roads.
       */
         c3_o
-        u3r_sing(u3_noun a, u3_noun b);
+        u3r_sing_imp(u3_noun a, u3_noun b);
+
+#define u3r_sing(a, b) ({                                     \
+  u3_noun _a = a;                                             \
+  u3_noun _b = b;                                             \
+  ( _a == _b ) ? c3y :                                        \
+  ( c3y == u3a_is_cat(_a) || c3y == u3a_is_cat(_b) ) ? c3n :  \
+  u3r_sing_imp(_a, _b);                                       \
+})
 
       /* u3r_sing_c(): cord/C-string value equivalence.
       */

@@ -18,7 +18,11 @@ _setup(void)
 #define TAL(som)  ( c3y == u3du(som) ) ? ((u3a_cell*)u3a_to_ptr(som))->tel \
                                        : 0
 
-#define INC(som)  u3qa_inc(som)
+// #define INC(som)  u3qa_inc(som)
+#define INC(som) ({                                             \
+  u3_noun __som = som;                                          \
+  ( __som < (0x7fffffff - 1) ) ? (__som + 1) : u3qa_inc(__som); \
+})
 
 #define CON(hed, tel) u3nc(u3k(hed), u3k(tel))
 
@@ -53,8 +57,8 @@ _function_0x2(u3_noun reg_0v0, u3_noun reg_0v1)
     return rs[0];                          //    b
   }
   else {
-    rs[2] = INC(rs[0]);
-    return _function_0x2(rs[2], rs[1]);   //  $(b +(b))
+    // rs[2] = INC(rs[0]);
+    return _function_0x2(rs[3], rs[1]);   //  $(b +(b))
   }
 }
 
@@ -99,13 +103,17 @@ _test_call_transpiled(void)
 
   clock_gettime(CLOCK_MONOTONIC, &start);
 
-  #if 1
-  u3_noun pro = _function_0x0();
-  #else
-  volatile int i;
-  for (i = 0; i + 1 != 10000000; i++) {}
-  u3_noun pro = (u3_noun)i;
-  #endif
+  u3_noun pro;
+  if ( 1 ) {
+    pro = _function_0x0();
+  }
+  else {
+    int inc, i = 0;
+    for (; (inc = INC(i)) != 10000000; i = inc) ;
+
+    asm volatile("" :: "r"(i));
+    pro = (u3_noun)i;
+  }
 
   clock_gettime(CLOCK_MONOTONIC, &end);
 
