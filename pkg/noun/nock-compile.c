@@ -261,22 +261,28 @@ _nc_set_pogp_dire(u3nc_dire* dir_u)
   dir_u->pog_p = u3of(u3nc_prog, _n_find_direct(dir_u->bell));
 }
 
+#define VLE_ONE_BYTE  false
+
 static c3_d
 _vle_read(c3_y* buf_y, c3_w* ip_w)
 {
-  // c3_y byt_y;
-  // c3_d out_d = 0;
-  // for (c3_d i_d = 0; i_d < 9; i_d++) {
-  //   byt_y = buf_y[(*ip_w)++];
-  //   out_d |= ((byt_y & 0x7f) << (i_d * 7));
-  //   if ( byt_y < 0x80 ) {
-  //     return out_d;
-  //   }
-  // }
-  // u3_assert(!"out of range");
-  c3_y byt_y = buf_y[(*ip_w)++];
-  u3_assert(byt_y < 128);
-  return byt_y;
+  if ( !VLE_ONE_BYTE ) {
+    c3_y byt_y;
+    c3_d out_d = 0;
+    for (c3_d i_d = 0; i_d < 9; i_d++) {
+      byt_y = buf_y[(*ip_w)++];
+      out_d |= ((byt_y & 0x7f) << (i_d * 7));
+      if ( byt_y < 0x80 ) {
+        return out_d;
+      }
+    }
+    u3_assert(!"out of range");
+  }
+  else {
+    c3_y byt_y = buf_y[(*ip_w)++];
+    u3_assert(byt_y < 128);
+    return byt_y;
+  }
 }
 
 // len_w - number of input args
@@ -579,6 +585,12 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
   }
 }
 
+#undef u3k
+#undef u3z
+#define u3k(som) u3a_gain(som)
+#define u3z(som) u3a_lose(som)
+
+
 static u3_noun
 _nc_burn_out(u3nc_prog* pog_u, u3_noun* args, c3_w len_w)
 {
@@ -664,27 +676,36 @@ _nc_table_get(u3_post har_p, u3_noun som)
 static void
 _vle_write(c3_y** buf_y, c3_d val_d)
 {
-  // if ( c3_likely(val_d < 0xf0) ) {
-  //   *(*buf_y)++ = val_d;
-  //   return;
-  // }
-
-  // do {
-  //   *(*buf_y)++ = 0x80 | (val_d & 0x7f);
-  //   val_d >>= 7;
-  // } while ( val_d > 0x7f );
-
-  // *(*buf_y)++ = val_d;
-  u3_assert(val_d < 128);
-  *(*buf_y)++ = val_d;
+  if ( !VLE_ONE_BYTE ) {
+    if ( c3_likely(val_d < 0xf0) ) {
+      *(*buf_y)++ = val_d;
+      return;
+    }
+  
+    do {
+      *(*buf_y)++ = 0x80 | (val_d & 0x7f);
+      val_d >>= 7;
+    } while ( val_d > 0x7f );
+  
+    *(*buf_y)++ = val_d;
+  }
+  else {
+    u3_assert(val_d < 128);
+    *(*buf_y)++ = val_d;
+  }
 }
 
 //  RETAINS
 static c3_w
 _vle_measure(c3_d val_d)
 {
-  // return val_d ? (c3_bits_dabl(val_d) + 6) / 7 : 1;
-  return 1;
+  if ( !VLE_ONE_BYTE ) {
+    return val_d ? (c3_bits_dabl(val_d) + 6) / 7 : 1;
+  }
+  else {
+    return 1;
+  }
+  
 }
 
 //  RETAINS
