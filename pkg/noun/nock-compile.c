@@ -261,7 +261,7 @@ _nc_set_pogp_dire(u3nc_dire* dir_u)
   dir_u->pog_p = u3of(u3nc_prog, _n_find_direct(dir_u->bell));
 }
 
-#define VLE_ONE_BYTE  false
+#define VLE_ONE_BYTE  true
 
 static c3_d
 _vle_read(c3_y* buf_y, c3_w* ip_w)
@@ -290,7 +290,7 @@ static u3_noun
 _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
 {
 # define X(opcode, name, indirect_jump) indirect_jump
-  static void* lab[] = { OPCODES };
+  static const void* lab[] = { OPCODES };
 # undef X
 
   c3_y *pog = pog_u->byc_u.ops_y;
@@ -298,10 +298,8 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
   u3p(void) empty;
   nc_burnframe* fam;
   u3_noun pro;
-
-  (void)empty;
-
-  empty = u3R->cap_p;
+  u3_road* our_road_u = u3R;
+  empty = our_road_u->cap_p;
   _nc_push_args(mov, off, pog_u->tot_w, len_w, args);
 
 #ifdef VERBOSE_BYTECODE
@@ -311,8 +309,8 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
 #endif
 
 #define VAL()   (_vle_read(pog, &ip_w))
-#define PEEK(R) (_nc_peek(mov, off, R))
-
+//  XX have an explicit register u3_noun array
+#define PEEK(R)  ( u3to(u3_noun, (our_road_u->cap_p - mov * R) + off) )
 #define HEAD(som)  ((c3n == u3du(som)) ? c3__boom : u3h(som))
 #define TAIL(som)  ((c3n == u3du(som)) ? c3__boom : u3t(som))
 
@@ -332,7 +330,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
   for ( c3_y i_y = 0; i_y < pog_u->tot_w; i_y++ ) {   \
         if ( u3_none != *PEEK(i_y) ) u3z(*PEEK(i_y)); \
       }                                               \
-      u3R->cap_p -= (mov * pog_u->tot_w);             \
+      our_road_u->cap_p -= (mov * pog_u->tot_w);             \
 } while (0)
 
   BURN();
@@ -340,7 +338,7 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
     do_imm: {
       c3_w i_w = VAL();
       c3_w d_w = VAL();
-      _nc_put(_nc_peek(mov, off, d_w), u3k(pog_u->lit_u.non[i_w]));
+      _nc_put(PEEK(d_w), u3k(pog_u->lit_u.non[i_w]));
       BURN();
     }
 
@@ -360,13 +358,12 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
       c3_w h_w = VAL(),
            t_w = VAL(),
            d_w = VAL();
-      _nc_put(PEEK(d_w), u3nc(u3k(*PEEK(h_w)), u3k(*PEEK(h_w))));
+      _nc_put(PEEK(d_w), u3nc(u3k(*PEEK(h_w)), u3k(*PEEK(t_w))));
       BURN();
     }
 
     do_hed: {
       c3_w s_w = VAL(), d_w = VAL();
-      if ( c3n == u3du(*PEEK(s_w)) )
       _nc_put(PEEK(d_w), u3k(HEAD(*PEEK(s_w))));
       BURN();
     }
@@ -378,7 +375,8 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
     }
 
     do_cel: {
-      if ( c3n == u3du(*PEEK(VAL())) ) {
+      c3_w s_w = VAL();
+      if ( c3n == u3du(*PEEK(s_w)) ) {
         u3m_bail(c3__exit);
       }
       BURN();
@@ -457,8 +455,8 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
           BURN();
         }
       }
-      fam         = u3to(nc_burnframe, u3R->cap_p) + off + mov;
-      u3R->cap_p  = u3of(nc_burnframe, fam - off);
+      fam         = u3to(nc_burnframe, our_road_u->cap_p) + off + mov;
+      our_road_u->cap_p  = u3of(nc_burnframe, fam - off);
 
       fam->ip_w   = ip_w;
       fam->pog_u  = pog_u;
@@ -562,11 +560,11 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
     done_out: {
       u3_assert(u3_none != pro);
       POP_REGS();
-      if ( empty == u3R->cap_p ) {
+      if ( empty == our_road_u->cap_p ) {
         return pro;
       }
-      fam        = u3to(nc_burnframe, u3R->cap_p) + off;
-      u3R->cap_p = u3of(nc_burnframe, fam - (mov+off));
+      fam        = u3to(nc_burnframe, our_road_u->cap_p) + off;
+      our_road_u->cap_p = u3of(nc_burnframe, fam - (mov+off));
 
       pog_u = fam->pog_u;
       pog   = pog_u->byc_u.ops_y;
