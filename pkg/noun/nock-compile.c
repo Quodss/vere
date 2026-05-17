@@ -310,6 +310,18 @@ _nc_burn(u3nc_prog* pog_u, u3_noun* args, c3_w len_w, c3_ys mov, c3_ys off)
 #define HEAD(som)  ((c3n == u3du(som)) ? c3__boom : u3h(som))
 #define TAIL(som)  ((c3n == u3du(som)) ? c3__boom : u3t(som))
 
+#undef u3k
+#define u3k(som) ({                                                             \
+  u3_noun __som = som;                                                          \
+  ( c3y == u3a_is_cat(__som) ) ? __som : u3a_gain(__som);                       \
+})
+
+#undef u3z
+#define u3z(som) ({                                                             \
+  u3_noun __som = som;                                                          \
+  ( c3y == u3a_is_cat(__som) ) ? (void)0 : u3a_lose(__som);                     \
+})
+
 #define POP_REGS() do {                               \
   for ( c3_y i_y = 0; i_y < pog_u->tot_w; i_y++ ) {   \
         if ( u3_none != *PEEK(i_y) ) u3z(*PEEK(i_y)); \
