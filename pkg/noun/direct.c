@@ -180,11 +180,13 @@ u3d_match_sock(u3_noun cape, u3_noun data, u3_noun list)
 static u3_noun
 _d_compile(u3_noun sub, u3_noun fol)
 {
+  fprintf(stderr, "compile start\r\n");
   u3_noun limb = u3nc(c3__limb, u3i_string("compile")),
           comp = u3dc("slap", u3R->dir_ka, limb),
           samp = u3nt(u3nt(c3__cell, c3__noun, c3__noun), u3k(sub), u3k(fol)),
           gul  = u3nt(u3nc(1, 0), u3nc(0, 0), 0),  // |~(^ ~)
           pro  = u3n_slam_et(gul, u3v_wish("slam"), u3nc(comp, samp));
+  fprintf(stderr, "compile done\r\n");
   
   u3_assert(_(u3du(pro)));
   if ( 0 != u3h(pro) ) {
@@ -208,6 +210,7 @@ u3d_search(u3_noun sub, u3_noun fol)
 
   u3nc_prog* pog_u = u3nc_look_entry_direct(sub, fol);
   if ( pog_u ) return pog_u;
+  fprintf(stderr, "failed to find, compiling fresh\r\n");
   u3_noun sock = _d_compile(sub, fol);
   pog_u = u3nc_build_entry_direct(sock, fol);
   u3z(sock);

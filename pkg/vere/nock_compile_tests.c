@@ -7,6 +7,8 @@
 #include "nock-compile.h"
 #include "ur/ur.h"
 
+#include "ska_hoon_fml.h"
+
 #include <stdio.h>
 #include <sys/time.h>
 
@@ -73,6 +75,13 @@ _test_shape2(void)
   return out_t;
 }
 
+static void
+_slog(u3_noun hod)
+{
+  u3_pier_tank(0, 0, u3k(u3t(hod)));
+  u3z(hod);
+}
+
 /* _setup(): prepare for tests.
 */
 static void
@@ -91,6 +100,8 @@ _setup(void)
     printf("*** fail _setup 2\n");
     exit(1);
   }
+
+  // u3C.slog_f = _slog;
 }
 
 static u3_noun
@@ -136,17 +147,17 @@ main(int argc, char* argv[])
 {
   _setup();
 
-  if ( !_test_shape1() ) {
+  if ( !t(_test_shape1) ) {
     fprintf(stderr, "test failed: %s:%d\r\n", __FILE__, __LINE__);
     exit(1);
   }
 
-  if ( !_test_shape2() ) {
+  if ( !t(_test_shape2) ) {
     fprintf(stderr, "test failed: %s:%d\r\n", __FILE__, __LINE__);
     exit(1);
   }
 
-  if ( !_test_eq(42, u3nt(4, 0, 1), 43) ) {
+  if ( !t(_test_eq, 42, u3nt(4, 0, 1), 43) ) {
     fprintf(stderr, "test failed: %s:%d\r\n", __FILE__, __LINE__);
     exit(1);
   }
@@ -164,6 +175,15 @@ main(int argc, char* argv[])
     u3_noun dec = u3nq(8, u3nc(1, 0), 8, u3nq(u3nq(1, 6, u3nq(5, u3nc(0, 7), 4, u3nc(0, 6)), u3nq(u3nc(0, 6), 9, 2, u3nq(u3nc(0, 2), u3nt(4, 0, 6), 0, 7))), 9, 2, u3nc(0, 1)));
     
     if ( !t(_test_eq, 10000000, dec, 10000000 - 1) ) {
+      fprintf(stderr, "test failed: %s:%d\r\n", __FILE__, __LINE__);
+      exit(1);
+    }
+  }
+
+  {
+    u3_noun hoon_fol = u3s_cue_bytes((c3_d)U3_Hoon_zpdt_len, U3_Hoon_zpdt);
+    hoon_fol = u3nq(7, hoon_fol, 1, 0);
+    if ( !t(_test_eq, 0, hoon_fol, 0) ) {
       fprintf(stderr, "test failed: %s:%d\r\n", __FILE__, __LINE__);
       exit(1);
     }
