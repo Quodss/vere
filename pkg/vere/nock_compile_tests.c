@@ -7,6 +7,20 @@
 #include "nock-compile.h"
 #include "ur/ur.h"
 
+#include <stdio.h>
+#include <sys/time.h>
+
+
+#define t(fn, ...) ({ \
+    struct timeval _t_start, _t_end; \
+    gettimeofday(&_t_start, NULL); \
+    __typeof__(fn(__VA_ARGS__)) _t_ret = fn(__VA_ARGS__); \
+    gettimeofday(&_t_end, NULL); \
+    double _t_elapsed = (_t_end.tv_sec - _t_start.tv_sec) + \
+                        (_t_end.tv_usec - _t_start.tv_usec) / 1000000.0; \
+    fprintf(stderr, "[%s] %.6f s\n", #fn, _t_elapsed); \
+    _t_ret; \
+})
 
 static u3_noun
 _d_shape_mut(c3_l* loc_l, c3_w arg_w)
@@ -140,7 +154,7 @@ main(int argc, char* argv[])
   {
     u3_noun dec = u3nq(8, u3nc(1, 0), 8, u3nq(u3nq(1, 6, u3nq(5, u3nc(0, 7), 4, u3nc(0, 6)), u3nq(u3nc(0, 6), 9, 2, u3nq(u3nc(0, 2), u3nt(4, 0, 6), 0, 7))), 9, 2, u3nc(0, 1)));
     
-    if ( !_test_eq(42, dec, 41) ) {
+    if ( !t(_test_eq, 10000000, dec, 10000000 - 1) ) {
       fprintf(stderr, "test failed: %s:%d\r\n", __FILE__, __LINE__);
       exit(1);
     }
